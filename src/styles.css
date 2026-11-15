@@ -1,0 +1,1306 @@
+/* Gestaltung der ganzen App. Farben und Maße stehen oben als Variablen. */
+
+:root {
+  --papier: #fbf7f0;
+  --flaeche: #ffffff;
+  --tinte: #1e2235;
+  --tinte-leise: #5b6178;
+  --linie: #e8e1d5;
+
+  --marke: #4b3fd6;
+  --marke-dunkel: #372db0;
+  --marke-hell: #eceafe;
+  --sonne: #ffb224;
+  --sonne-dunkel: #d98a00;
+  --sonne-hell: #fff1d1;
+  --see: #0f8f84;
+  --see-hell: #dcf4f0;
+
+  --richtig: #128a5b;
+  --richtig-hell: #ddf6ea;
+  --falsch: #c9353b;
+  --falsch-hell: #fde4e5;
+
+  --rund: 18px;
+  --schatten: 0 1px 2px rgb(30 34 53 / 6%), 0 6px 20px rgb(30 34 53 / 6%);
+
+  color-scheme: light;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Noto Sans',
+    sans-serif;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--tinte);
+  background: var(--papier);
+  -webkit-text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+p,
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--sonne);
+  outline-offset: 2px;
+}
+
+[lang='tru'] {
+  hyphens: none;
+}
+
+.nur-vorlesen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.seite {
+  max-width: 560px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+.leer {
+  display: grid;
+  place-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+/* --- Knöpfe ---------------------------------------------------------------- */
+
+.knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  background: var(--marke);
+  box-shadow: 0 4px 0 var(--marke-dunkel);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+}
+
+.knopf:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--marke-dunkel);
+}
+
+.knopf--sonne {
+  background: var(--sonne);
+  box-shadow: 0 4px 0 var(--sonne-dunkel);
+  color: var(--tinte);
+}
+
+.knopf--sonne:active {
+  box-shadow: 0 1px 0 var(--sonne-dunkel);
+}
+
+.knopf--zweit {
+  background: var(--flaeche);
+  box-shadow:
+    inset 0 0 0 2px var(--linie),
+    0 4px 0 var(--linie);
+  color: var(--tinte);
+}
+
+.knopf--zweit:active {
+  box-shadow:
+    inset 0 0 0 2px var(--linie),
+    0 1px 0 var(--linie);
+}
+
+.knopf--warn {
+  background: var(--falsch);
+  box-shadow: 0 4px 0 #8f2227;
+}
+
+.knopf--klein {
+  min-height: 42px;
+  padding: 8px 16px;
+  border-radius: 13px;
+  font-size: 0.92rem;
+  box-shadow: 0 3px 0 var(--marke-dunkel);
+}
+
+.zwei {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* --- Lautsprecher ---------------------------------------------------------- */
+
+.ton {
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--marke-hell);
+  color: var(--marke);
+  transition: transform 0.1s;
+}
+
+.ton:active {
+  transform: scale(0.94);
+}
+
+.ton--aktiv {
+  background: var(--marke);
+  color: #fff;
+}
+
+/* Solange die Aufnahme läuft, breitet sich ein Ring um den Knopf aus. */
+.ton--aktiv::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid var(--marke);
+  animation: welle 1.1s ease-out infinite;
+}
+
+.ton--gross {
+  width: 104px;
+  height: 104px;
+  background: var(--marke);
+  color: #fff;
+  box-shadow: 0 6px 0 var(--marke-dunkel);
+}
+
+@keyframes welle {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+/* --- Fortschrittsring ------------------------------------------------------ */
+
+.ring {
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+}
+
+.ring svg {
+  position: absolute;
+  inset: 0;
+}
+
+.ring circle {
+  fill: none;
+}
+
+.ring__bahn {
+  stroke: var(--linie);
+}
+
+.ring__wert {
+  stroke: var(--sonne);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.ring__inhalt {
+  position: relative;
+  font-weight: 800;
+}
+
+/* --- Startseite ------------------------------------------------------------ */
+
+.start__kopf {
+  padding: calc(18px + env(safe-area-inset-top)) 22px 30px;
+  background: var(--marke);
+  background-image:
+    radial-gradient(circle at 108% -18%, rgb(255 255 255 / 10%) 0 150px, transparent 151px),
+    radial-gradient(circle at -12% 112%, rgb(255 255 255 / 7%) 0 120px, transparent 121px);
+  border-radius: 0 0 32px 32px;
+  color: #fff;
+}
+
+.start__leiste {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.start__marke {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.start__info {
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 16%);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.start__gruss {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.start__gruss h1 {
+  font-size: 2.9rem;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.start__gruss .ton {
+  background: rgb(255 255 255 / 18%);
+  color: #fff;
+}
+
+.start__gruss .ton--aktiv::after {
+  border-color: #fff;
+}
+
+.start__text {
+  margin: 10px 0 22px;
+  max-width: 21em;
+  font-size: 1.08rem;
+  color: rgb(255 255 255 / 92%);
+}
+
+.start__kopf .knopf {
+  width: 100%;
+}
+
+.start__stand {
+  margin-top: 16px;
+  font-size: 0.88rem;
+  color: rgb(255 255 255 / 85%);
+  text-align: center;
+}
+
+.installieren {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 18px 16px 0;
+  padding: 16px 12px 16px 18px;
+  border-radius: var(--rund);
+  background: var(--sonne-hell);
+}
+
+.installieren > div {
+  flex: 1;
+}
+
+.installieren p {
+  margin: 2px 0 0;
+  font-size: 0.92rem;
+}
+
+.installieren .knopf {
+  margin-top: 12px;
+}
+
+.installieren__zu {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.start__pfad {
+  padding: 30px 16px 8px;
+}
+
+.start__pfad h2 {
+  font-size: 1.35rem;
+  text-align: center;
+}
+
+.start__pfadtext {
+  margin: 4px auto 26px;
+  max-width: 19em;
+  font-size: 0.92rem;
+  color: var(--tinte-leise);
+  text-align: center;
+}
+
+.pfad {
+  position: relative;
+  margin: 0 auto;
+}
+
+.pfad__linie {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.pfad__linie path {
+  fill: none;
+  stroke: #d9d0c0;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1 11;
+}
+
+.pfad__stufe {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(var(--versatz));
+}
+
+.pfad__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+}
+
+.knoten {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f1ebe0;
+  color: #a39c8d;
+}
+
+.knoten--offen {
+  background: var(--flaeche);
+  color: var(--marke);
+  font-size: 1.7rem;
+  box-shadow:
+    0 6px 0 var(--linie),
+    var(--schatten);
+  transition: transform 0.1s;
+}
+
+.pfad__link:active .knoten--offen {
+  transform: translateY(3px);
+}
+
+.pfad__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  padding: 2px 10px;
+  max-width: 190px;
+  border-radius: 10px;
+  background: var(--papier);
+  text-align: center;
+  line-height: 1.25;
+}
+
+.pfad__titel {
+  font-weight: 700;
+}
+
+.pfad__deutsch {
+  font-size: 0.82rem;
+  color: var(--tinte-leise);
+}
+
+.pfad__stufe--zu .pfad__titel {
+  color: var(--tinte-leise);
+  font-weight: 600;
+}
+
+.start__fuss {
+  padding: 8px 24px 0;
+  font-size: 0.8rem;
+  color: var(--tinte-leise);
+  text-align: center;
+}
+
+/* --- Kopfzeile und Reiter -------------------------------------------------- */
+
+.kopf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top)) 16px 10px 8px;
+}
+
+.kopf__zurueck {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+}
+
+.kopf__titel {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.kopf__titel h1 {
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.kopf__titel > span {
+  font-size: 0.85rem;
+  color: var(--tinte-leise);
+}
+
+.reiter {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 0 16px;
+  padding: 4px;
+  border-radius: 15px;
+  background: #efe8dc;
+}
+
+.reiter a {
+  padding: 9px 4px;
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--tinte-leise);
+  text-align: center;
+  text-decoration: none;
+}
+
+.reiter .reiter__aktiv {
+  background: var(--flaeche);
+  color: var(--tinte);
+  box-shadow: 0 1px 3px rgb(30 34 53 / 12%);
+}
+
+.lektion main {
+  padding: 18px 16px 0;
+}
+
+/* --- Dialog ---------------------------------------------------------------- */
+
+.werkzeug {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.schalter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.schalter input {
+  appearance: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 99px;
+  background: #d8d0c2;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.schalter input::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.schalter input:checked {
+  background: var(--marke);
+}
+
+.schalter input:checked::after {
+  transform: translateX(18px);
+}
+
+.situation {
+  margin-bottom: 22px;
+  padding: 16px;
+  border-radius: var(--rund);
+  background: var(--sonne-hell);
+}
+
+.situation h2 {
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a5a00;
+}
+
+.situation__satz {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.situation__satz + .situation__satz {
+  margin-top: 12px;
+}
+
+.situation__satz .ton {
+  width: 40px;
+  height: 40px;
+  background: rgb(255 255 255 / 70%);
+  color: #8a5a00;
+}
+
+.situation__satz .ton--aktiv {
+  background: #8a5a00;
+  color: #fff;
+}
+
+.situation__satz .ton--aktiv::after {
+  border-color: #8a5a00;
+}
+
+.situation__satz p {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.situation__satz p span:not([lang]) {
+  font-size: 0.88rem;
+  color: #6b5a36;
+}
+
+.gespraech {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zeile {
+  display: flex;
+  scroll-margin: 120px;
+}
+
+.zeile--rechts {
+  justify-content: flex-end;
+}
+
+.blase {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 86%;
+  padding: 11px 16px 13px;
+  border-radius: 20px;
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  text-align: left;
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s;
+}
+
+.zeile--links .blase {
+  border-bottom-left-radius: 6px;
+}
+
+.zeile--rechts .blase {
+  border-bottom-right-radius: 6px;
+}
+
+.blase:active {
+  transform: scale(0.985);
+}
+
+.blase--1 {
+  background: var(--marke-hell);
+}
+
+.blase--2 {
+  background: var(--see-hell);
+}
+
+.blase--3 {
+  background: var(--sonne-hell);
+}
+
+.blase--aktiv {
+  box-shadow:
+    0 0 0 3px var(--marke),
+    var(--schatten);
+}
+
+.blase__wer {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tinte-leise);
+}
+
+.blase__sur {
+  font-size: 1.12rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.blase__de {
+  font-size: 0.92rem;
+  color: var(--tinte-leise);
+}
+
+.weiter-zu {
+  display: grid;
+  margin-top: 28px;
+}
+
+/* --- Wörter ---------------------------------------------------------------- */
+
+.legende {
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  color: var(--tinte-leise);
+}
+
+.woerter {
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+}
+
+.wort {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px 11px 12px;
+}
+
+.wort + .wort {
+  border-top: 1px solid #f1ece3;
+}
+
+.wort__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.wort__sur {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.wort__hinweis {
+  font-size: 0.85rem;
+  color: var(--tinte-leise);
+}
+
+.wort__de {
+  font-size: 0.93rem;
+  color: var(--tinte-leise);
+}
+
+.punkt {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #d8d0c2;
+}
+
+.punkt--1,
+.punkt--2 {
+  border-color: var(--sonne);
+  background: var(--sonne);
+}
+
+.punkt--3 {
+  border-color: var(--richtig);
+  background: var(--richtig);
+}
+
+/* --- Üben ------------------------------------------------------------------ */
+
+.lernkarte {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 14px 20px 18px;
+  border-radius: 22px;
+  background: var(--marke);
+  box-shadow: 0 5px 0 var(--marke-dunkel);
+  color: #fff;
+  text-decoration: none;
+}
+
+.lernkarte:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--marke-dunkel);
+}
+
+.lernkarte .ring__bahn {
+  stroke: rgb(255 255 255 / 22%);
+}
+
+.lernkarte .ring__inhalt {
+  font-size: 0.95rem;
+}
+
+.lernkarte__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: rgb(255 255 255 / 88%);
+}
+
+.lernkarte__text strong {
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.lernkarte__stand {
+  font-weight: 700;
+  color: var(--sonne);
+}
+
+.zwischentitel {
+  margin: 30px 4px 12px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tinte-leise);
+}
+
+.arten {
+  display: grid;
+  gap: 12px;
+}
+
+.art {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 12px 14px 14px;
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  color: var(--tinte-leise);
+  text-decoration: none;
+}
+
+.art:active {
+  transform: scale(0.985);
+}
+
+.art__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: var(--marke-hell);
+  color: var(--marke);
+}
+
+.art:nth-child(2) .art__icon {
+  background: var(--sonne-hell);
+  color: #a56a00;
+}
+
+.art:nth-child(3) .art__icon {
+  background: var(--see-hell);
+  color: var(--see);
+}
+
+.art__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.art__text strong {
+  font-size: 1.05rem;
+  color: var(--tinte);
+}
+
+/* --- Übungsrunde ----------------------------------------------------------- */
+
+.runde {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding-bottom: 0;
+}
+
+.runde__kopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(10px + env(safe-area-inset-top)) 20px 6px 8px;
+}
+
+.runde__zu {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: var(--tinte-leise);
+}
+
+.balken {
+  flex: 1;
+  height: 14px;
+  border-radius: 99px;
+  background: #ebe4d8;
+  overflow: hidden;
+}
+
+.balken span {
+  display: block;
+  height: 100%;
+  min-width: 14px;
+  border-radius: 99px;
+  background: var(--sonne);
+  transition: width 0.35s ease;
+}
+
+.aufgabe {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.aufgabe__inhalt {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 20px 20px;
+}
+
+.aufgabe__art {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--marke);
+}
+
+.aufgabe__frage {
+  margin: 2px 0 20px;
+  font-size: 1.45rem;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.aufgabe__fuss {
+  display: grid;
+  gap: 14px;
+  padding: 16px 20px calc(18px + env(safe-area-inset-bottom));
+  min-height: calc(88px + env(safe-area-inset-bottom));
+}
+
+.aufgabe__fuss--richtig {
+  background: var(--richtig-hell);
+}
+
+.aufgabe__fuss--falsch {
+  background: var(--falsch-hell);
+}
+
+.urteil {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  line-height: 1.3;
+}
+
+.urteil__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.aufgabe__fuss--richtig .urteil {
+  color: var(--richtig);
+}
+
+.aufgabe__fuss--falsch .urteil {
+  color: var(--falsch);
+}
+
+.urteil strong {
+  font-size: 1.1rem;
+}
+
+.urteil p {
+  color: var(--tinte);
+}
+
+.aufgabe__fuss--richtig .knopf {
+  background: var(--richtig);
+  box-shadow: 0 4px 0 #0b6642;
+}
+
+.aufgabe__fuss--falsch .knopf {
+  background: var(--falsch);
+  box-shadow: 0 4px 0 #8f2227;
+}
+
+/* Karteikarte */
+
+.karte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 300px;
+  padding: 30px 20px;
+  border-radius: 26px;
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  text-align: center;
+}
+
+.karte .ton {
+  margin-bottom: 14px;
+}
+
+.karte__verdeckt {
+  max-width: 15em;
+  font-size: 0.92rem;
+  color: var(--tinte-leise);
+}
+
+.karte__sur {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  animation: auftauchen 0.25s ease;
+}
+
+.karte__hinweis {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--tinte-leise);
+}
+
+.karte__de {
+  font-size: 1.15rem;
+  color: var(--tinte-leise);
+  animation: auftauchen 0.25s ease;
+}
+
+@keyframes auftauchen {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Multiple Choice und Hören */
+
+.frage {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 78px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+}
+
+.frage:has(.ton--gross) {
+  flex-direction: column;
+  padding: 26px 18px 30px;
+  text-align: center;
+}
+
+.frage__sur {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.frage__de {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.optionen {
+  display: grid;
+  gap: 11px;
+}
+
+.option {
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: var(--flaeche);
+  box-shadow:
+    inset 0 0 0 2px var(--linie),
+    0 3px 0 var(--linie);
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: left;
+  transition: transform 0.08s;
+}
+
+.option:not([aria-disabled='true']):active {
+  transform: translateY(2px);
+}
+
+.option[aria-disabled='true'] {
+  cursor: default;
+}
+
+.option--richtig {
+  background: var(--richtig-hell);
+  box-shadow:
+    inset 0 0 0 2px var(--richtig),
+    0 3px 0 var(--richtig);
+  color: #0b5c3c;
+  animation: huepfen 0.3s ease;
+}
+
+.option--falsch {
+  background: var(--falsch-hell);
+  box-shadow:
+    inset 0 0 0 2px var(--falsch),
+    0 3px 0 var(--falsch);
+  color: #8f2227;
+  animation: wackeln 0.3s ease;
+}
+
+.option--blass {
+  opacity: 0.5;
+}
+
+@keyframes huepfen {
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes wackeln {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+/* --- Ergebnis -------------------------------------------------------------- */
+
+.ergebnis {
+  display: flex;
+  flex-direction: column;
+  padding: calc(48px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+}
+
+.ergebnis__lob {
+  text-align: center;
+}
+
+.ergebnis__sur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--marke);
+}
+
+.ergebnis__lob p {
+  margin-top: 4px;
+  font-size: 1.1rem;
+  color: var(--tinte-leise);
+}
+
+.ergebnis__lob .ergebnis__mut {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--tinte);
+}
+
+.ergebnis__zahl {
+  margin: 26px auto 0;
+  padding: 14px 24px;
+  border-radius: 99px;
+  background: var(--sonne-hell);
+  text-align: center;
+}
+
+.ergebnis__liste {
+  margin-top: 30px;
+}
+
+.ergebnis__liste h2 {
+  margin: 0 4px 10px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tinte-leise);
+}
+
+.ergebnis__knoepfe {
+  display: grid;
+  gap: 14px;
+  margin-top: 36px;
+}
+
+/* --- Über die App ---------------------------------------------------------- */
+
+.info__text {
+  padding: 8px 22px 0;
+}
+
+.info__text h2 {
+  margin: 26px 0 6px;
+  font-size: 1.1rem;
+}
+
+.info__text p {
+  color: #3c4157;
+}
+
+.info__text a {
+  color: var(--marke);
+  font-weight: 600;
+}
+
+.info__text .knopf,
+.info__text .zwei {
+  margin-top: 8px;
+}
+
+/* --- Meldung --------------------------------------------------------------- */
+
+.hinweis {
+  position: fixed;
+  left: 50%;
+  top: calc(12px + env(safe-area-inset-top));
+  z-index: 10;
+  pointer-events: none;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: var(--tinte);
+  color: #fff;
+  font-size: 0.9rem;
+  text-align: center;
+  transform: translateX(-50%);
+  animation: auftauchen 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

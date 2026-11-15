@@ -1,0 +1,98 @@
+[
+  {
+    "nr": 1,
+    "latein": "Olafbeṯ I",
+    "deutsch": "Alphabet I",
+    "syrisch": "ܐܳܠܰܦܒܶܝܬ̣ ܐ"
+  },
+  {
+    "nr": 2,
+    "latein": "Olafbeṯ II",
+    "deutsch": "Alphabet II",
+    "syrisch": "ܐܳܠܰܦܒܶܝܬ̣ ܒ"
+  },
+  {
+    "nr": 3,
+    "latein": "Šlomo",
+    "deutsch": "Hallo",
+    "syrisch": "ܫܠܳܡܐ"
+  },
+  {
+    "nr": 4,
+    "latein": "Iqarṯo",
+    "deutsch": "Familie",
+    "syrisch": "ܐܝܩܰܪܬ݂ܐ"
+  },
+  {
+    "nr": 5,
+    "latein": "Madrašto",
+    "deutsch": "Schule",
+    "syrisch": "ܡܰܕܪܰܫܬܐ"
+  },
+  {
+    "nr": 6,
+    "latein": "Bayto",
+    "deutsch": "Haus",
+    "syrisch": "ܒܰܝܬܐ"
+  },
+  {
+    "nr": 7,
+    "latein": "Gušmo",
+    "deutsch": "Körper",
+    "syrisch": "ܓܘܫܡܐ"
+  },
+  {
+    "nr": 8,
+    "latein": "Zabno",
+    "deutsch": "Zeit",
+    "syrisch": "ܙܰܒܢܐ"
+  },
+  {
+    "nr": 9,
+    "latein": "Surgoḏo",
+    "deutsch": "Kalender",
+    "syrisch": "ܣܘܪܓܳܕ݂ܐ"
+  },
+  {
+    "nr": 10,
+    "latein": "Muklo",
+    "deutsch": "Essen",
+    "syrisch": "ܡܘܟܠܐ"
+  },
+  {
+    "nr": 11,
+    "latein": "Jule w Gawne",
+    "deutsch": "Kleidung und Farben",
+    "syrisch": "ܔܘܠܶܐ ܘܓܰܘܢܶܐ"
+  },
+  {
+    "nr": 12,
+    "latein": "Mazracto",
+    "deutsch": "Bauernhof",
+    "syrisch": "ܡܰܙܪܰܥܬܐ"
+  },
+  {
+    "nr": 13,
+    "latein": "Ceḏo zcuro bu Swed",
+    "deutsch": "Weihnachten in Schweden",
+    "syrisch": "ܥܶܕ݂ܐ ܙܥܘܪܐ ܒܘ ܣܘܶܕ"
+  },
+  {
+    "nr": 14,
+    "latein": "Su taxtor",
+    "deutsch": "Beim Arzt",
+    "syrisch": "ܣܘ ܬܰܟ݂ܬܳܪ"
+  },
+  {
+    "nr": 15,
+    "latein": "Spor",
+    "deutsch": "Sport",
+    "syrisch": "ܣܦ݁ܳܪ"
+  },
+  {
+    "nr": 16,
+    "latein": "Ṭlobo w Gworo",
+    "deutsch": "Verlobung und Heirat",
+    "syrisch": "ܛܠܳܒܐ ܘܓܘܳܪܐ"
+  }
+]
