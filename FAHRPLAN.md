@@ -126,7 +126,7 @@
 - [x] App-Gerüst: Startseite mit Lernpfad, Lektionsansicht, Übungsmodul, lokaler Fortschritt, PWA-Installation
 - [x] Lektion 3 „Šlomo" vollständig: Dialog (19 Zeilen + Einleitung), Wortschatz (51 Wörter), Audio
 - [x] Drei erste Übungstypen: Karteikarte (hören → aufdecken), Multiple Choice (Surayt ↔ Deutsch), Hören & Auswählen
-- [ ] Veröffentlichung auf GitHub Pages → Link zum Testen auf dem Handy. *Automatik ist vorbereitet (`.github/workflows/deploy.yml`). Es fehlen noch: Änderungen nach `main` übernehmen und einmalig Settings → Pages → Source „GitHub Actions" wählen.*
+- [x] Veröffentlichung auf GitHub Pages → Link zum Testen auf dem Handy: **https://lioneldalmis-afk.github.io/Suryoyo-App/** *Jede Änderung auf `main` wird automatisch getestet und veröffentlicht (`.github/workflows/deploy.yml`). Anleitung zum Installieren und Ausprobieren im README.*
 - [ ] Test mit 2–3 Jugendlichen, Feedback sammeln
 
 ### Phase 2 – Inhalte: ganz Level A einpflegen (2–4 Sitzungen)

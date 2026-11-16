@@ -2,7 +2,30 @@
 
 Eine Web-App, mit der Jugendliche **gesprochenes Surayt (Turoyo)** lernen, damit sie am Familientisch mitreden und sich mit ihren Großeltern unterhalten können. Sie läuft im Browser und lässt sich auf iPhone und Android wie eine normale App auf den Homescreen legen (PWA).
 
+**Zum Ausprobieren:** https://lioneldalmis-afk.github.io/Suryoyo-App/
+
 Der Plan mit allen Phasen steht in [FAHRPLAN.md](FAHRPLAN.md).
+
+## Auf dem Handy ausprobieren
+
+Den Link oben auf dem Handy öffnen und die App auf den Homescreen legen – dann startet sie wie eine normale App:
+
+- **iPhone:** in **Safari** öffnen, unten auf das Teilen-Symbol (Quadrat mit Pfeil) tippen, dann **„Zum Home-Bildschirm“**.
+- **Android/Samsung:** in **Chrome** öffnen, oben rechts auf ⋮ tippen, dann **„App installieren“** oder **„Zum Startbildschirm hinzufügen“**.
+
+Neue Versionen kommen von selbst: Einfach die App schließen und neu öffnen. Die Aufnahmen kommen von der Lehrbuch-Website und brauchen Internet; alles andere geht auch offline.
+
+**Was ausprobieren (etwa 10 Minuten):**
+
+1. „Los geht’s“ – die erste Einheit von Lektion 3 durchspielen, danach gleich die zweite.
+2. Beim Nachsprechen am Ende einer Einheit das Mikrofon erlauben, sich aufnehmen und mit dem Original vergleichen.
+3. In Lektion 3 unter „Üben“ das **Rollenspiel** starten, z. B. als Afrem.
+4. Oben auf der Startseite die Flamme antippen: „Deine Erfolge“ mit Serie, Tagesziel und Abzeichen.
+5. Am nächsten Tag wiederkommen: Auf der Startseite steht dann „Wiederholen“ mit den Wörtern aus dem Karteikasten.
+
+**Fragen fürs Feedback:** Sind die Einheiten zu lang oder zu kurz? Klappen Audio und Mikrofon? Ist irgendwo unklar, was man tun soll? Klingt beim Nachsprechen etwas komisch?
+
+Der Lernstand bleibt nur auf dem jeweiligen Handy. Zum Neuanfangen: „Über die App“ → „Lernstand zurücksetzen“.
 
 ## Stand
 
@@ -78,7 +101,7 @@ Mit `EXTRAKT_CACHE=<Ordner>` vor dem Befehl werden die Seiten zwischengespeicher
 
 ## Veröffentlichen
 
-Jede Änderung auf `main` wird automatisch getestet, gebaut und auf GitHub Pages veröffentlicht (`.github/workflows/deploy.yml`). Dafür muss einmalig im Repository unter **Settings → Pages → Source** die Option **GitHub Actions** gewählt sein.
+Jede Änderung auf `main` wird automatisch getestet, gebaut und auf GitHub Pages veröffentlicht (`.github/workflows/deploy.yml`) – unter https://lioneldalmis-afk.github.io/Suryoyo-App/. Im Repository ist dafür unter **Settings → Pages → Source** die Option **GitHub Actions** gewählt.
 
 ## Familientisch-Sätze prüfen
 
