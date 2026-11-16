@@ -3,18 +3,13 @@ import { AudioButton } from '../components/AudioButton';
 import { IconKarten, IconOhr, IconPfeil, IconPlay, IconStopp, IconWahl, IconZurueck } from '../components/Icons';
 import { ProgressRing } from '../components/ProgressRing';
 import { Surayt } from '../components/Surayt';
-import { verfuegbar } from '../data';
+import { istDialog, verfuegbar } from '../data';
 import { entsperren, spiele, stopp, useAudioStatus } from '../lib/audio';
 import { stufe, useFortschritt } from '../lib/progress';
 import { ersetze, href, type LektionTab } from '../lib/router';
 import { lektionsstand, type Uebungsart } from '../lib/session';
-import type { Lektion } from '../types';
-
-const REITER: { tab: LektionTab; name: string }[] = [
-  { tab: 'dialog', name: 'Dialog' },
-  { tab: 'woerter', name: 'Wörter' },
-  { tab: 'ueben', name: 'Üben' },
-];
+import { vorHinweis } from '../lib/text';
+import type { Eintrag, Lektion } from '../types';
 
 export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
   const lektion = verfuegbar.get(nr);
@@ -28,6 +23,12 @@ export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
       </div>
     );
   }
+
+  const reiter: { tab: LektionTab; name: string }[] = [
+    { tab: 'text', name: istDialog(lektion) ? 'Dialog' : 'Text' },
+    { tab: 'woerter', name: 'Wörter' },
+    { tab: 'ueben', name: 'Üben' },
+  ];
 
   // Reiterwechsel ersetzt die Adresse: „Zurück“ führt so direkt zum Lernpfad.
   const wechsle = (ziel: LektionTab) => (ereignis: MouseEvent) => {
@@ -53,7 +54,7 @@ export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
       </header>
 
       <nav className="reiter" aria-label="Bereiche der Lektion">
-        {REITER.map((r) => (
+        {reiter.map((r) => (
           <a
             key={r.tab}
             href={href({ name: 'lektion', nr, tab: r.tab })}
@@ -67,7 +68,7 @@ export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
       </nav>
 
       <main>
-        {tab === 'dialog' && <Dialog lektion={lektion} />}
+        {tab === 'text' && <Text lektion={lektion} />}
         {tab === 'woerter' && <Woerter lektion={lektion} />}
         {tab === 'ueben' && <Ueben lektion={lektion} />}
       </main>
@@ -75,9 +76,9 @@ export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
   );
 }
 
-// --- Dialog ------------------------------------------------------------------
+// --- Dialog oder Lesetext ----------------------------------------------------
 
-function Dialog({ lektion }: { lektion: Lektion }) {
+function Text({ lektion }: { lektion: Lektion }) {
   const [mitDeutsch, setMitDeutsch] = useState(true);
   const [laeuft, setLaeuft] = useState(false);
   const status = useAudioStatus();
@@ -85,12 +86,14 @@ function Dialog({ lektion }: { lektion: Lektion }) {
   const durchlauf = useRef(0);
   useEffect(() => () => void durchlauf.current++, []);
 
-  const sprecher = [...new Set(lektion.dialog.map((z) => z.sprecher))];
+  const dialog = istDialog(lektion);
+  // Die Überschrift des Textes nur zeigen, wenn sie nicht schon der Lektionstitel ist.
+  const ueberschrift = lektion.textTitel?.latein !== lektion.titel.latein ? lektion.textTitel : undefined;
 
   async function allesAnhoeren() {
     const meiner = ++durchlauf.current;
     setLaeuft(true);
-    for (const zeile of lektion.dialog) {
+    for (const zeile of lektion.text) {
       if (!zeile.audio) continue;
       document.getElementById(zeile.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       const ausgang = await spiele(zeile.audio);
@@ -106,6 +109,13 @@ function Dialog({ lektion }: { lektion: Lektion }) {
     setLaeuft(false);
     stopp();
   }
+
+  // Eine Zeile antippen spielt sie ab; nochmal antippen hält sie an.
+  const aktiv = (zeile: Eintrag) => status.url === zeile.audio && status.zustand !== 'fehler';
+  const tippe = (zeile: Eintrag) => {
+    if (aktiv(zeile) && !laeuft) stopp();
+    else if (zeile.audio) void spiele(zeile.audio);
+  };
 
   return (
     <>
@@ -135,29 +145,35 @@ function Dialog({ lektion }: { lektion: Lektion }) {
         </section>
       )}
 
-      <ol className="gespraech">
-        {lektion.dialog.map((zeile) => {
-          const wer = sprecher.indexOf(zeile.sprecher);
-          const aktiv = status.url === zeile.audio && status.zustand !== 'fehler';
-          return (
-            <li key={zeile.id} id={zeile.id} className={`zeile zeile--${wer === 0 ? 'links' : 'rechts'}`}>
+      {ueberschrift && (
+        <div className="textkopf">
+          <AudioButton url={ueberschrift.audio} label={ueberschrift.latein} />
+          <h2>
+            <Surayt>{ueberschrift.latein}</Surayt>
+            {mitDeutsch && <span>{ueberschrift.deutsch}</span>}
+          </h2>
+        </div>
+      )}
+
+      {dialog ? (
+        <Gespraech zeilen={lektion.text} mitDeutsch={mitDeutsch} aktiv={aktiv} tippe={tippe} />
+      ) : (
+        <ol className="lesetext">
+          {lektion.text.map((zeile) => (
+            <li key={zeile.id} id={zeile.id}>
               <button
                 type="button"
-                className={`blase blase--${wer % 4}${aktiv ? ' blase--aktiv' : ''}`}
-                aria-label={`${zeile.sprecher}: ${zeile.latein} – anhören`}
-                onClick={() => {
-                  if (aktiv && !laeuft) stopp();
-                  else if (zeile.audio) void spiele(zeile.audio);
-                }}
+                className={`lesetext__satz${aktiv(zeile) ? ' lesetext__satz--aktiv' : ''}`}
+                aria-label={`${zeile.latein} – anhören`}
+                onClick={() => tippe(zeile)}
               >
-                <span className="blase__wer">{zeile.sprecher}</span>
-                <Surayt className="blase__sur">{zeile.latein}</Surayt>
-                {mitDeutsch && <span className="blase__de">{zeile.deutsch}</span>}
+                <Surayt className="lesetext__sur">{zeile.latein}</Surayt>
+                {mitDeutsch && <span className="lesetext__de">{zeile.deutsch}</span>}
               </button>
             </li>
-          );
-        })}
-      </ol>
+          ))}
+        </ol>
+      )}
 
       <div className="weiter-zu">
         <a className="knopf" href={href({ name: 'runde', nr: lektion.nr, art: 'gemischt' })} onClick={entsperren}>
@@ -165,6 +181,39 @@ function Dialog({ lektion }: { lektion: Lektion }) {
         </a>
       </div>
     </>
+  );
+}
+
+interface GespraechProps {
+  zeilen: Eintrag[];
+  mitDeutsch: boolean;
+  aktiv: (zeile: Eintrag) => boolean;
+  tippe: (zeile: Eintrag) => void;
+}
+
+/** Dialog als Sprechblasen: die erste Person links, alle anderen rechts. */
+function Gespraech({ zeilen, mitDeutsch, aktiv, tippe }: GespraechProps) {
+  const sprecher = [...new Set(zeilen.map((z) => z.sprecher))];
+  return (
+    <ol className="gespraech">
+      {zeilen.map((zeile) => {
+        const wer = sprecher.indexOf(zeile.sprecher);
+        return (
+          <li key={zeile.id} id={zeile.id} className={`zeile zeile--${wer === 0 ? 'links' : 'rechts'}`}>
+            <button
+              type="button"
+              className={`blase blase--${wer % 4}${aktiv(zeile) ? ' blase--aktiv' : ''}`}
+              aria-label={`${zeile.sprecher}: ${zeile.latein} – anhören`}
+              onClick={() => tippe(zeile)}
+            >
+              <span className="blase__wer">{zeile.sprecher}</span>
+              <Surayt className="blase__sur">{zeile.latein}</Surayt>
+              {mitDeutsch && <span className="blase__de">{zeile.deutsch}</span>}
+            </button>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -188,7 +237,12 @@ function Woerter({ lektion }: { lektion: Lektion }) {
               <div className="wort__text">
                 <span>
                   <Surayt className="wort__sur">{wort.latein}</Surayt>
-                  {wort.hinweis && <span className="wort__hinweis"> {wort.hinweis}</span>}
+                  {wort.hinweis && (
+                    <span className="wort__hinweis">
+                      {vorHinweis(wort.hinweis)}
+                      {wort.hinweis}
+                    </span>
+                  )}
                 </span>
                 <span className="wort__de">{wort.deutsch}</span>
               </div>

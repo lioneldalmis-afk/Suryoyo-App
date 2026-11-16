@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { spiele, useAudioStatus } from '../lib/audio';
 import type { Schritt } from '../lib/session';
+import { vorHinweis } from '../lib/text';
 import type { Eintrag } from '../types';
 import { AudioButton } from './AudioButton';
 import { IconHaken, IconSchliessen } from './Icons';
@@ -34,7 +35,12 @@ export function Karte({ schritt, onFertig }: { schritt: KarteSchritt; onFertig: 
             <>
               <p className="karte__sur">
                 <Surayt>{e.latein}</Surayt>
-                {e.hinweis && <span className="karte__hinweis"> {e.hinweis}</span>}
+                {e.hinweis && (
+                  <span className="karte__hinweis">
+                    {vorHinweis(e.hinweis)}
+                    {e.hinweis}
+                  </span>
+                )}
               </p>
               <p className="karte__de">{e.deutsch}</p>
             </>

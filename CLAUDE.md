@@ -12,7 +12,8 @@ Lern-App für gesprochenes Surayt (Turoyo) für Jugendliche. Der Plan steht in `
 ## Arbeiten im Projekt
 
 - `npm test` (Vitest: Inhalte und Übungslogik), `npm run build` (Typprüfung + Build), `npm run dev`.
-- Lektion einlesen: `npm run extract -- <Nr>`; in Claude Code mit `NODE_USE_ENV_PROXY=1` davor. Die Website ist nur in der Cloud-Umgebung „Suryoyo-App“ erreichbar.
+- Lektion einlesen: `npm run extract -- <Nr>` oder `-- <von>-<bis>`; in Claude Code mit `NODE_USE_ENV_PROXY=1` davor, beim Ausprobieren zusätzlich `EXTRAKT_CACHE=<Ordner im Scratchpad>`, um die Website zu schonen. Die Website ist nur in der Cloud-Umgebung „Suryoyo-App“ erreichbar.
+- Datenmodell: `text` ist der Dialog oder Lesetext einer Lektion (Dialogzeilen haben `sprecher`), `einleitung` steht davor. Im Wortschatz ist `latein` das Stichwort und `hinweis` der Zusatz dahinter. Markierungen in `tags` übersteht ein erneutes Einlesen; `nur-mit-bild` blendet einen Satz aus (siehe `src/data/index.ts`).
 - Oberfläche und Datenfelder sind deutsch (`latein`, `deutsch`, `lektion` …), Kommentare ebenfalls.
 - Bewusst einfach halten: keine zusätzlichen Pakete ohne Not, keine Schriften oder Skripte von fremden Servern (Datenschutz, viele Nutzer sind minderjährig).
 - Änderungen an der Oberfläche im Browser in Handygröße prüfen (Playwright ist vorinstalliert). `window.scrollTo` und ähnliche Aufrufe geben in neuem Chromium ein Promise zurück – nicht direkt aus `useEffect` zurückgeben.

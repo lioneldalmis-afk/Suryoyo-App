@@ -1,6 +1,6 @@
 # Fahrplan: Surayt-Lern-App
 
-*Stand: 15.11.2026 · Dieses Dokument ist unser gemeinsamer Fahrplan. In jedem neuen Chat dieses Projekts reicht: „Weiter mit Phase X, Schritt Y". Erledigtes wird hier abgehakt.*
+*Stand: 16.11.2026 · Dieses Dokument ist unser gemeinsamer Fahrplan. In jedem neuen Chat dieses Projekts reicht: „Weiter mit Phase X, Schritt Y". Erledigtes wird hier abgehakt.*
 
 ---
 
@@ -57,6 +57,12 @@
 - Die Website enthält mehr als Level A: **Šlomo Surayt II – Fortgeschrittene** (8 Lektionen), 10 Lesestücke, Formentabellen und ein **Gesamtglossar Surayt > Deutsch und Deutsch > Surayt** (gute Grundlage für den Übersetzer in Phase 4).
 - Jeder Wortschatz-Eintrag hat **zwei Aufnahmen** (eine bei der Umschrift, eine bei der syrischen Schrift). Beide Links sind gespeichert (`audio`, `audio2`); die App nutzt vorerst die erste.
 - Der Audio-Server erlaubt nur direktes Abspielen, kein Zwischenspeichern durch die App. **Offline-Audio geht deshalb erst mit eigenen Kopien** der Dateien (nach Erlaubnis, siehe Phase 0).
+
+**Nachtrag 16.11.2026 (beim Einlesen der Lektionen 4–16 festgestellt):**
+- Nur die Lektionen **3, 8, 10 und 12 sind Dialoge** mit Sprechern. Die anderen haben einen **Lesetext** (eine kurze Erzählung, z. B. über Familie Be Marawge). Lektion 9 hat keinen eigenen Text, dort ist die Einleitung selbst der Text.
+- Die Lektionen 7, 10 und 11 enthalten **Bildtafeln** (Körperteile, Gerichte, Kleidung). Nur die Tafel mit den Gerichten (Lektion 10) hat eine deutsche Zeile, bei den anderen steht die Bedeutung nur im Bild.
+- In den Lektionen 13 und 14 steht in der Umschrift stellenweise das **kyrillische „ё“** statt „ë“ (sieht gleich aus, ist technisch ein anderes Zeichen).
+- Kleine Tippfehler auf der Website werden wörtlich übernommen, z. B. „Jede Jahreszeitbesteht aus drei Monaten“ (Lektion 9). Eine Liste solcher Stellen könnten wir dem Lehrbuch-Team schicken.
 
 ---
 
@@ -122,11 +128,12 @@
 - [ ] Test mit 2–3 Jugendlichen, Feedback sammeln
 
 ### Phase 2 – Inhalte: ganz Level A einpflegen (2–4 Sitzungen)
-- [ ] Extraktions-Skript: Dialoge, Wortschatz und Audio-Links jeder Lektion → JSON im einheitlichen Format. *Grundversion vorhanden (`scripts/extract-lesson.mjs`), bisher nur an Lektion 3 erprobt.*
-- [ ] Lektionen 4–16 nacheinander einpflegen (Reihenfolge wie im Lehrbuch, weil die Grammatik aufeinander aufbaut)
+- [x] Extraktions-Skript: Dialoge, Wortschatz und Audio-Links jeder Lektion → JSON im einheitlichen Format. *Kommt mit allen Lektionsformaten zurecht (Dialog oder Lesetext, Bildtafeln) und liest mehrere Lektionen in einem Lauf: `npm run extract -- 3-16`.*
+- [x] Lektionen 4–16 einpflegen. *Alle 14 Lektionen (3–16) sind in der App: 1.288 Wörter, 260 Text- und Dialogzeilen und 58 Einleitungssätze, alle mit Audio und syrischer Schrift.*
 - [ ] Lektionen 1–2 als kurzer **Aussprache-Guide**: Was bedeuten š, ṭ, ḥ, c, ë? Jeweils mit Audio
 - [ ] Glossar A (Kunoš mele) als Grundlage für den Übersetzer
-- [ ] Qualitätskontrolle: Stichproben gegen die Website, Audio-Zuordnung prüfen
+- [x] Qualitätskontrolle, automatisch: Jeder Audio-Link der Website ist genau einem Eintrag zugeordnet, Stichproben der Audio-Adressen liefern MP3s, die Tests prüfen alle Lektionen (Vollständigkeit, Sprecher, keine Doppelgänger-Zeichen).
+- [ ] Qualitätskontrolle durch einen Menschen: in jeder Lektion ein paar Wörter und Sätze anhören und mit dem Text vergleichen
 - [ ] In jeder Lektion „Familientisch-Sätze" markieren (Sätze, die man zu Hause direkt verwenden kann)
 
 ### Phase 3 – Spielerisches Lernen à la Duolingo (2–3 Sitzungen)
@@ -182,6 +189,7 @@
 - [x] GitHub-Repository: `lioneldalmis-afk/Suryoyo-App`
 - [ ] Wer prüft die Einreichungen sprachlich?
 - [ ] App-Name. *Die App läuft vorerst unter dem Arbeitstitel „Mamlo" (änderbar in `src/config.ts`, `index.html`, `vite.config.ts`).*
+- [ ] **„aramäisch/assyrisch" in Lehrbuchsätzen:** In 11 Sätzen der Lektionen 4, 5, 10, 13, 15 und 16 steht im Deutschen die Doppelform des Lehrbuchs (z. B. „Das ist eine aramäische/assyrische Familie."). Die Regel „keine Bezeichnungen für die Volksgruppe in der Oberfläche" gilt bisher für die eigenen Texte der App. Sollen diese Lehrbuchsätze wörtlich bleiben (Stand jetzt) oder ausgeblendet werden?
 - [ ] Antwort des Šlomo-Surayt-Teams zu Nutzungsrechten und Audio
 
 ## 8. Getroffene Entscheidungen
@@ -195,3 +203,14 @@
 - Lob am Ende einer Runde („Ġalabe ṭawwo!", „Ṭawwo!") ist wörtlich aus dem Dialog von Lektion 3 übernommen.
 - Audio wird direkt von textbook.surayt.com abgespielt; ohne Internet funktioniert alles außer Audio.
 
+**16.11.2026 – Phase 2 (Lektionen 4–16)**
+- Das Datenfeld `dialog` heißt jetzt `text`: Es enthält den Dialog oder den Lesetext einer Lektion. In Dialogen hat jede Zeile einen `sprecher`. Die Kennungen bleiben `LNN-D-…`, damit vorhandener Lernstand gültig bleibt. Der erste Reiter heißt bei Dialogen „Dialog", sonst „Text". Lesetexte erscheinen als Satzliste, jeder Satz ist antippbar.
+- Überschriften von Lesetexten („Malfono Aday – Der Lehrer Aday") stehen in `textTitel`. Der Lektionstitel kommt aus der ersten Zeile der Einleitung.
+- Wortschatz: Zusätze hinter dem Stichwort stehen im Feld `hinweis`, z. B. „aḏno" + „(f.), Pl. aḏne, aḏnoṯe". Zusammen ergeben beide genau den Text der Website. Abgefragt wird das Stichwort. Wendungen mit Doppelpunkt („cayni: b cayni zabno") bleiben ganz. Die syrische Schrift ist die ganze Zelle samt Klammerzusatz.
+- Unsichtbare Zeichen werden entfernt, das kyrillische „ё" wird durch „ë" ersetzt. Sonst bleibt alles wörtlich, auch Tippfehler der Website.
+- Bildtafeln werden nur übernommen, wenn sie eine deutsche Zeile haben: die 6 Gerichte aus Lektion 10, die noch nicht im Wortschatz standen (Markierung `bildtafel`).
+- Sätze, die ohne Bild der Website keinen Sinn ergeben („Lassen Sie die Maus über die Bilder gleiten …"), sind mit `nur-mit-bild` markiert und werden ausgeblendet: 6 Sätze in den Lektionen 7, 10 und 11. Sie bleiben in den Daten, die Markierung übersteht ein erneutes Einlesen.
+- Alle Lektionen sind von Anfang an offen. Das schrittweise Freischalten kommt mit Phase 3. „Weiter lernen" auf der Startseite führt in die zuletzt geübte Lektion, solange sie nicht fertig ist, sonst in die erste unfertige.
+- Jede Datei `src/data/lektion-NN.json` wird automatisch geladen. Alle Lektionen stecken im App-Code (etwa 160 KB komprimiert), damit sie offline da sind.
+- Wörter, die in mehreren Lektionen vorkommen (z. B. „dukano" in Lektion 4 und 10), haben pro Lektion einen eigenen Lernstand. Zusammenführen lässt sich das mit dem Karteikasten in Phase 3.
+- Behoben: Auf der Startseite ließ sich die Seite auf dem Handy ein Stück seitlich verschieben (der Lernpfad ragte unsichtbar über den Rand).

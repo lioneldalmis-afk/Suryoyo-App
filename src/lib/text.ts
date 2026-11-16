@@ -19,3 +19,9 @@ export function kern(deutsch: string): string {
     .trim()
     .toLowerCase();
 }
+
+/**
+ * Stichwort und Zusatz so zusammensetzen, wie sie im Lehrbuch stehen:
+ * „bayto“ + „(m.)“ → „bayto (m.)“, aber „cammo“ + „, pl. cammone“ → „cammo, pl. cammone“.
+ */
+export const vorHinweis = (hinweis: string) => (/^[,;:]/.test(hinweis) ? '' : ' ');

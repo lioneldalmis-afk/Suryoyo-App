@@ -34,8 +34,8 @@ export function mische<T>(liste: readonly T[], zufall: Zufall): T[] {
 
 /**
  * Reihenfolge, in der eine Lektion gelernt wird: die Wörter so, wie sie im
- * Dialog vorkommen, und jede Dialogzeile gleich nach ihren Wörtern. Wörter,
- * die im Dialog nicht vorkommen, stehen am Ende.
+ * Dialog oder Lesetext vorkommen, und jede Textzeile gleich nach ihren Wörtern.
+ * Wörter, die im Text nicht vorkommen, stehen am Ende.
  */
 export function lernreihenfolge(lektion: Lektion): Eintrag[] {
   let reihenfolge = gemerkt.get(lektion);
@@ -46,7 +46,7 @@ export function lernreihenfolge(lektion: Lektion): Eintrag[] {
 const gemerkt = new WeakMap<Lektion, Eintrag[]>();
 
 function berechneReihenfolge(lektion: Lektion): Eintrag[] {
-  const zeilen = lektion.dialog.map((z) => tokens(z.latein));
+  const zeilen = lektion.text.map((z) => tokens(z.latein));
   const erstesVorkommen = (wort: Eintrag): [number, number] | null => {
     const gesucht = tokens(wort.latein);
     for (let z = 0; z < zeilen.length; z++) {
@@ -58,16 +58,16 @@ function berechneReihenfolge(lektion: Lektion): Eintrag[] {
     return null;
   };
 
-  const imDialog: { eintrag: Eintrag; zeile: number; pos: number }[] = [];
+  const imText: { eintrag: Eintrag; zeile: number; pos: number }[] = [];
   const rest: Eintrag[] = [];
   for (const wort of lektion.wortschatz) {
     const ort = erstesVorkommen(wort);
-    if (ort) imDialog.push({ eintrag: wort, zeile: ort[0], pos: ort[1] });
+    if (ort) imText.push({ eintrag: wort, zeile: ort[0], pos: ort[1] });
     else rest.push(wort);
   }
-  lektion.dialog.forEach((zeile, z) => imDialog.push({ eintrag: zeile, zeile: z, pos: Infinity }));
-  imDialog.sort((a, b) => a.zeile - b.zeile || a.pos - b.pos);
-  return [...imDialog.map((x) => x.eintrag), ...rest];
+  lektion.text.forEach((zeile, z) => imText.push({ eintrag: zeile, zeile: z, pos: Infinity }));
+  imText.sort((a, b) => a.zeile - b.zeile || a.pos - b.pos);
+  return [...imText.map((x) => x.eintrag), ...rest];
 }
 
 /**
@@ -175,4 +175,21 @@ export function lektionsstand(lektion: Lektion, f: Fortschritt) {
   const alle = lernreihenfolge(lektion);
   const geuebt = alle.filter((e) => stufe(f, e.id) > 0).length;
   return { gesamt: alle.length, geuebt, anteil: alle.length ? geuebt / alle.length : 0 };
+}
+
+/**
+ * Wo es auf der Startseite weitergeht: in der zuletzt geübten Lektion, solange
+ * sie nicht fertig ist – sonst in der ersten, die noch nicht fertig geübt ist.
+ */
+export function aktuelleLektion(lektionen: readonly Lektion[], f: Fortschritt): Lektion {
+  let zuletzt: Lektion | undefined;
+  let zeit = 0;
+  for (const l of lektionen) {
+    for (const e of lernreihenfolge(l)) {
+      const t = f[e.id]?.zuletzt ?? 0;
+      if (t > zeit) [zeit, zuletzt] = [t, l];
+    }
+  }
+  if (zuletzt && lektionsstand(zuletzt, f).anteil < 1) return zuletzt;
+  return lektionen.find((l) => lektionsstand(l, f).anteil < 1) ?? lektionen[0];
 }

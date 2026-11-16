@@ -25,7 +25,8 @@ export function InfoScreen() {
       <main className="info__text">
         <p>
           Mit {APP_NAME} lernst du gesprochenes Surayt (Turoyo), damit du am Familientisch mitreden und dich mit
-          deinen Großeltern unterhalten kannst. Das hier ist ein früher Prototyp mit einer ersten Lektion.
+          deinen Großeltern unterhalten kannst. Das hier ist ein früher Prototyp mit den Lektionen{' '}
+          {lektionsbereich()} aus Level A des Lehrbuchs.
         </p>
 
         <h2>Woher die Inhalte kommen</h2>
@@ -73,3 +74,9 @@ export function InfoScreen() {
 }
 
 const datum = (iso: string) => iso.split('-').reverse().join('.');
+
+/** „3 bis 16“ – welche Lektionen schon in der App sind. */
+function lektionsbereich() {
+  const nummern = [...verfuegbar.keys()];
+  return nummern.length === 1 ? nummern[0] : `${Math.min(...nummern)} bis ${Math.max(...nummern)}`;
+}

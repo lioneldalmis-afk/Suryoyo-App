@@ -374,6 +374,9 @@ button {
 
 .start__pfad {
   padding: 30px 16px 8px;
+  /* Die seitlich versetzten Stufen ragen sonst unsichtbar über den Rand, und die Seite ließe sich verschieben. */
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .start__pfad h2 {
@@ -728,6 +731,74 @@ button {
 
 .blase__de {
   font-size: 0.92rem;
+  color: var(--tinte-leise);
+}
+
+/* Überschrift eines Lesetextes oder Dialogs, z. B. „Malfono Aday – Der Lehrer Aday“ */
+.textkopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 14px;
+}
+
+.textkopf h2 {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.textkopf h2 span:not([lang]) {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--tinte-leise);
+}
+
+/* Lesetext: ein Satz pro Zeile, antippen zum Anhören */
+.lesetext {
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  overflow: hidden;
+}
+
+.lesetext li {
+  scroll-margin: 120px;
+}
+
+.lesetext li + li {
+  border-top: 1px solid #f1ece3;
+}
+
+.lesetext__satz {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 12px 16px 13px 18px;
+  border-left: 4px solid transparent;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.lesetext__satz:active {
+  background: #faf6ef;
+}
+
+.lesetext__satz--aktiv {
+  border-left-color: var(--marke);
+  background: var(--marke-hell);
+}
+
+.lesetext__sur {
+  font-size: 1.06rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.lesetext__de {
+  font-size: 0.9rem;
   color: var(--tinte-leise);
 }
 

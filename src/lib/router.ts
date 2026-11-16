@@ -1,10 +1,10 @@
-// Kleiner Hash-Router (#/lektion/3/dialog). Hash-Adressen funktionieren auf
+// Kleiner Hash-Router (#/lektion/3/text). Hash-Adressen funktionieren auf
 // GitHub Pages ohne Zusatzkonfiguration, und die Zurück-Taste des Handys geht.
 
 import { useSyncExternalStore } from 'react';
 import type { Uebungsart } from './session';
 
-export type LektionTab = 'dialog' | 'woerter' | 'ueben';
+export type LektionTab = 'text' | 'woerter' | 'ueben';
 
 export type Route =
   | { name: 'start' }
@@ -12,7 +12,7 @@ export type Route =
   | { name: 'lektion'; nr: number; tab: LektionTab }
   | { name: 'runde'; nr: number; art: Uebungsart };
 
-const TABS: readonly string[] = ['dialog', 'woerter', 'ueben'];
+const TABS: readonly string[] = ['text', 'woerter', 'ueben'];
 const ARTEN: readonly string[] = ['gemischt', 'karten', 'wahl', 'hoeren'];
 
 export function parse(hash: string): Route {
@@ -21,7 +21,8 @@ export function parse(hash: string): Route {
   if (a === 'lektion' && /^\d+$/.test(b ?? '')) {
     const nr = Number(b);
     if (c === 'ueben' && ARTEN.includes(d)) return { name: 'runde', nr, art: d as Uebungsart };
-    return { name: 'lektion', nr, tab: TABS.includes(c) ? (c as LektionTab) : 'dialog' };
+    // Unbekannte Reiter (auch das frühere „dialog“) führen zum Text.
+    return { name: 'lektion', nr, tab: TABS.includes(c) ? (c as LektionTab) : 'text' };
   }
   return { name: 'start' };
 }

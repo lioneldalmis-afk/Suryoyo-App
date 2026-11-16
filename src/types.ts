@@ -22,12 +22,22 @@ export interface Eintrag {
   tags: string[];
 }
 
+export interface Ueberschrift {
+  latein: string;
+  syrisch: string;
+  deutsch: string;
+  audio?: string;
+}
+
 export interface Lektion {
   nr: number;
-  titel: { latein: string; syrisch: string; deutsch: string; audio?: string };
+  titel: Ueberschrift;
+  /** Eigene Überschrift des Dialogs oder Lesetextes, z. B. „Malfono Aday – Der Lehrer Aday“. */
+  textTitel?: Ueberschrift;
   quelle: { name: string; url: string; abgerufen: string };
   einleitung: Eintrag[];
-  dialog: Eintrag[];
+  /** Dialog oder Lesetext der Lektion. In Dialogen hat jede Zeile einen `sprecher`. */
+  text: Eintrag[];
   wortschatz: Eintrag[];
 }
 

@@ -6,6 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 // unter /Suryoyo-App/ – ohne dass der Repository-Name hier stehen muss.
 export default defineConfig({
   base: './',
+  // Alle Lektionen stecken bewusst mit im App-Code, damit sie offline da sind
+  // (etwa 160 KB komprimiert). Die Standardwarnung ab 500 KB ist deshalb höher gesetzt.
+  build: { chunkSizeWarningLimit: 1200 },
   plugins: [
     react(),
     VitePWA({

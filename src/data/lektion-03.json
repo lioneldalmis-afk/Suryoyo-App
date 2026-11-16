@@ -4,12 +4,18 @@
     "latein": "Šlomo",
     "syrisch": "ܫܠܳܡܐ",
     "deutsch": "Hallo",
+    "audio": "https://textbook.surayt.com/files/21211.mp3"
+  },
+  "textTitel": {
+    "latein": "Šlomo",
+    "syrisch": "ܫܠܳܡܐ",
+    "deutsch": "Hallo",
     "audio": "https://textbook.surayt.com/de/files/16250.mp3"
   },
   "quelle": {
     "name": "Šlomo Surayt",
     "url": "https://textbook.surayt.com/de/Online%20Course/1.3",
-    "abgerufen": "2026-11-15"
+    "abgerufen": "2026-11-16"
   },
   "einleitung": [
     {
@@ -46,7 +52,7 @@
       "tags": []
     }
   ],
-  "dialog": [
+  "text": [
     {
       "id": "L03-D-01",
       "latein": "Šlomo, ono ëšmi Afrem yo.",
@@ -821,7 +827,7 @@
     {
       "id": "L03-W-suqo",
       "latein": "šuqo",
-      "syrisch": "ܫܘܩܐ",
+      "syrisch": "ܫܘܩܐ (ܐܰܬ݂)",
       "deutsch": "Einkaufsstraße, Markt",
       "audio": "https://textbook.surayt.com/de/files/16220.mp3",
       "hinweis": "(f.)",

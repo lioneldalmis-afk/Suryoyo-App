@@ -6,10 +6,10 @@ Der Plan mit allen Phasen steht in [FAHRPLAN.md](FAHRPLAN.md).
 
 ## Stand
 
-Prototyp mit Lektion 3 „Šlomo“ aus dem Lehrbuch *Šlomo Surayt*:
+Prototyp mit den Lektionen 3 bis 16 aus Level A des Lehrbuchs *Šlomo Surayt*:
 
-- Dialog zum Anhören, Zeile für Zeile oder am Stück
-- 51 Wörter mit Aufnahme
+- Zu jeder Lektion der Dialog oder Lesetext zum Anhören, Zeile für Zeile oder am Stück
+- Zusammen knapp 1.300 Wörter, jedes mit Aufnahme
 - Drei Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen
 - Lernstand wird auf dem Gerät gespeichert, ohne Konto
 - Läuft offline (bis auf das Audio, das von der Lehrbuch-Website kommt)
@@ -46,7 +46,7 @@ npm run build
 
 | Ort | Inhalt |
 |---|---|
-| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-03.json` (Dialog, Wortschatz, Audio-Links) |
+| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-03.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext, Wortschatz, Audio-Links) |
 | `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Lernstand (`progress.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
 | `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Über die App |
 | `src/components/` | Bausteine wie Lautsprecher-Knopf und die Übungsaufgaben |
@@ -59,9 +59,16 @@ npm run build
 npm run extract -- 4
 ```
 
-Das Skript liest Dialog und Wortschatz der Lektion von der Website und schreibt `src/data/lektion-04.json`. Danach die Datei in `src/data/index.ts` eintragen. Die Übungen entstehen automatisch aus den Daten.
+Das Skript liest Text und Wortschatz der Lektion von der Website und schreibt `src/data/lektion-04.json`. Mehrere Lektionen auf einmal gehen mit `npm run extract -- 3-16`. Die App lädt jede `lektion-NN.json` automatisch, und die Übungen entstehen aus den Daten.
 
-Das Skript ist bisher nur an Lektion 3 erprobt. Andere Lektionen können anders aufgebaut sein, deshalb das Ergebnis immer gegen die Website prüfen.
+Erneutes Einlesen überschreibt die Datei, behält aber von Hand gesetzte Markierungen (`tags`). Zwei Markierungen haben eine Bedeutung:
+
+| Markierung | Bedeutung |
+|---|---|
+| `nur-mit-bild` | Satz bezieht sich auf ein Bild der Website und wird in der App ausgeblendet |
+| `bildtafel` | Wort stammt aus einer Bildtafel statt aus dem Wortschatz der Lektion |
+
+Mit `EXTRAKT_CACHE=<Ordner>` vor dem Befehl werden die Seiten zwischengespeichert, damit wiederholte Läufe die Website nicht erneut abfragen. Nach jedem Einlesen `npm test` laufen lassen: Die Tests prüfen alle Lektionen auf Vollständigkeit.
 
 ## Veröffentlichen
 

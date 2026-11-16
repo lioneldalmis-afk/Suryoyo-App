@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { kurs, verfuegbar } from '../data';
+import { istDialog, kurs, LOB, NUR_MIT_BILD, verfuegbar } from '../data';
 import { nachRunde, MAX_STUFE, type Fortschritt } from './progress';
 import { href, parse, type Route } from './router';
-import { baueRunde, lektionsstand, lernreihenfolge, optionenFuer, type Schritt } from './session';
-import { fold, kern, tokens } from './text';
+import {
+  aktuelleLektion,
+  baueRunde,
+  lektionsstand,
+  lernreihenfolge,
+  optionenFuer,
+  type Schritt,
+} from './session';
+import { fold, kern, tokens, vorHinweis } from './text';
 
 const lektion = verfuegbar.get(3)!;
 const vorrat = lernreihenfolge(lektion);
 const wort = (latein: string) => lektion.wortschatz.find((w) => w.latein === latein)!;
+const alleLektionen = [...verfuegbar.values()];
 
 /** Zufall mit festem Startwert, damit die Tests immer gleich laufen. */
 function zufall(start: number) {
@@ -19,6 +27,11 @@ function zufall(start: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+const SYRISCH = /[܀-ݏ]/;
+const KYRILLISCH = /[Ѐ-ӿ]/;
+const UNSICHTBAR = /[­ ​-‍﻿]/;
+const AUDIO = /^https:\/\/textbook\.surayt\.com\/.+\.mp3$/;
 
 describe('Text', () => {
   it('faltet die Umschrift auf einfache Buchstaben', () => {
@@ -33,24 +46,69 @@ describe('Text', () => {
     expect(kern('Hallo (Begrüßungsformel)')).toBe('hallo');
     expect(kern('(dass) ich (m.) frage')).toBe('ich frage');
   });
+
+  it('setzt Stichwort und Zusatz wie im Lehrbuch zusammen', () => {
+    expect('bayto' + vorHinweis('(m.)') + '(m.)').toBe('bayto (m.)');
+    expect('cammo' + vorHinweis(', pl. cammone') + ', pl. cammone').toBe('cammo, pl. cammone');
+  });
 });
 
 describe('Inhalte', () => {
+  it('umfassen die Lektionen 3 bis 16 von Level A', () => {
+    expect([...verfuegbar.keys()]).toEqual(Array.from({ length: 14 }, (_, i) => i + 3));
+  });
+
   it('sind vollständig und stammen aus dem Lehrbuch', () => {
-    for (const l of verfuegbar.values()) {
-      const alle = [...l.einleitung, ...l.dialog, ...l.wortschatz];
-      expect(new Set(alle.map((e) => e.id)).size).toBe(alle.length);
-      for (const e of alle) {
+    const ids = alleLektionen.flatMap((l) => [...l.einleitung, ...l.text, ...l.wortschatz].map((e) => e.id));
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const l of alleLektionen) {
+      expect(l.text.length, `Lektion ${l.nr}`).toBeGreaterThan(5);
+      expect(l.wortschatz.length, `Lektion ${l.nr}`).toBeGreaterThan(40);
+      expect(l.titel.syrisch, `Lektion ${l.nr}`).toMatch(SYRISCH);
+      for (const e of [...l.einleitung, ...l.text, ...l.wortschatz]) {
         expect(e.latein, e.id).not.toBe('');
         expect(e.deutsch, e.id).not.toBe('');
-        expect(e.syrisch, e.id).toMatch(/[܀-ݏ]/);
-        expect(e.audio, e.id).toMatch(/^https:\/\/textbook\.surayt\.com\/.+\.mp3$/);
+        expect(e.syrisch, e.id).toMatch(SYRISCH);
+        expect(e.audio, e.id).toMatch(AUDIO);
         expect(e.lektion).toBe(l.nr);
         expect(e.quelle).toBe('lehrbuch');
-        expect(e.latein + e.deutsch, e.id).not.toMatch(/[­ ]/);
+        expect(e.latein + e.deutsch, e.id).not.toMatch(UNSICHTBAR);
+        // Kyrillische Doppelgänger wie „ё“ statt „ë“ würden Suche und Zuordnung stören.
+        expect(e.latein + e.deutsch + (e.hinweis ?? ''), e.id).not.toMatch(KYRILLISCH);
+        expect(e.latein + e.deutsch, e.id).not.toMatch(SYRISCH);
       }
-      for (const z of l.dialog) expect(z.sprecher, z.id).toBeTruthy();
+      for (const w of l.wortschatz) {
+        // Zusätze wie „(f.)“ oder „, pl. cammone“ stehen im Hinweis, nicht im Stichwort.
+        expect(w.latein, w.id).not.toMatch(/[()]|, pl\./i);
+        expect(w.audio2, w.id).toMatch(AUDIO);
+      }
     }
+  });
+
+  it('unterscheiden Dialoge (jede Zeile mit Sprecher) von Lesetexten', () => {
+    expect(alleLektionen.filter(istDialog).map((l) => l.nr)).toEqual([3, 8, 10, 12]);
+    for (const l of alleLektionen) {
+      for (const z of l.text) {
+        if (istDialog(l)) expect(z.sprecher, z.id).toBeTruthy();
+        else expect(z.sprecher, z.id).toBeUndefined();
+        // Der Sprechername steht nicht noch einmal vor dem Satz.
+        if (z.sprecher) expect(z.deutsch, z.id).not.toMatch(/^[^ ]+:/);
+      }
+    }
+  });
+
+  it('blenden Sätze aus, die nur mit einem Bild der Website Sinn ergeben', () => {
+    for (const l of alleLektionen) {
+      expect(l.einleitung.some((e) => e.tags.includes(NUR_MIT_BILD)), `Lektion ${l.nr}`).toBe(false);
+    }
+    expect(verfuegbar.get(10)!.einleitung).toHaveLength(0);
+    // Die Gerichte aus der Bildtafel von Lektion 10 stehen im Wortschatz.
+    expect(verfuegbar.get(10)!.wortschatz.find((w) => w.latein === 'Dawqe')?.deutsch).toBe('Pfannkuchen');
+  });
+
+  it('enthalten das Lob für das Rundenende', () => {
+    expect(LOB.sehrGut?.latein).toBe('Ġalabe ṭawwo.');
+    expect(LOB.gut?.latein).toBe('Ṭawwo.');
   });
 
   it('haben für jede verfügbare Lektion einen Platz im Lernpfad', () => {
@@ -70,9 +128,19 @@ describe('Lernreihenfolge', () => {
     ]);
   });
 
-  it('enthält jedes Wort und jede Dialogzeile genau einmal, die Einleitung nicht', () => {
-    const erwartet = [...lektion.wortschatz, ...lektion.dialog].map((e) => e.id).sort();
-    expect(vorrat.map((e) => e.id).sort()).toEqual(erwartet);
+  it('enthält in jeder Lektion jedes Wort und jede Textzeile genau einmal, die Einleitung nicht', () => {
+    for (const l of alleLektionen) {
+      const erwartet = [...l.wortschatz, ...l.text].map((e) => e.id).sort();
+      expect(lernreihenfolge(l).map((e) => e.id).sort(), `Lektion ${l.nr}`).toEqual(erwartet);
+    }
+  });
+
+  it('beginnt auch in Lesetexten mit den Wörtern der ersten Zeile', () => {
+    const l4 = verfuegbar.get(4)!;
+    const reihe = lernreihenfolge(l4);
+    const ersteZeile = reihe.findIndex((e) => e.id === l4.text[0].id);
+    expect(ersteZeile).toBeGreaterThan(0);
+    for (const e of reihe.slice(0, ersteZeile)) expect(e.art).toBe('wort');
   });
 });
 
@@ -80,13 +148,22 @@ describe('Antwortmöglichkeiten', () => {
   it('enthalten die richtige Antwort und keine Verwechslungsfallen', () => {
     for (let i = 0; i < 200; i++) {
       const z = zufall(i);
-      for (const ziel of [wort('ṭawwo'), wort('šlomo'), wort('b šayno'), lektion.dialog[0]]) {
+      for (const ziel of [wort('ṭawwo'), wort('šlomo'), wort('b šayno'), lektion.text[0]]) {
         const optionen = optionenFuer(ziel, vorrat, z);
         expect(optionen).toHaveLength(ziel.art === 'satz' ? 3 : 4);
         expect(optionen).toContain(ziel);
         expect(optionen.every((o) => o.art === ziel.art)).toBe(true);
         expect(new Set(optionen.map((o) => kern(o.deutsch))).size).toBe(optionen.length);
         expect(new Set(optionen.map((o) => fold(o.latein))).size).toBe(optionen.length);
+      }
+    }
+  });
+
+  it('reichen in jeder Lektion für jeden Eintrag', () => {
+    for (const l of alleLektionen) {
+      const reihe = lernreihenfolge(l);
+      for (const ziel of reihe) {
+        expect(optionenFuer(ziel, reihe, zufall(7)), ziel.id).toHaveLength(ziel.art === 'satz' ? 3 : 4);
       }
     }
   });
@@ -148,17 +225,43 @@ describe('Lernstand', () => {
   });
 });
 
+describe('Startseite', () => {
+  const geuebt = (ids: string[], zuletzt: number): Fortschritt =>
+    Object.fromEntries(ids.map((id) => [id, { stufe: 1, richtig: 1, falsch: 0, zuletzt }]));
+
+  it('beginnt mit der ersten Lektion', () => {
+    expect(aktuelleLektion(alleLektionen, {}).nr).toBe(3);
+  });
+
+  it('macht in der zuletzt geübten Lektion weiter', () => {
+    const l7 = lernreihenfolge(verfuegbar.get(7)!);
+    const f = { ...geuebt([vorrat[0].id], 1), ...geuebt([l7[0].id], 2) };
+    expect(aktuelleLektion(alleLektionen, f).nr).toBe(7);
+  });
+
+  it('springt nach einer fertigen Lektion zur ersten unfertigen', () => {
+    const f = geuebt(
+      vorrat.map((e) => e.id),
+      5,
+    );
+    expect(aktuelleLektion(alleLektionen, f).nr).toBe(4);
+  });
+});
+
 describe('Adressen', () => {
   it('lassen sich hin und zurück übersetzen', () => {
     const routen: Route[] = [
       { name: 'start' },
       { name: 'info' },
       { name: 'lektion', nr: 3, tab: 'woerter' },
+      { name: 'lektion', nr: 9, tab: 'text' },
       { name: 'runde', nr: 3, art: 'hoeren' },
     ];
     for (const r of routen) expect(parse(href(r))).toEqual(r);
     expect(parse('')).toEqual({ name: 'start' });
-    expect(parse('#/lektion/3')).toEqual({ name: 'lektion', nr: 3, tab: 'dialog' });
+    expect(parse('#/lektion/3')).toEqual({ name: 'lektion', nr: 3, tab: 'text' });
+    // Frühere Adresse aus dem ersten Prototyp
+    expect(parse('#/lektion/3/dialog')).toEqual({ name: 'lektion', nr: 3, tab: 'text' });
     expect(parse('#/lektion/3/ueben')).toEqual({ name: 'lektion', nr: 3, tab: 'ueben' });
     expect(parse('#/quatsch')).toEqual({ name: 'start' });
   });

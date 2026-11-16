@@ -9,7 +9,7 @@ import { kurs, verfuegbar } from '../data';
 import { entsperren } from '../lib/audio';
 import { useFortschritt } from '../lib/progress';
 import { href } from '../lib/router';
-import { lektionsstand } from '../lib/session';
+import { aktuelleLektion, lektionsstand } from '../lib/session';
 
 // Maße des Lernpfads in Pixeln. Die geschwungene Linie hinter den Knoten wird
 // daraus berechnet, deshalb stehen sie hier und nicht nur im CSS.
@@ -32,8 +32,7 @@ function pfadLinie(anzahl: number): string {
 export function StartScreen() {
   const f = useFortschritt();
   const lektionen = [...verfuegbar.values()];
-  // Weiter geht es in der ersten Lektion, die noch nicht fertig geübt ist.
-  const aktuelle = lektionen.find((l) => lektionsstand(l, f).anteil < 1) ?? lektionen[0];
+  const aktuelle = aktuelleLektion(lektionen, f);
   const stand = lektionsstand(aktuelle, f);
   const begruessung = verfuegbar.get(3)?.titel;
 
@@ -70,7 +69,8 @@ export function StartScreen() {
       <main className="start__pfad">
         <h2>Dein Lernpfad</h2>
         <p className="start__pfadtext">
-          Den Anfang macht Lektion 3. Die anderen Lektionen kommen nach und nach dazu.
+          Die Lektionen bauen aufeinander auf – am besten der Reihe nach. Lektion 1 und 2 (Alphabet und
+          Aussprache) kommen bald dazu.
         </p>
         <ol className="pfad" style={{ width: PFAD_BREITE }}>
           <svg
@@ -106,7 +106,7 @@ export function StartScreen() {
               <li key={k.nr} className="pfad__stufe" style={stil}>
                 <a
                   className="pfad__link"
-                  href={href({ name: 'lektion', nr: k.nr, tab: 'dialog' })}
+                  href={href({ name: 'lektion', nr: k.nr, tab: 'text' })}
                   aria-label={`Lektion ${k.nr}: ${k.latein} – ${k.deutsch}, ${Math.round(anteil * 100)} Prozent geübt`}
                 >
                   <span className="knoten knoten--offen" style={{ width: KNOTEN, height: KNOTEN }}>
