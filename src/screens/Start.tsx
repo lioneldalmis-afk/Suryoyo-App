@@ -69,8 +69,8 @@ export function StartScreen() {
       <main className="start__pfad">
         <h2>Dein Lernpfad</h2>
         <p className="start__pfadtext">
-          Die Lektionen bauen aufeinander auf – am besten der Reihe nach. Lektion 1 und 2 (Alphabet und
-          Aussprache) kommen bald dazu.
+          Die Lektionen bauen aufeinander auf – am besten der Reihe nach ab Lektion 3. In Lektion 1 und 2 kannst
+          du nachschlagen, wie Buchstaben wie <Surayt>ḥ</Surayt> oder <Surayt>ë</Surayt> klingen.
         </p>
         <ol className="pfad" style={{ width: PFAD_BREITE }}>
           <svg

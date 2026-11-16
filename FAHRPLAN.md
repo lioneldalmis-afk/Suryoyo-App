@@ -62,7 +62,9 @@
 - Nur die Lektionen **3, 8, 10 und 12 sind Dialoge** mit Sprechern. Die anderen haben einen **Lesetext** (eine kurze Erzählung, z. B. über Familie Be Marawge). Lektion 9 hat keinen eigenen Text, dort ist die Einleitung selbst der Text.
 - Die Lektionen 7, 10 und 11 enthalten **Bildtafeln** (Körperteile, Gerichte, Kleidung). Nur die Tafel mit den Gerichten (Lektion 10) hat eine deutsche Zeile, bei den anderen steht die Bedeutung nur im Bild.
 - In den Lektionen 13 und 14 steht in der Umschrift stellenweise das **kyrillische „ё“** statt „ë“ (sieht gleich aus, ist technisch ein anderes Zeichen).
-- Kleine Tippfehler auf der Website werden wörtlich übernommen, z. B. „Jede Jahreszeitbesteht aus drei Monaten“ (Lektion 9). Eine Liste solcher Stellen könnten wir dem Lehrbuch-Team schicken.
+- Kleine Tippfehler auf der Website werden wörtlich übernommen, z. B. „Jede Jahreszeitbesteht aus drei Monaten“ (Lektion 9) oder „neu konzipierte Buchtstaben“ (Lektion 1). Eine Liste solcher Stellen könnten wir dem Lehrbuch-Team schicken. Dazu gehört auch: In Lektion 2 ist beim Laut ḥ im Beispiel „qaḥwa“ das q hervorgehoben statt des ḥ.
+- **Lektion 1 und 2** haben keinen Dialog. Lektion 1 erklärt die beiden Schriften, Lektion 2 die Laute: 18 besondere Konsonanten mit Beschreibung und je drei Beispielwörtern, 7 Vokale und 16 **Hörpaare** („talyo – ṭalyo“), alles mit Audio.
+- Das **Glossar A** (Kapitel 1.19) hat 821 Einträge mit Verweis auf die Lektion, aber keine Aufnahmen.
 
 ---
 
@@ -130,11 +132,11 @@
 ### Phase 2 – Inhalte: ganz Level A einpflegen (2–4 Sitzungen)
 - [x] Extraktions-Skript: Dialoge, Wortschatz und Audio-Links jeder Lektion → JSON im einheitlichen Format. *Kommt mit allen Lektionsformaten zurecht (Dialog oder Lesetext, Bildtafeln) und liest mehrere Lektionen in einem Lauf: `npm run extract -- 3-16`.*
 - [x] Lektionen 4–16 einpflegen. *Alle 14 Lektionen (3–16) sind in der App: 1.288 Wörter, 260 Text- und Dialogzeilen und 58 Einleitungssätze, alle mit Audio und syrischer Schrift.*
-- [ ] Lektionen 1–2 als kurzer **Aussprache-Guide**: Was bedeuten š, ṭ, ḥ, c, ë? Jeweils mit Audio
-- [ ] Glossar A (Kunoš mele) als Grundlage für den Übersetzer
+- [x] Lektionen 1–2 als kurzer **Aussprache-Guide**: Was bedeuten š, ṭ, ḥ, c, ë? Jeweils mit Audio. *Lektion 1 „Alphabet“: die 37 Buchstaben der Umschrift (antippen führt zur Erklärung), die 22 syrischen Buchstaben mit Namen zum Anhören und die neuen Buchstaben č, j, ž. Lektion 2 „Laute“: 18 Konsonanten und 7 Vokale mit Beschreibung und Beispielwörtern (der Laut ist im Wort hervorgehoben), die Betonungsregel und 16 Hörpaare, dazu die neue Übung „Hörst du den Unterschied?“. Beide Lektionen haben außerdem ihren Wortschatz (17 und 31 Wörter) mit den normalen Übungen.*
+- [x] Glossar A (Kunoš mele) als Grundlage für den Übersetzer. *821 Einträge mit 1.089 Wendungen in `src/data/glossar-a.json`. Wird erst mit dem Übersetzer (Phase 4) in die App eingebunden.*
 - [x] Qualitätskontrolle, automatisch: Jeder Audio-Link der Website ist genau einem Eintrag zugeordnet, Stichproben der Audio-Adressen liefern MP3s, die Tests prüfen alle Lektionen (Vollständigkeit, Sprecher, keine Doppelgänger-Zeichen).
 - [ ] Qualitätskontrolle durch einen Menschen: in jeder Lektion ein paar Wörter und Sätze anhören und mit dem Text vergleichen
-- [ ] In jeder Lektion „Familientisch-Sätze" markieren (Sätze, die man zu Hause direkt verwenden kann)
+- [ ] In jeder Lektion „Familientisch-Sätze" markieren (Sätze, die man zu Hause direkt verwenden kann). *Vorschlag mit 56 Sätzen und Wendungen liegt in `inhalte/familientisch-vorschlag.md`, nach Situationen sortiert (Begrüßen, Essen, zu Besuch …). Jemand, der Surayt spricht, hakt dort ab, was passt; `npm run familientisch` überträgt die Häkchen in die Daten.*
 
 ### Phase 3 – Spielerisches Lernen à la Duolingo (2–3 Sitzungen)
 - [ ] Lernpfad mit Einheiten pro Lektion, die nacheinander freigeschaltet werden
@@ -187,7 +189,7 @@
 
 ## 7. Offene Entscheidungen
 - [x] GitHub-Repository: `lioneldalmis-afk/Suryoyo-App`
-- [ ] Wer prüft die Einreichungen sprachlich?
+- [ ] Wer prüft die Einreichungen sprachlich? *Dieselbe Person könnte auch die Familientisch-Liste (`inhalte/familientisch-vorschlag.md`) abhaken.*
 - [ ] App-Name. *Die App läuft vorerst unter dem Arbeitstitel „Mamlo" (änderbar in `src/config.ts`, `index.html`, `vite.config.ts`).*
 - [ ] **„aramäisch/assyrisch" in Lehrbuchsätzen:** In 11 Sätzen der Lektionen 4, 5, 10, 13, 15 und 16 steht im Deutschen die Doppelform des Lehrbuchs (z. B. „Das ist eine aramäische/assyrische Familie."). Die Regel „keine Bezeichnungen für die Volksgruppe in der Oberfläche" gilt bisher für die eigenen Texte der App. Sollen diese Lehrbuchsätze wörtlich bleiben (Stand jetzt) oder ausgeblendet werden?
 - [ ] Antwort des Šlomo-Surayt-Teams zu Nutzungsrechten und Audio
@@ -214,3 +216,13 @@
 - Jede Datei `src/data/lektion-NN.json` wird automatisch geladen. Alle Lektionen stecken im App-Code (etwa 160 KB komprimiert), damit sie offline da sind.
 - Wörter, die in mehreren Lektionen vorkommen (z. B. „dukano" in Lektion 4 und 10), haben pro Lektion einen eigenen Lernstand. Zusammenführen lässt sich das mit dem Karteikasten in Phase 3.
 - Behoben: Auf der Startseite ließ sich die Seite auf dem Handy ein Stück seitlich verschieben (der Lernpfad ragte unsichtbar über den Rand).
+
+**16.11.2026 – Phase 2 (Lektion 1–2, Glossar, Familientisch)**
+- Lektion 1 und 2 sind normale Stationen im Lernpfad. Statt „Text“ heißt ihr erster Reiter „Alphabet“ bzw. „Laute“, die Inhalte stehen im Feld `aussprache`. Erklärungen und Beispiele sind wörtlich aus dem Lehrbuch, Überschriften und Bedienhinweise („Tippe auf …“) gehören zur Oberfläche.
+- Nicht übernommen aus Lektion 1–2: das Schreiben der syrischen Schrift, Vergleiche mit dem klassischen Syrisch, Absätze, die die Lernenden mit „Sie“ ansprechen, und der Einleitungsabsatz mit „syrisch-aramäischer Schrift“ (solange die Entscheidung zu den Bezeichnungen offen ist; ein Test wacht darüber). Die App sagt „syrische Schrift“.
+- Den hervorgehobenen Laut in Beispielwörtern („kä**č**al“) übernimmt die App nur, wenn er zum erklärten Buchstaben passt (betrifft einmal „qaḥwa“).
+- „Los geht’s“ beginnt weiterhin mit Lektion 3; Lektion 1–2 sind zum Nachschlagen da. Wer dort zuletzt geübt hat, macht dort weiter.
+- Hörpaare sind ein eigener Übungstyp: Ein Wort wird gespielt, beide stehen zur Wahl. Der Lernstand zählt pro Wort; Paare mit Fehlern kommen zuerst.
+- Glossar: `voll` enthält jede Zeile wörtlich, `teile` die einzelnen Wendungen (nur zerlegt, wenn Umschrift, Deutsch und Schrift gleich viele Teile haben), `lektionen` die Verweise („L.4“, „L.11.6“, „L16“ → Lektion). Das Glossar ist noch nicht im App-Code, damit die App klein bleibt.
+- Familientisch-Sätze werden nicht von Claude festgelegt, sondern von einem Menschen abgehakt: Claude schlägt nach der deutschen Bedeutung vor, die Markierung `familientisch` setzt erst `npm run familientisch` nach der Prüfung. Ein Test meldet, wenn die Liste auf Einträge verweist, die es nicht mehr gibt.
+- Das Extraktions-Skript ist in Module aufgeteilt (`scripts/lehrbuch.mjs`, `lektion.mjs`, `alphabet.mjs`, `glossar.mjs`); `npm run extract -- 1-16 glossar` liest alles neu ein.

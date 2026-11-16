@@ -8,10 +8,11 @@ import { entsperren, spiele, stopp, useAudioStatus } from '../lib/audio';
 import { stufe, useFortschritt } from '../lib/progress';
 import { ersetze, href, type LektionTab } from '../lib/router';
 import { lektionsstand, type Uebungsart } from '../lib/session';
+import { AusspracheAnsicht } from './Aussprache';
 import { vorHinweis } from '../lib/text';
 import type { Eintrag, Lektion } from '../types';
 
-export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
+export function LektionScreen({ nr, tab, anker }: { nr: number; tab: LektionTab; anker?: string }) {
   const lektion = verfuegbar.get(nr);
   if (!lektion) {
     return (
@@ -25,7 +26,7 @@ export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
   }
 
   const reiter: { tab: LektionTab; name: string }[] = [
-    { tab: 'text', name: istDialog(lektion) ? 'Dialog' : 'Text' },
+    { tab: 'text', name: ersterReiter(lektion) },
     { tab: 'woerter', name: 'Wörter' },
     { tab: 'ueben', name: 'Üben' },
   ];
@@ -68,12 +69,19 @@ export function LektionScreen({ nr, tab }: { nr: number; tab: LektionTab }) {
       </nav>
 
       <main>
-        {tab === 'text' && <Text lektion={lektion} />}
+        {tab === 'text' &&
+          (lektion.aussprache ? <AusspracheAnsicht lektion={lektion} anker={anker} /> : <Text lektion={lektion} />)}
         {tab === 'woerter' && <Woerter lektion={lektion} />}
         {tab === 'ueben' && <Ueben lektion={lektion} />}
       </main>
     </div>
   );
+}
+
+/** Der erste Reiter heißt nach seinem Inhalt. */
+function ersterReiter(lektion: Lektion) {
+  if (lektion.aussprache) return lektion.aussprache.alphabet ? 'Alphabet' : 'Laute';
+  return istDialog(lektion) ? 'Dialog' : 'Text';
 }
 
 // --- Dialog oder Lesetext ----------------------------------------------------
@@ -286,6 +294,11 @@ function Ueben({ lektion }: { lektion: Lektion }) {
 
       <h2 className="zwischentitel">Frei üben</h2>
       <div className="arten">
+        {lektion.aussprache?.hoerpaare && (
+          <Art href={zu('paare')} icon={<IconOhr size={28} />} name="Hörst du den Unterschied?">
+            Zwei Wörter, ein kleiner Unterschied
+          </Art>
+        )}
         <Art href={zu('karten')} icon={<IconKarten size={28} />} name="Karteikarten">
           Hören, überlegen, aufdecken
         </Art>

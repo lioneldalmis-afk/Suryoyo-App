@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { istDialog, kurs, LOB, NUR_MIT_BILD, verfuegbar } from '../data';
+import pruefliste from '../../inhalte/familientisch-vorschlag.md?raw';
+import glossar from '../data/glossar-a.json';
+import { istDialog, kurs, LAUTE, LOB, NUR_MIT_BILD, verfuegbar } from '../data';
+import type { Eintrag, Lektion } from '../types';
 import { nachRunde, MAX_STUFE, type Fortschritt } from './progress';
 import { href, parse, type Route } from './router';
 import {
   aktuelleLektion,
+  baueHoerrunde,
   baueRunde,
   lektionsstand,
   lernreihenfolge,
   optionenFuer,
   type Schritt,
 } from './session';
-import { fold, kern, tokens, vorHinweis } from './text';
+import { fold, kern, lautSchluessel, tokens, vorHinweis } from './text';
 
 const lektion = verfuegbar.get(3)!;
 const vorrat = lernreihenfolge(lektion);
@@ -28,10 +32,25 @@ function zufall(start: number) {
   };
 }
 
-const SYRISCH = /[܀-ݏ]/;
-const KYRILLISCH = /[Ѐ-ӿ]/;
-const UNSICHTBAR = /[­ ​-‍﻿]/;
+const SYRISCH = /[\u{700}-\u{74F}]/u;
+const KYRILLISCH = /[\u{400}-\u{4FF}]/u;
+const UNSICHTBAR = /[\u{AD}\u{A0}\u{200B}-\u{200D}\u{FEFF}]/u;
 const AUDIO = /^https:\/\/textbook\.surayt\.com\/.+\.mp3$/;
+
+const aussprache = (nr: number) => verfuegbar.get(nr)!.aussprache!;
+
+/** Alle Einträge einer Lektion, auch die Beispiele und Hörpaare aus Lektion 1 und 2. */
+function alleEintraege(l: Lektion): Eintrag[] {
+  const a = l.aussprache;
+  const laute = [...(a?.schrift ?? []), ...(a?.neueBuchstaben ?? []), ...(a?.konsonanten ?? []), ...(a?.vokale ?? [])];
+  return [
+    ...l.einleitung,
+    ...l.text,
+    ...l.wortschatz,
+    ...laute.flatMap((laut) => laut.beispiele),
+    ...(a?.hoerpaare ?? []).flatMap((p) => p.woerter),
+  ];
+}
 
 describe('Text', () => {
   it('faltet die Umschrift auf einfache Buchstaben', () => {
@@ -54,18 +73,23 @@ describe('Text', () => {
 });
 
 describe('Inhalte', () => {
-  it('umfassen die Lektionen 3 bis 16 von Level A', () => {
-    expect([...verfuegbar.keys()]).toEqual(Array.from({ length: 14 }, (_, i) => i + 3));
+  it('umfassen alle 16 Lektionen von Level A', () => {
+    expect([...verfuegbar.keys()]).toEqual(Array.from({ length: 16 }, (_, i) => i + 1));
   });
 
   it('sind vollständig und stammen aus dem Lehrbuch', () => {
-    const ids = alleLektionen.flatMap((l) => [...l.einleitung, ...l.text, ...l.wortschatz].map((e) => e.id));
+    const ids = alleLektionen.flatMap((l) => alleEintraege(l).map((e) => e.id));
     expect(new Set(ids).size).toBe(ids.length);
     for (const l of alleLektionen) {
-      expect(l.text.length, `Lektion ${l.nr}`).toBeGreaterThan(5);
-      expect(l.wortschatz.length, `Lektion ${l.nr}`).toBeGreaterThan(40);
+      if (l.aussprache) {
+        expect(l.text, `Lektion ${l.nr}`).toHaveLength(0);
+        expect(l.wortschatz.length, `Lektion ${l.nr}`).toBeGreaterThan(10);
+      } else {
+        expect(l.text.length, `Lektion ${l.nr}`).toBeGreaterThan(5);
+        expect(l.wortschatz.length, `Lektion ${l.nr}`).toBeGreaterThan(40);
+      }
       expect(l.titel.syrisch, `Lektion ${l.nr}`).toMatch(SYRISCH);
-      for (const e of [...l.einleitung, ...l.text, ...l.wortschatz]) {
+      for (const e of alleEintraege(l)) {
         expect(e.latein, e.id).not.toBe('');
         expect(e.deutsch, e.id).not.toBe('');
         expect(e.syrisch, e.id).toMatch(SYRISCH);
@@ -104,6 +128,58 @@ describe('Inhalte', () => {
     expect(verfuegbar.get(10)!.einleitung).toHaveLength(0);
     // Die Gerichte aus der Bildtafel von Lektion 10 stehen im Wortschatz.
     expect(verfuegbar.get(10)!.wortschatz.find((w) => w.latein === 'Dawqe')?.deutsch).toBe('Pfannkuchen');
+  });
+
+  it('erklären in Lektion 1 und 2 Buchstaben und Laute', () => {
+    const a1 = aussprache(1);
+    const a2 = aussprache(2);
+    expect(a1.alphabet).toHaveLength(37);
+    expect(a1.schrift).toHaveLength(22);
+    for (const b of a1.schrift!) expect(b.audio, b.id).toMatch(AUDIO);
+    expect(a1.neueBuchstaben!.map((b) => b.zeichen)).toEqual(['Čč', 'Jj', 'Žž']);
+    expect(a2.konsonanten).toHaveLength(18);
+    expect(a2.vokale).toHaveLength(7);
+    expect(a2.hoerpaare).toHaveLength(16);
+    for (const laut of [...a2.konsonanten!, ...a2.vokale!]) {
+      expect(laut.syrisch, laut.id).toMatch(SYRISCH);
+      expect(laut.beispiele.length, laut.id).toBeGreaterThan(0);
+    }
+    for (const laut of a2.konsonanten!) {
+      expect(laut.beschreibung, laut.id).toBeTruthy();
+      expect(laut.beispiele, laut.id).toHaveLength(3);
+      // Die Hervorhebung trifft genau den Laut, um den es geht.
+      for (const b of laut.beispiele) {
+        if (b.hervor) expect(b.latein.slice(...b.hervor).toLowerCase(), b.id).toBe(laut.zeichen);
+      }
+    }
+    expect(a2.vokale!.find((v) => v.zeichen === 'Ë ë')?.beschreibung).toMatch(/^Der Kurzvokal/);
+    for (const p of a2.hoerpaare!) {
+      const [x, y] = p.woerter;
+      expect(x.latein, p.id).not.toBe(y.latein);
+      expect(x.deutsch, p.id).not.toBe(y.deutsch);
+    }
+  });
+
+  it('verlinken jeden erklärten Buchstaben des Alphabets auf seine Erklärung', () => {
+    const erklaert = aussprache(1).alphabet!.filter((b) => LAUTE.has(lautSchluessel(b)));
+    expect(erklaert).toHaveLength(25);
+    expect(LAUTE.get(lautSchluessel('Ḥḥ'))?.laut.zeichen).toBe('ḥ');
+    expect(LAUTE.get(lautSchluessel('Ëë'))?.laut.zeichen).toBe('Ë ë');
+    expect(LAUTE.has(lautSchluessel('Bb'))).toBe(false);
+  });
+
+  it('übernehmen keine Volksgruppen-Bezeichnungen in die Erklärtexte', () => {
+    // Die Entscheidung dazu ist noch offen (Fahrplan, Abschnitt 7).
+    for (const l of alleLektionen) {
+      for (const t of Object.values(l.aussprache?.texte ?? {}).flat()) expect(t).not.toMatch(/aramä|assyr/i);
+    }
+  });
+
+  it('passen zur Prüfliste der Familientisch-Sätze', () => {
+    const ids = [...pruefliste.matchAll(/^- \[[ xX]\] `([^`]+)`/gm)].map((m) => m[1]);
+    const vorhanden = new Set(alleLektionen.flatMap((l) => alleEintraege(l).map((e) => e.id)));
+    expect(ids.length).toBeGreaterThan(40);
+    expect(ids.filter((id) => !vorhanden.has(id))).toEqual([]);
   });
 
   it('enthalten das Lob für das Rundenende', () => {
@@ -213,6 +289,59 @@ describe('Übungsrunde', () => {
   });
 });
 
+describe('Hörpaare', () => {
+  const paare = aussprache(2).hoerpaare!;
+
+  it('spielen eins von zwei Wörtern und bieten genau das Paar zur Wahl', () => {
+    const runde = baueHoerrunde(paare, {}, zufall(8));
+    expect(runde).toHaveLength(10);
+    for (const s of runde) {
+      if (s.typ !== 'paar') throw new Error(`falscher Aufgabentyp: ${s.typ}`);
+      const paar = paare.find((p) => p.woerter.includes(s.eintrag))!;
+      expect(s.optionen).toEqual(paar.woerter);
+    }
+  });
+
+  it('nehmen zuerst die Paare, bei denen etwas falsch war, und spielen das schwächere Wort', () => {
+    const sitzt = { stufe: 3, richtig: 3, falsch: 0, zuletzt: 1 };
+    const f: Fortschritt = Object.fromEntries(paare.flatMap((p) => p.woerter).map((w) => [w.id, sitzt]));
+    const schwach = paare[9].woerter[1];
+    const runde = baueHoerrunde(paare, { ...f, [schwach.id]: { ...sitzt, stufe: 0 } }, zufall(9));
+    expect(runde[0].eintrag).toBe(schwach);
+  });
+});
+
+describe('Glossar A', () => {
+  const { eintraege } = glossar;
+
+  it('ist vollständig eingelesen', () => {
+    expect(eintraege.length).toBeGreaterThan(800);
+    expect(new Set(eintraege.map((e) => e.id)).size).toBe(eintraege.length);
+    for (const e of eintraege) {
+      expect(e.voll.latein, e.id).not.toBe('');
+      expect(e.voll.syrisch, e.id).toMatch(SYRISCH);
+      expect(JSON.stringify(e), e.id).not.toMatch(KYRILLISCH);
+      expect(e.teile.length, e.id).toBeGreaterThan(0);
+      for (const t of e.teile) {
+        // Verweise wie „(L.4)“ stehen in `lektionen`, nicht im Text.
+        expect(t.latein, e.id).not.toMatch(/\((L|G)\.?\s*\d/);
+        for (const nr of t.lektionen) expect(nr).toBeGreaterThanOrEqual(1);
+        for (const nr of t.lektionen) expect(nr).toBeLessThanOrEqual(16);
+      }
+    }
+  });
+
+  it('zerlegt Sammeleinträge in einzelne Wendungen', () => {
+    const abro = eintraege.find((e) => e.voll.latein.startsWith('abro, Pl. abne'))!;
+    expect(abro.teile.map((t) => [t.latein, t.deutsch])).toEqual([
+      ['abro, Pl. abne', 'Sohn'],
+      ['abne d cammo', 'Cousins, Söhne des Onkels (väterlicherseits)'],
+      ['abne d ḥolo', 'Cousins, Söhne des Onkels (mütterlicherseits)'],
+    ]);
+    expect(abro.lektionen).toEqual([4]);
+  });
+});
+
 describe('Lernstand', () => {
   it('steigt bei fehlerfreien Runden und sinkt bei Fehlern, in festen Grenzen', () => {
     let f: Fortschritt = {};
@@ -229,8 +358,14 @@ describe('Startseite', () => {
   const geuebt = (ids: string[], zuletzt: number): Fortschritt =>
     Object.fromEntries(ids.map((id) => [id, { stufe: 1, richtig: 1, falsch: 0, zuletzt }]));
 
-  it('beginnt mit der ersten Lektion', () => {
+  it('beginnt mit der ersten Lektion, die einen Text hat', () => {
     expect(aktuelleLektion(alleLektionen, {}).nr).toBe(3);
+  });
+
+  it('macht auch in Lektion 1 oder 2 weiter, wenn dort zuletzt geübt wurde', () => {
+    const l2 = lernreihenfolge(verfuegbar.get(2)!);
+    const f = { ...geuebt([vorrat[0].id], 1), ...geuebt([l2[0].id], 2) };
+    expect(aktuelleLektion(alleLektionen, f).nr).toBe(2);
   });
 
   it('macht in der zuletzt geübten Lektion weiter', () => {
@@ -255,6 +390,8 @@ describe('Adressen', () => {
       { name: 'info' },
       { name: 'lektion', nr: 3, tab: 'woerter' },
       { name: 'lektion', nr: 9, tab: 'text' },
+      { name: 'lektion', nr: 2, tab: 'text', anker: 'ḥ' },
+      { name: 'runde', nr: 2, art: 'paare' },
       { name: 'runde', nr: 3, art: 'hoeren' },
     ];
     for (const r of routen) expect(parse(href(r))).toEqual(r);
@@ -264,5 +401,7 @@ describe('Adressen', () => {
     expect(parse('#/lektion/3/dialog')).toEqual({ name: 'lektion', nr: 3, tab: 'text' });
     expect(parse('#/lektion/3/ueben')).toEqual({ name: 'lektion', nr: 3, tab: 'ueben' });
     expect(parse('#/quatsch')).toEqual({ name: 'start' });
+    // So liefern manche Browser Sonderzeichen in der Adresse.
+    expect(parse('#/lektion/2/text/%E1%B8%A5')).toEqual({ name: 'lektion', nr: 2, tab: 'text', anker: 'ḥ' });
   });
 });

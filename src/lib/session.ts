@@ -1,11 +1,11 @@
 // Übungen werden automatisch aus Wortschatz und Dialog erzeugt – eine neue
 // Lektion braucht nur Daten, keine eigens programmierten Aufgaben.
 
-import type { Eintrag, Lektion } from '../types';
+import type { Eintrag, Hoerpaar, Lektion } from '../types';
 import { stufe, type Fortschritt } from './progress';
 import { fold, kern, tokens } from './text';
 
-export type Uebungsart = 'gemischt' | 'karten' | 'wahl' | 'hoeren';
+export type Uebungsart = 'gemischt' | 'karten' | 'wahl' | 'hoeren' | 'paare';
 export type Richtung = 'sur-de' | 'de-sur';
 
 export type Schritt =
@@ -14,7 +14,9 @@ export type Schritt =
   /** Multiple Choice, Surayt → Deutsch oder umgekehrt. */
   | { typ: 'wahl'; eintrag: Eintrag; richtung: Richtung; optionen: Eintrag[] }
   /** Hören & Auswählen: nur Audio, Bedeutung wählen. */
-  | { typ: 'hoeren'; eintrag: Eintrag; optionen: Eintrag[] };
+  | { typ: 'hoeren'; eintrag: Eintrag; optionen: Eintrag[] }
+  /** Hörpaar: eins von zwei fast gleich klingenden Wörtern hören und erkennen. */
+  | { typ: 'paar'; eintrag: Eintrag; optionen: Eintrag[]; laute: string };
 
 export type Zufall = () => number;
 
@@ -164,9 +166,27 @@ export function baueRunde(
   return schritte;
 }
 
+/**
+ * Übungsrunde mit Hörpaaren: Zu hören ist eins der beiden Wörter, zur Wahl
+ * stehen beide. Die Paare, bei denen am meisten schiefging, kommen zuerst.
+ */
+export function baueHoerrunde(paare: readonly Hoerpaar[], f: Fortschritt, zufall: Zufall = Math.random): Schritt[] {
+  const schwaecher = (p: Hoerpaar) => Math.min(...p.woerter.map((w) => stufe(f, w.id)));
+  return mische(paare, zufall)
+    .sort((a, b) => schwaecher(a) - schwaecher(b))
+    .slice(0, FREI_UEBEN)
+    .map((p) => {
+      const [a, b] = p.woerter;
+      // Das schwächere Wort wird gespielt, bei Gleichstand eins von beiden.
+      const eintrag = stufe(f, a.id) !== stufe(f, b.id) ? (stufe(f, a.id) < stufe(f, b.id) ? a : b) : zufall() < 0.5 ? a : b;
+      return { typ: 'paar', eintrag, optionen: [a, b], laute: p.laute };
+    });
+}
+
 /** Dieselbe Aufgabe noch einmal, mit neu gemischten Antworten (nach einem Fehler). */
 export function nochmal(schritt: Schritt, vorrat: readonly Eintrag[], zufall: Zufall = Math.random): Schritt {
-  if (schritt.typ === 'karte') return schritt;
+  // Karten haben keine Antworten, Hörpaare immer dieselben zwei.
+  if (schritt.typ === 'karte' || schritt.typ === 'paar') return schritt;
   return { ...schritt, optionen: optionenFuer(schritt.eintrag, vorrat, zufall) };
 }
 
@@ -179,7 +199,8 @@ export function lektionsstand(lektion: Lektion, f: Fortschritt) {
 
 /**
  * Wo es auf der Startseite weitergeht: in der zuletzt geübten Lektion, solange
- * sie nicht fertig ist – sonst in der ersten, die noch nicht fertig geübt ist.
+ * sie nicht fertig ist – sonst in der ersten Lektion mit Text, die noch nicht
+ * fertig geübt ist.
  */
 export function aktuelleLektion(lektionen: readonly Lektion[], f: Fortschritt): Lektion {
   let zuletzt: Lektion | undefined;
@@ -191,5 +212,8 @@ export function aktuelleLektion(lektionen: readonly Lektion[], f: Fortschritt): 
     }
   }
   if (zuletzt && lektionsstand(zuletzt, f).anteil < 1) return zuletzt;
-  return lektionen.find((l) => lektionsstand(l, f).anteil < 1) ?? lektionen[0];
+  // Lektion 1 und 2 (Alphabet, Aussprache) sind zum Nachschlagen da – der
+  // Einstieg ist die erste Lektion mit Dialog oder Text.
+  const hauptlektionen = lektionen.filter((l) => !l.aussprache);
+  return hauptlektionen.find((l) => lektionsstand(l, f).anteil < 1) ?? hauptlektionen[0] ?? lektionen[0];
 }

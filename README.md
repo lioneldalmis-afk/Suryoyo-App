@@ -6,11 +6,12 @@ Der Plan mit allen Phasen steht in [FAHRPLAN.md](FAHRPLAN.md).
 
 ## Stand
 
-Prototyp mit den Lektionen 3 bis 16 aus Level A des Lehrbuchs *Šlomo Surayt*:
+Prototyp mit allen 16 Lektionen aus Level A des Lehrbuchs *Šlomo Surayt*:
 
-- Zu jeder Lektion der Dialog oder Lesetext zum Anhören, Zeile für Zeile oder am Stück
-- Zusammen knapp 1.300 Wörter, jedes mit Aufnahme
-- Drei Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen
+- Lektion 1 und 2 als Aussprache-Guide: Alphabet, besondere Laute mit Beispielwörtern und Hörpaare („talyo – ṭalyo“)
+- Zu Lektion 3–16 der Dialog oder Lesetext zum Anhören, Zeile für Zeile oder am Stück
+- Zusammen gut 1.300 Wörter, jedes mit Aufnahme
+- Vier Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen, Hörpaar
 - Lernstand wird auf dem Gerät gespeichert, ohne Konto
 - Läuft offline (bis auf das Audio, das von der Lehrbuch-Website kommt)
 
@@ -46,12 +47,13 @@ npm run build
 
 | Ort | Inhalt |
 |---|---|
-| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-03.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext, Wortschatz, Audio-Links) |
+| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-01.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext bzw. Aussprache, Wortschatz, Audio-Links), `glossar-a.json` (Glossar für den späteren Übersetzer) |
+| `inhalte/` | Listen zum Prüfen durch Menschen, z. B. die Familientisch-Sätze |
 | `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Lernstand (`progress.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
 | `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Über die App |
 | `src/components/` | Bausteine wie Lautsprecher-Knopf und die Übungsaufgaben |
 | `src/styles.css` | Die gesamte Gestaltung; Farben stehen oben als Variablen |
-| `scripts/` | Extraktions-Skript für die Lehrbuch-Website |
+| `scripts/` | Einlesen der Lehrbuch-Website (`extract-lesson.mjs` mit den Modulen `lektion.mjs`, `alphabet.mjs`, `glossar.mjs`) und Übernahme der Familientisch-Häkchen |
 
 ## Eine Lektion hinzufügen
 
@@ -59,7 +61,7 @@ npm run build
 npm run extract -- 4
 ```
 
-Das Skript liest Text und Wortschatz der Lektion von der Website und schreibt `src/data/lektion-04.json`. Mehrere Lektionen auf einmal gehen mit `npm run extract -- 3-16`. Die App lädt jede `lektion-NN.json` automatisch, und die Übungen entstehen aus den Daten.
+Das Skript liest Text und Wortschatz der Lektion von der Website und schreibt `src/data/lektion-04.json`. Mehrere Lektionen auf einmal gehen mit `npm run extract -- 1-16`, das Glossar mit `npm run extract -- glossar`. Die App lädt jede `lektion-NN.json` automatisch, und die Übungen entstehen aus den Daten.
 
 Erneutes Einlesen überschreibt die Datei, behält aber von Hand gesetzte Markierungen (`tags`). Zwei Markierungen haben eine Bedeutung:
 
@@ -73,3 +75,11 @@ Mit `EXTRAKT_CACHE=<Ordner>` vor dem Befehl werden die Seiten zwischengespeicher
 ## Veröffentlichen
 
 Jede Änderung auf `main` wird automatisch getestet, gebaut und auf GitHub Pages veröffentlicht (`.github/workflows/deploy.yml`). Dafür muss einmalig im Repository unter **Settings → Pages → Source** die Option **GitHub Actions** gewählt sein.
+
+## Familientisch-Sätze prüfen
+
+In `inhalte/familientisch-vorschlag.md` stehen Sätze, die man zu Hause direkt verwenden kann – ein Vorschlag, den jemand prüft, der Surayt spricht. Auf GitHub die Datei bearbeiten und bei passenden Sätzen `[ ]` durch `[x]` ersetzen. Danach überträgt dieser Befehl die Häkchen in die Daten:
+
+```bash
+npm run familientisch
+```

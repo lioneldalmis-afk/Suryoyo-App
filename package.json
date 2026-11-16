@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "extract": "node scripts/extract-lesson.mjs"
+    "extract": "node scripts/extract-lesson.mjs",
+    "familientisch": "node scripts/familientisch.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

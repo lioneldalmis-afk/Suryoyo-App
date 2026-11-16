@@ -25,3 +25,6 @@ export function kern(deutsch: string): string {
  * „bayto“ + „(m.)“ → „bayto (m.)“, aber „cammo“ + „, pl. cammone“ → „cammo, pl. cammone“.
  */
 export const vorHinweis = (hinweis: string) => (/^[,;:]/.test(hinweis) ? '' : ' ');
+
+/** „Ḥḥ“, „Ë ë“ oder „ḥ“ → „ḥ“: der Kleinbuchstabe, unter dem ein Laut nachgeschlagen wird. */
+export const lautSchluessel = (zeichen: string) => ([...zeichen.normalize('NFC').trim()].at(-1) ?? '').toLowerCase();

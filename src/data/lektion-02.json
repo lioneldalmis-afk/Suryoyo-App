@@ -1,0 +1,2032 @@
+{
+  "nr": 2,
+  "titel": {
+    "latein": "Olafbeṯ II",
+    "syrisch": "ܐܳܠܰܦܒܶܝܬ̣ ܒ",
+    "deutsch": "Alphabet II"
+  },
+  "quelle": {
+    "name": "Šlomo Surayt",
+    "url": "https://textbook.surayt.com/de/Online%20Course/1.2",
+    "abgerufen": "2026-11-16"
+  },
+  "einleitung": [],
+  "text": [],
+  "aussprache": {
+    "texte": {
+      "konsonanten": [
+        "Das Surayt verfügt über konsonantische Laute, die aufgrund ihrer fremdklingenden Aussprache näher erläutert werden müssen. Darunter fallen die Konsonanten:"
+      ],
+      "vokale": [
+        "Das Surayt hat die Vokale /a/, /e/, /i/, /o/, /u/ und /ë/. Mit Ausnahme von /ë/ werden diese Vokale in der Regel in offener Silbe lang und in geschlossener Silbe kurz gesprochen."
+      ],
+      "betonung": [
+        "Im Surayt wird in der Regel die vorletzte Silbe im Wort betont. Der Artikel bildet mit dem zugehörigen Substantiv eine Toneinheit, dabei trägt er den Hauptton."
+      ]
+    },
+    "konsonanten": [
+      {
+        "id": "L02-K-01",
+        "zeichen": "c",
+        "syrisch": "ܥ",
+        "beschreibung": "stimmhafter, tief im Rachen erzeugter (pharyngaler) Laut",
+        "beispiele": [
+          {
+            "id": "L02-K-01-1",
+            "latein": "cayno",
+            "syrisch": "ܥܰܝܢܐ",
+            "deutsch": "Auge",
+            "audio": "https://textbook.surayt.com/files/15872.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15873.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-01-2",
+            "latein": "arbco",
+            "syrisch": "ܐܰܪܒܥܐ",
+            "deutsch": "vier",
+            "audio": "https://textbook.surayt.com/files/15874.mp3",
+            "hervor": [
+              3,
+              4
+            ],
+            "audio2": "https://textbook.surayt.com/files/15875.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-01-3",
+            "latein": "tašciṯo",
+            "syrisch": "ܬܰܫܥܝܬ݂ܐ",
+            "deutsch": "Geschichte",
+            "audio": "https://textbook.surayt.com/files/15876.mp3",
+            "hervor": [
+              3,
+              4
+            ],
+            "audio2": "https://textbook.surayt.com/files/15877.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-02",
+        "zeichen": "č",
+        "syrisch": "ܫ̰",
+        "beschreibung": "stimmloser Laut, entspricht deutschem tsch in Tschechien",
+        "beispiele": [
+          {
+            "id": "L02-K-02-1",
+            "latein": "čanṭa",
+            "syrisch": "ܫ̰ܰܢܛܰܐ",
+            "deutsch": "Tasche",
+            "audio": "https://textbook.surayt.com/files/15878.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15879.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-02-2",
+            "latein": "čaket",
+            "syrisch": "ܫ̰ܰܟܶܬ",
+            "deutsch": "Jacke",
+            "audio": "https://textbook.surayt.com/files/15880.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15881.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-02-3",
+            "latein": "käčal",
+            "syrisch": "ܟܱܫ̰ܰܠ",
+            "deutsch": "Glatzkopf",
+            "audio": "https://textbook.surayt.com/files/15882.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15883.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-03",
+        "zeichen": "ḏ",
+        "syrisch": "ܕ݂",
+        "beschreibung": "stimmhafter Interdental, wie engl. th in this",
+        "beispiele": [
+          {
+            "id": "L02-K-03-1",
+            "latein": "aḏno",
+            "syrisch": "ܐܰܕ݂ܢܐ",
+            "deutsch": "Ohr",
+            "audio": "https://textbook.surayt.com/files/15884.mp3",
+            "hervor": [
+              1,
+              2
+            ],
+            "audio2": "https://textbook.surayt.com/files/15885.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-03-2",
+            "latein": "ceḏo",
+            "syrisch": "ܥܶܕ݂ܐ",
+            "deutsch": "Fest",
+            "audio": "https://textbook.surayt.com/files/15886.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15887.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-03-3",
+            "latein": "qḏolo",
+            "syrisch": "ܩܕ݂ܳܠܐ",
+            "deutsch": "Hals",
+            "audio": "https://textbook.surayt.com/files/15888.mp3",
+            "hervor": [
+              1,
+              2
+            ],
+            "audio2": "https://textbook.surayt.com/files/15889.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-04",
+        "zeichen": "ġ",
+        "syrisch": "ܓܼ",
+        "beschreibung": "stimmhafter Reibelaut, entspricht deutschem Zäpfchen-r in: Ware",
+        "beispiele": [
+          {
+            "id": "L02-K-04-1",
+            "latein": "ġalṭo",
+            "syrisch": "ܓ݂ܰܠܛܐ",
+            "deutsch": "Fehler",
+            "audio": "https://textbook.surayt.com/files/15890.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15891.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-04-2",
+            "latein": "darġo",
+            "syrisch": "ܕܰܪܓ݂ܐ",
+            "deutsch": "Treppe",
+            "audio": "https://textbook.surayt.com/files/15892.mp3",
+            "hervor": [
+              3,
+              4
+            ],
+            "audio2": "https://textbook.surayt.com/files/15893.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-04-3",
+            "latein": "kaġat",
+            "syrisch": "ܟܰܓ݂ܰܬ",
+            "deutsch": "Papier",
+            "audio": "https://textbook.surayt.com/files/15894.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15895.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-05",
+        "zeichen": "ḥ",
+        "syrisch": "ܚ",
+        "beschreibung": "stimmloser, im Rachen erzeugter (pharyngaler) h-Laut",
+        "beispiele": [
+          {
+            "id": "L02-K-05-1",
+            "latein": "ḥolo",
+            "syrisch": "ܚܳܠܐ",
+            "deutsch": "Onkel",
+            "audio": "https://textbook.surayt.com/files/15896.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15897.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-05-2",
+            "latein": "aḥuno",
+            "syrisch": "ܐܰܚܘܢܐ",
+            "deutsch": "Bruder",
+            "audio": "https://textbook.surayt.com/files/15898.mp3",
+            "hervor": [
+              1,
+              2
+            ],
+            "audio2": "https://textbook.surayt.com/files/15899.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-05-3",
+            "latein": "qaḥwa",
+            "syrisch": "ܩܰܚܘܰܐ",
+            "deutsch": "Kaffee",
+            "audio": "https://textbook.surayt.com/files/15900.mp3",
+            "audio2": "https://textbook.surayt.com/files/15901.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-06",
+        "zeichen": "j",
+        "syrisch": "ܔ",
+        "beschreibung": "stimmhaft, entspricht deutschem dsch in Dschungel",
+        "beispiele": [
+          {
+            "id": "L02-K-06-1",
+            "latein": "jëddo",
+            "syrisch": "ܔܷܕܕܳܐ",
+            "deutsch": "Opa",
+            "audio": "https://textbook.surayt.com/files/15902.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15903.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-06-2",
+            "latein": "jirane",
+            "syrisch": "ܔܝܪܰܢܶܐ",
+            "deutsch": "Nachbarn",
+            "audio": "https://textbook.surayt.com/files/15904.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15905.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-06-3",
+            "latein": "fujo",
+            "syrisch": "ܦܘܔܐ",
+            "deutsch": "Honigmelone",
+            "audio": "https://textbook.surayt.com/files/15906.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15907.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-07",
+        "zeichen": "q",
+        "syrisch": "ܩ",
+        "beschreibung": "sehr weit hinten, am Halszäpfchen artikulierter k-Laut",
+        "beispiele": [
+          {
+            "id": "L02-K-07-1",
+            "latein": "qaḥwa",
+            "syrisch": "ܩܰܚܘܰܐ",
+            "deutsch": "Kaffee",
+            "audio": "https://textbook.surayt.com/files/15900.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15901.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-07-2",
+            "latein": "qḏolo",
+            "syrisch": "ܩܕ݂ܳܠܐ",
+            "deutsch": "Hals",
+            "audio": "https://textbook.surayt.com/files/15888.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15889.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-07-3",
+            "latein": "carquwo",
+            "syrisch": "ܥܰܪܩܘܘܐ",
+            "deutsch": "Ferse",
+            "audio": "https://textbook.surayt.com/files/15908.mp3",
+            "hervor": [
+              3,
+              4
+            ],
+            "audio2": "https://textbook.surayt.com/files/15909.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-08",
+        "zeichen": "r",
+        "syrisch": "ܪ",
+        "beschreibung": "gerolltes Zungenspitzen-r",
+        "beispiele": [
+          {
+            "id": "L02-K-08-1",
+            "latein": "rabëc",
+            "syrisch": "ܪܰܒܷܥ",
+            "deutsch": "Frühling",
+            "audio": "https://textbook.surayt.com/files/15910.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15911.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-08-2",
+            "latein": "abro",
+            "syrisch": "ܐܰܒܪܐ",
+            "deutsch": "Sohn",
+            "audio": "https://textbook.surayt.com/files/15912.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15913.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-08-3",
+            "latein": "rastorant",
+            "syrisch": "ܪܰܣܬܳܪܰܢܬ",
+            "deutsch": "Restaurant",
+            "audio": "https://textbook.surayt.com/files/15914.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15915.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-09",
+        "zeichen": "s",
+        "syrisch": "ܣ",
+        "beschreibung": "entspricht deutschem stimmlosen s in dass, Maß",
+        "beispiele": [
+          {
+            "id": "L02-K-09-1",
+            "latein": "sëdro",
+            "syrisch": "ܣܷܕܪܐ",
+            "deutsch": "Klasse",
+            "audio": "https://textbook.surayt.com/files/15916.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15917.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-09-2",
+            "latein": "sësyo",
+            "syrisch": "ܣܷܣܝܐ",
+            "deutsch": "Pferd",
+            "audio": "https://textbook.surayt.com/files/15918.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15919.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-09-3",
+            "latein": "nisën",
+            "syrisch": "ܢܝܣܷܢ",
+            "deutsch": "April",
+            "audio": "https://textbook.surayt.com/files/15920.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15921.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-10",
+        "zeichen": "š",
+        "syrisch": "ܫ",
+        "beschreibung": "stimmlos, entspricht deutschem sch in Schule",
+        "beispiele": [
+          {
+            "id": "L02-K-10-1",
+            "latein": "šato",
+            "syrisch": "ܫܰܬܐ",
+            "deutsch": "Jahr",
+            "audio": "https://textbook.surayt.com/files/15922.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15923.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-10-2",
+            "latein": "dašëšto",
+            "syrisch": "ܕܰܫܷܫܬܐ",
+            "deutsch": "Milchreis",
+            "audio": "https://textbook.surayt.com/files/15924.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15925.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-10-3",
+            "latein": "gušmo",
+            "syrisch": "ܓܘܫܡܐ",
+            "deutsch": "Körper",
+            "audio": "https://textbook.surayt.com/files/15926.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15927.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-11",
+        "zeichen": "ṣ",
+        "syrisch": "ܨ",
+        "beschreibung": "mit Anheben der Hinterzunge gesprochenes (velarisiertes) s",
+        "beispiele": [
+          {
+            "id": "L02-K-11-1",
+            "latein": "ṣafro",
+            "syrisch": "ܨܰܦܪܐ",
+            "deutsch": "Morgen",
+            "audio": "https://textbook.surayt.com/files/15928.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15929.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-11-2",
+            "latein": "ṣërto",
+            "syrisch": "ܨܷܪܬܐ",
+            "deutsch": "Bild",
+            "audio": "https://textbook.surayt.com/files/15930.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15931.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-11-3",
+            "latein": "caṣriye",
+            "syrisch": "ܥܰܨܪܝـܝܶܐ",
+            "deutsch": "Abend",
+            "audio": "https://textbook.surayt.com/files/15932.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15933.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-12",
+        "zeichen": "ṭ",
+        "syrisch": "ܛ",
+        "beschreibung": "mit Anheben der Hinterzunge gesprochenes (velarisiertes) t",
+        "beispiele": [
+          {
+            "id": "L02-K-12-1",
+            "latein": "ṭëbbax",
+            "syrisch": "ܛܷܒܒܰܟܼ",
+            "deutsch": "August",
+            "audio": "https://textbook.surayt.com/files/15934.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15935.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-12-2",
+            "latein": "bayṭar",
+            "syrisch": "ܒܰܝܛܰܪ",
+            "deutsch": "Tierarzt",
+            "audio": "https://textbook.surayt.com/files/15936.mp3",
+            "hervor": [
+              3,
+              4
+            ],
+            "audio2": "https://textbook.surayt.com/files/15937.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-12-3",
+            "latein": "qaṭiro",
+            "syrisch": "ܩܰܛܝܪܐ",
+            "deutsch": "Joghurt",
+            "audio": "https://textbook.surayt.com/files/15938.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15939.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-13",
+        "zeichen": "ṯ",
+        "syrisch": "ܬܼ",
+        "beschreibung": "stimmloser Interdental, wie engl. th in thousand",
+        "beispiele": [
+          {
+            "id": "L02-K-13-1",
+            "latein": "iqarṯo",
+            "syrisch": "ܐܝܩܰܪܬ݂ܐ",
+            "deutsch": "Familie",
+            "audio": "https://textbook.surayt.com/files/15940.mp3",
+            "hervor": [
+              4,
+              5
+            ],
+            "audio2": "https://textbook.surayt.com/files/15941.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-13-2",
+            "latein": "aṯto",
+            "syrisch": "ܐܰܬ݂ܬܐ",
+            "deutsch": "Frau",
+            "audio": "https://textbook.surayt.com/files/15942.mp3",
+            "hervor": [
+              1,
+              2
+            ],
+            "audio2": "https://textbook.surayt.com/files/15943.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-13-3",
+            "latein": "barṯo",
+            "syrisch": "ܒܰܪܬܼܐ",
+            "deutsch": "Tochter",
+            "audio": "https://textbook.surayt.com/files/15944.mp3",
+            "hervor": [
+              3,
+              4
+            ],
+            "audio2": "https://textbook.surayt.com/files/15945.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-14",
+        "zeichen": "v",
+        "syrisch": "ܒ݂",
+        "beschreibung": "stimmhaftes f, entspricht deutschem w in Wiese",
+        "beispiele": [
+          {
+            "id": "L02-K-14-1",
+            "latein": "villa",
+            "syrisch": "ܒ݂ܝܠܠܰܐ",
+            "deutsch": "Villa",
+            "audio": "https://textbook.surayt.com/files/15946.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15947.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-14-2",
+            "latein": "Viyana",
+            "syrisch": "ܒ̣ܝܝܰܢܰܐ",
+            "deutsch": "Wien",
+            "audio": "https://textbook.surayt.com/files/15948.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15949.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-14-3",
+            "latein": "talavizyon",
+            "syrisch": "ܬܰܠܰܒܼܝܙܝܳܢ",
+            "deutsch": "Fernseher",
+            "audio": "https://textbook.surayt.com/files/15950.mp3",
+            "hervor": [
+              4,
+              5
+            ],
+            "audio2": "https://textbook.surayt.com/files/15951.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-15",
+        "zeichen": "w",
+        "syrisch": "ܘ",
+        "beschreibung": "entspricht englischem w in water",
+        "beispiele": [
+          {
+            "id": "L02-K-15-1",
+            "latein": "ḥawro",
+            "syrisch": "ܚܰܘܪܐ",
+            "deutsch": "Freund",
+            "audio": "https://textbook.surayt.com/files/15952.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15953.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-15-2",
+            "latein": "wacdo",
+            "syrisch": "ܘܰܥܕܐ",
+            "deutsch": "Termin",
+            "audio": "https://textbook.surayt.com/files/15954.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15955.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-15-3",
+            "latein": "cawodo",
+            "syrisch": "ܥܰܘܳܕܐ",
+            "deutsch": "Arbeiter",
+            "audio": "https://textbook.surayt.com/files/15956.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15957.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-16",
+        "zeichen": "x",
+        "syrisch": "ܟ݂",
+        "beschreibung": "stimmlos, entspricht deutschem ch in: Buch, Suche, auch (nicht wie ch in ich, mich, dich)",
+        "beispiele": [
+          {
+            "id": "L02-K-16-1",
+            "latein": "xabro",
+            "syrisch": "ܟ݂ܰܒܪܐ",
+            "deutsch": "Wort",
+            "audio": "https://textbook.surayt.com/files/15958.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15959.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-16-2",
+            "latein": "dmoxo",
+            "syrisch": "ܕܡܳܟ݂ܐ",
+            "deutsch": "Schlaf",
+            "audio": "https://textbook.surayt.com/files/15960.mp3",
+            "hervor": [
+              3,
+              4
+            ],
+            "audio2": "https://textbook.surayt.com/files/15961.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-16-3",
+            "latein": "maṭbax",
+            "syrisch": "ܡܰܛܒܰܟ݂",
+            "deutsch": "Küche",
+            "audio": "https://textbook.surayt.com/files/15962.mp3",
+            "hervor": [
+              5,
+              6
+            ],
+            "audio2": "https://textbook.surayt.com/files/15963.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-17",
+        "zeichen": "z",
+        "syrisch": "ܙ",
+        "beschreibung": "entspricht deutschem stimmhaften s in Gesang, Sommer",
+        "beispiele": [
+          {
+            "id": "L02-K-17-1",
+            "latein": "zabno",
+            "syrisch": "ܙܰܒܢܐ",
+            "deutsch": "Zeit",
+            "audio": "https://textbook.surayt.com/files/15964.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15965.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-17-2",
+            "latein": "mazlo",
+            "syrisch": "ܡܰܙܠـܐ",
+            "deutsch": "Gehen",
+            "audio": "https://textbook.surayt.com/files/15966.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15967.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-17-3",
+            "latein": "cezo",
+            "syrisch": "ܥܶܙܐ",
+            "deutsch": "Ziege",
+            "audio": "https://textbook.surayt.com/files/15968.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15969.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-K-18",
+        "zeichen": "ž",
+        "syrisch": "ܙ̰",
+        "beschreibung": "stimmhaftes š, entspricht dem zweiten g in Garage, bzw. j in Journal",
+        "beispiele": [
+          {
+            "id": "L02-K-18-1",
+            "latein": "žäbaše",
+            "syrisch": "ܙ̰ܱܒܰܫܶܐ",
+            "deutsch": "Wassermelone",
+            "audio": "https://textbook.surayt.com/files/15970.mp3",
+            "hervor": [
+              0,
+              1
+            ],
+            "audio2": "https://textbook.surayt.com/files/15971.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-18-2",
+            "latein": "Aržantin",
+            "syrisch": "ܐܰܪܙ̰ܰܢܬܝܢ",
+            "deutsch": "Argentinien",
+            "audio": "https://textbook.surayt.com/files/15972.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15973.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-K-18-3",
+            "latein": "dëžmën",
+            "syrisch": "ܕܷܙ̰ܡܷܢ",
+            "deutsch": "Feind",
+            "audio": "https://textbook.surayt.com/files/15974.mp3",
+            "hervor": [
+              2,
+              3
+            ],
+            "audio2": "https://textbook.surayt.com/files/15975.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      }
+    ],
+    "vokale": [
+      {
+        "id": "L02-V-01",
+        "zeichen": "A a",
+        "syrisch": "ܰ",
+        "beispiele": [
+          {
+            "id": "L02-V-01-1",
+            "latein": "arnuwo",
+            "syrisch": "ܐܰܪܢܘܘܳܐ",
+            "deutsch": "Hase",
+            "audio": "https://textbook.surayt.com/files/15984.mp3",
+            "audio2": "https://textbook.surayt.com/files/15985.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-V-02",
+        "zeichen": "Ä ä",
+        "syrisch": "ܱ",
+        "beschreibung": "kurzes /a/ (= ä)",
+        "beispiele": [
+          {
+            "id": "L02-V-02-1",
+            "latein": "ġäläbe",
+            "syrisch": "ܓ݂ܱܠܱܒܶܐ",
+            "deutsch": "viel",
+            "audio": "https://textbook.surayt.com/files/15986.mp3",
+            "audio2": "https://textbook.surayt.com/files/15987.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-V-03",
+        "zeichen": "O o",
+        "syrisch": "ܳ",
+        "beispiele": [
+          {
+            "id": "L02-V-03-1",
+            "latein": "oṯo",
+            "syrisch": "ܐܳܬ݂ܐ",
+            "deutsch": "Zeichen",
+            "audio": "https://textbook.surayt.com/files/15988.mp3",
+            "audio2": "https://textbook.surayt.com/files/15989.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-V-04",
+        "zeichen": "E e",
+        "syrisch": "ܶ",
+        "beispiele": [
+          {
+            "id": "L02-V-04-1",
+            "latein": "emo",
+            "syrisch": "ܐܶܡܐ",
+            "deutsch": "Mutter",
+            "audio": "https://textbook.surayt.com/files/15990.mp3",
+            "audio2": "https://textbook.surayt.com/files/15991.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-V-05",
+        "zeichen": "Ë ë",
+        "syrisch": "ܷ",
+        "beschreibung": "Der Kurzvokal /ë ܷ /, auch Schwa genannt, ähnelt dem kurzen, unbetonten e-Laut in deutsch bitte, kann aber in jeder Silbenform vorkommen.",
+        "beispiele": [
+          {
+            "id": "L02-V-05-1",
+            "latein": "ëšmo",
+            "syrisch": "ܐܷܫܡܐ",
+            "deutsch": "Name",
+            "audio": "https://textbook.surayt.com/files/15992.mp3",
+            "audio2": "https://textbook.surayt.com/files/15993.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-V-06",
+        "zeichen": "I i",
+        "syrisch": "ܝ",
+        "beispiele": [
+          {
+            "id": "L02-V-06-1",
+            "latein": "iḏo",
+            "syrisch": "ܐܝܕ݂ܐ",
+            "deutsch": "Hand",
+            "audio": "https://textbook.surayt.com/files/14219.mp3",
+            "audio2": "https://textbook.surayt.com/files/14220.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-V-07",
+        "zeichen": "U u",
+        "syrisch": "ܘ",
+        "beispiele": [
+          {
+            "id": "L02-V-07-1",
+            "latein": "ucdo",
+            "syrisch": "ܐܘܥܕܐ",
+            "deutsch": "jetzt",
+            "audio": "https://textbook.surayt.com/files/15994.mp3",
+            "audio2": "https://textbook.surayt.com/files/15995.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      }
+    ],
+    "hoerpaare": [
+      {
+        "id": "L02-P-01",
+        "laute": "v – w",
+        "woerter": [
+          {
+            "id": "L02-P-01-1",
+            "latein": "viza",
+            "syrisch": "ܒܼܝܙܰܐ",
+            "deutsch": "Visum",
+            "audio": "https://textbook.surayt.com/files/16088.mp3",
+            "audio2": "https://textbook.surayt.com/files/16090.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-01-2",
+            "latein": "wazo",
+            "syrisch": "ܘܰܙܐ",
+            "deutsch": "Gans",
+            "audio": "https://textbook.surayt.com/files/16089.mp3",
+            "audio2": "https://textbook.surayt.com/files/16091.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-02",
+        "laute": "j – ž",
+        "woerter": [
+          {
+            "id": "L02-P-02-1",
+            "latein": "Jërjo",
+            "syrisch": "ܔܷܪܔܐ",
+            "deutsch": "Georg",
+            "audio": "https://textbook.surayt.com/files/16092.mp3",
+            "audio2": "https://textbook.surayt.com/files/16094.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-02-2",
+            "latein": "žižo",
+            "syrisch": "ܙ̰ܝܙ̰ܐ",
+            "deutsch": "Igel",
+            "audio": "https://textbook.surayt.com/files/16093.mp3",
+            "audio2": "https://textbook.surayt.com/files/16095.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-03",
+        "laute": "z - ḏ",
+        "woerter": [
+          {
+            "id": "L02-P-03-1",
+            "latein": "cezo",
+            "syrisch": "ܥܶܙܐ",
+            "deutsch": "Ziege",
+            "audio": "https://textbook.surayt.com/files/16096.mp3",
+            "audio2": "https://textbook.surayt.com/files/15969.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-03-2",
+            "latein": "ceḏo",
+            "syrisch": "ܥܶܕ݂ܐ",
+            "deutsch": "Fest",
+            "audio": "https://textbook.surayt.com/files/15886.mp3",
+            "audio2": "https://textbook.surayt.com/files/15887.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-04",
+        "laute": "z – s",
+        "woerter": [
+          {
+            "id": "L02-P-04-1",
+            "latein": "muze",
+            "syrisch": "ܡܘܙܶܐ",
+            "deutsch": "Bananen",
+            "audio": "https://textbook.surayt.com/files/16097.mp3",
+            "audio2": "https://textbook.surayt.com/files/16099.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-04-2",
+            "latein": "muse",
+            "syrisch": "ܡܘܣܶܐ",
+            "deutsch": "Messer",
+            "audio": "https://textbook.surayt.com/files/16098.mp3",
+            "audio2": "https://textbook.surayt.com/files/16100.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-05",
+        "laute": "s - ṣ",
+        "woerter": [
+          {
+            "id": "L02-P-05-1",
+            "latein": "soyam",
+            "syrisch": "ܣܳܝܰܡ",
+            "deutsch": "machen",
+            "audio": "https://textbook.surayt.com/files/16101.mp3",
+            "audio2": "https://textbook.surayt.com/files/16103.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-05-2",
+            "latein": "ṣoyam",
+            "syrisch": "ܨܳܝܰܡ",
+            "deutsch": "fasten",
+            "audio": "https://textbook.surayt.com/files/16102.mp3",
+            "audio2": "https://textbook.surayt.com/files/16104.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-06",
+        "laute": "s - ṯ",
+        "woerter": [
+          {
+            "id": "L02-P-06-1",
+            "latein": "basyo",
+            "syrisch": "ܒܰܣܝܐ",
+            "deutsch": "genug!",
+            "audio": "https://textbook.surayt.com/files/16105.mp3",
+            "audio2": "https://textbook.surayt.com/files/16107.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-06-2",
+            "latein": "maṯyo",
+            "syrisch": "ܡܰܬܼܝܐ",
+            "deutsch": "Kommen",
+            "audio": "https://textbook.surayt.com/files/16106.mp3",
+            "audio2": "https://textbook.surayt.com/files/16108.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-07",
+        "laute": "ṯ - ḏ",
+        "woerter": [
+          {
+            "id": "L02-P-07-1",
+            "latein": "barṯo",
+            "syrisch": "ܒܰܪܬܼܐ",
+            "deutsch": "Tochter",
+            "audio": "https://textbook.surayt.com/files/16109.mp3",
+            "audio2": "https://textbook.surayt.com/files/15945.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-07-2",
+            "latein": "barḏo",
+            "syrisch": "ܒܰܪܕ݂ܐ",
+            "deutsch": "Hagel",
+            "audio": "https://textbook.surayt.com/files/16110.mp3",
+            "audio2": "https://textbook.surayt.com/files/16111.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-08",
+        "laute": "f - ṯ",
+        "woerter": [
+          {
+            "id": "L02-P-08-1",
+            "latein": "afṯo",
+            "syrisch": "ܐܰܦܬܼܐ",
+            "deutsch": "Pause",
+            "audio": "https://textbook.surayt.com/files/16112.mp3",
+            "audio2": "https://textbook.surayt.com/files/16114.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-08-2",
+            "latein": "aṯto",
+            "syrisch": "ܐܰܬܼܬܐ",
+            "deutsch": "Frau",
+            "audio": "https://textbook.surayt.com/files/16113.mp3",
+            "audio2": "https://textbook.surayt.com/files/15943.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-09",
+        "laute": "t - ṭ",
+        "woerter": [
+          {
+            "id": "L02-P-09-1",
+            "latein": "talyo",
+            "syrisch": "ܬܰܠܝܐ",
+            "deutsch": "versteckt",
+            "audio": "https://textbook.surayt.com/files/16115.mp3",
+            "audio2": "https://textbook.surayt.com/files/16117.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-09-2",
+            "latein": "ṭalyo",
+            "syrisch": "ܛܰܠܝܐ",
+            "deutsch": "Junge",
+            "audio": "https://textbook.surayt.com/files/16116.mp3",
+            "audio2": "https://textbook.surayt.com/files/16118.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-10",
+        "laute": "ṭ - t",
+        "woerter": [
+          {
+            "id": "L02-P-10-1",
+            "latein": "ṭino",
+            "syrisch": "ܛܝܢܐ",
+            "deutsch": "Lehm",
+            "audio": "https://textbook.surayt.com/files/16119.mp3",
+            "audio2": "https://textbook.surayt.com/files/16121.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-10-2",
+            "latein": "teno",
+            "syrisch": "ܬܶܢܐ",
+            "deutsch": "Feige",
+            "audio": "https://textbook.surayt.com/files/16120.mp3",
+            "audio2": "https://textbook.surayt.com/files/16122.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-11",
+        "laute": "c – ġ",
+        "woerter": [
+          {
+            "id": "L02-P-11-1",
+            "latein": "camo",
+            "syrisch": "ܥܰܡܐ",
+            "deutsch": "Volk",
+            "audio": "https://textbook.surayt.com/files/16123.mp3",
+            "audio2": "https://textbook.surayt.com/files/16125.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-11-2",
+            "latein": "ġamo",
+            "syrisch": "ܓܼܰܡܐ",
+            "deutsch": "Sorge",
+            "audio": "https://textbook.surayt.com/files/16124.mp3",
+            "audio2": "https://textbook.surayt.com/files/16126.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-12",
+        "laute": "q – k",
+        "woerter": [
+          {
+            "id": "L02-P-12-1",
+            "latein": "quro",
+            "syrisch": "ܩܘܪܐ",
+            "deutsch": "Kälte",
+            "audio": "https://textbook.surayt.com/files/16127.mp3",
+            "audio2": "https://textbook.surayt.com/files/16129.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-12-2",
+            "latein": "kuro",
+            "syrisch": "ܟܘܪܐ",
+            "deutsch": "Schmiedefeuer",
+            "audio": "https://textbook.surayt.com/files/16128.mp3",
+            "audio2": "https://textbook.surayt.com/files/16130.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-13",
+        "laute": "k – q",
+        "woerter": [
+          {
+            "id": "L02-P-13-1",
+            "latein": "muklo",
+            "syrisch": "ܡܘܟܠܐ",
+            "deutsch": "Essen",
+            "audio": "https://textbook.surayt.com/files/16131.mp3",
+            "audio2": "https://textbook.surayt.com/files/16133.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-13-2",
+            "latein": "muqro",
+            "syrisch": "ܡܘܩܪܐ",
+            "deutsch": "Eigelb",
+            "audio": "https://textbook.surayt.com/files/16132.mp3",
+            "audio2": "https://textbook.surayt.com/files/16134.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-14",
+        "laute": "ḥ - x",
+        "woerter": [
+          {
+            "id": "L02-P-14-1",
+            "latein": "ḥalyo",
+            "syrisch": "ܚܰܠܝܐ",
+            "deutsch": "süß",
+            "audio": "https://textbook.surayt.com/files/16135.mp3",
+            "audio2": "https://textbook.surayt.com/files/16137.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-14-2",
+            "latein": "xalyo",
+            "syrisch": "ܟܼܰܠܝܐ",
+            "deutsch": "leer",
+            "audio": "https://textbook.surayt.com/files/16136.mp3",
+            "audio2": "https://textbook.surayt.com/files/16138.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-15",
+        "laute": "ḥ - c",
+        "woerter": [
+          {
+            "id": "L02-P-15-1",
+            "latein": "ḥeloyo",
+            "syrisch": "ܚܶܠܳܝܐ",
+            "deutsch": "früh",
+            "audio": "https://textbook.surayt.com/files/16139.mp3",
+            "audio2": "https://textbook.surayt.com/files/16141.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-15-2",
+            "latein": "celoyo",
+            "syrisch": "ܥܶܠܳܝܐ",
+            "deutsch": "hoch",
+            "audio": "https://textbook.surayt.com/files/16140.mp3",
+            "audio2": "https://textbook.surayt.com/files/16142.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      },
+      {
+        "id": "L02-P-16",
+        "laute": "r - c",
+        "woerter": [
+          {
+            "id": "L02-P-16-1",
+            "latein": "rezo",
+            "syrisch": "ܪܶܙܐ",
+            "deutsch": "Reis",
+            "audio": "https://textbook.surayt.com/files/16143.mp3",
+            "audio2": "https://textbook.surayt.com/files/16144.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          },
+          {
+            "id": "L02-P-16-2",
+            "latein": "cezo",
+            "syrisch": "ܥܶܙܐ",
+            "deutsch": "Ziege",
+            "audio": "https://textbook.surayt.com/files/16096.mp3",
+            "audio2": "https://textbook.surayt.com/files/15969.mp3",
+            "lektion": 2,
+            "art": "wort",
+            "quelle": "lehrbuch",
+            "tags": []
+          }
+        ]
+      }
+    ]
+  },
+  "wortschatz": [
+    {
+      "id": "L02-W-arnuwo",
+      "latein": "arnuwo",
+      "syrisch": "ܐܰܪܢܘܘܳܐ",
+      "deutsch": "Hase",
+      "audio": "https://textbook.surayt.com/de/files/16169.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15985.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-arzantin",
+      "latein": "Aržantin",
+      "syrisch": "ܐܰܪܙ̰ܰܢܬܝܢ",
+      "deutsch": "Argentinien",
+      "audio": "https://textbook.surayt.com/de/files/16170.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15973.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-bar",
+      "latein": "bar",
+      "syrisch": "ܒܰܪ",
+      "deutsch": "Bar",
+      "audio": "https://textbook.surayt.com/de/files/16171.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16028.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-bardo",
+      "latein": "barḏo",
+      "syrisch": "ܒܰܪܕ݂ܐ",
+      "deutsch": "Hagel",
+      "audio": "https://textbook.surayt.com/de/files/16110.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16111.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-basyo",
+      "latein": "basyo",
+      "syrisch": "ܒܰܣܝܐ",
+      "deutsch": "genug!",
+      "audio": "https://textbook.surayt.com/de/files/16172.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16107.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-brito",
+      "latein": "briṯo",
+      "syrisch": "ܒܪܝܬܼܐ",
+      "deutsch": "Welt",
+      "audio": "https://textbook.surayt.com/de/files/16173.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15979.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-camo",
+      "latein": "camo",
+      "syrisch": "ܥܰܡܐ",
+      "deutsch": "Volk",
+      "audio": "https://textbook.surayt.com/de/files/16174.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16125.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-casriye",
+      "latein": "caṣriye",
+      "syrisch": "ܥܰܨܪܝـܝܶܐ",
+      "deutsch": "Abend",
+      "audio": "https://textbook.surayt.com/de/files/15932.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15933.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-dezmen",
+      "latein": "dëžmën",
+      "syrisch": "ܕܷܙ̰ܡܷܢ",
+      "deutsch": "Feind",
+      "audio": "https://textbook.surayt.com/de/files/16175.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16176.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-fujo",
+      "latein": "fujo",
+      "syrisch": "ܦܘܔܐ",
+      "deutsch": "Honigmelone",
+      "audio": "https://textbook.surayt.com/de/files/16177.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15907.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-gamo",
+      "latein": "ġamo",
+      "syrisch": "ܓܼܰܡܐ",
+      "deutsch": "Sorge",
+      "audio": "https://textbook.surayt.com/de/files/16178.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16126.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-holanda",
+      "latein": "Holanda",
+      "syrisch": "ܗܳܠܰܢܕܰܐ",
+      "deutsch": "Niederlande",
+      "audio": "https://textbook.surayt.com/de/files/16179.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16079.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-jerjo",
+      "latein": "Jërjo",
+      "syrisch": "ܔܷܪܔܐ",
+      "deutsch": "Georg (männlicher Vorname)",
+      "audio": "https://textbook.surayt.com/de/files/16180.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16094.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-kacal",
+      "latein": "käčal",
+      "syrisch": "ܟܱܫ̰ܰܠ",
+      "deutsch": "Glatzkopf",
+      "audio": "https://textbook.surayt.com/de/files/16181.mp3",
+      "hinweis": "(m.)",
+      "audio2": "https://textbook.surayt.com/de/files/16035.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-kuro",
+      "latein": "kuro",
+      "syrisch": "ܟܘܪܐ",
+      "deutsch": "Schmiedefeuer",
+      "audio": "https://textbook.surayt.com/de/files/16182.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16130.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-malkuto",
+      "latein": "malkuṯo",
+      "syrisch": "ܡܰܠܟܘܬܼܐ",
+      "deutsch": "Königreich",
+      "audio": "https://textbook.surayt.com/de/files/16183.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15983.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-motor",
+      "latein": "moṭor",
+      "syrisch": "ܡܳܛܳܪ",
+      "deutsch": "Motor",
+      "audio": "https://textbook.surayt.com/de/files/16184.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16026.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-muqro",
+      "latein": "muqro",
+      "syrisch": "ܡܘܩܪܐ",
+      "deutsch": "Eigelb",
+      "audio": "https://textbook.surayt.com/files/21135.mp3",
+      "audio2": "https://textbook.surayt.com/files/21136.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-muse",
+      "latein": "muse",
+      "syrisch": "ܡܘܣܶܐ (ܐܬܼ)",
+      "deutsch": "Messer",
+      "audio": "https://textbook.surayt.com/de/files/16185.mp3",
+      "hinweis": "(f.)",
+      "audio2": "https://textbook.surayt.com/de/files/16100.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-muzo",
+      "latein": "muzo",
+      "syrisch": "ܡܘܙܐ",
+      "deutsch": "Banane",
+      "audio": "https://textbook.surayt.com/de/files/16186.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16187.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-oto",
+      "latein": "oṯo",
+      "syrisch": "ܐܳܬܼܐ (ܐܬܼ)",
+      "deutsch": "Zeichen",
+      "audio": "https://textbook.surayt.com/de/files/16188.mp3",
+      "hinweis": "(f.)",
+      "audio2": "https://textbook.surayt.com/de/files/15989.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-quro",
+      "latein": "quro",
+      "syrisch": "ܩܘܪܐ",
+      "deutsch": "Kälte",
+      "audio": "https://textbook.surayt.com/de/files/16127.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16129.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-soyam",
+      "latein": "ṣoyam",
+      "syrisch": "ܨܳܝܰܡ",
+      "deutsch": "(dass) er fastet",
+      "audio": "https://textbook.surayt.com/de/files/16189.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16104.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-talavizyon",
+      "latein": "talavizyon",
+      "syrisch": "ܬܰܠܰܒܼܝܙܝܳܢ",
+      "deutsch": "Fernseher",
+      "audio": "https://textbook.surayt.com/de/files/16190.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15951.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-talyo",
+      "latein": "talyo",
+      "syrisch": "ܬܰܠܝܐ",
+      "deutsch": "versteckt",
+      "audio": "https://textbook.surayt.com/de/files/16191.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16117.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-talyo-2",
+      "latein": "ṭalyo",
+      "syrisch": "ܛܰܠܝܐ",
+      "deutsch": "Junge",
+      "audio": "https://textbook.surayt.com/de/files/16116.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16118.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-tino",
+      "latein": "ṭino",
+      "syrisch": "ܛܝܢܐ",
+      "deutsch": "Lehm",
+      "audio": "https://textbook.surayt.com/de/files/16192.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16121.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-viyana",
+      "latein": "Viyana",
+      "syrisch": "ܒ̣ܝܝܰܢܰܐ",
+      "deutsch": "Wien",
+      "audio": "https://textbook.surayt.com/de/files/16193.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/15949.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-viza",
+      "latein": "viza",
+      "syrisch": "ܒܼܝܙܰܐ (ܐܬܼ)",
+      "deutsch": "Visum",
+      "audio": "https://textbook.surayt.com/de/files/16194.mp3",
+      "hinweis": "(f.)",
+      "audio2": "https://textbook.surayt.com/de/files/16090.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-wazo",
+      "latein": "wazo",
+      "syrisch": "ܘܰܙܐ (ܐܬܼ)",
+      "deutsch": "Gans",
+      "audio": "https://textbook.surayt.com/de/files/16195.mp3",
+      "hinweis": "(f.)",
+      "audio2": "https://textbook.surayt.com/de/files/16091.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    },
+    {
+      "id": "L02-W-zizo",
+      "latein": "žižo",
+      "syrisch": "ܙ̰ܝܙ̰ܐ",
+      "deutsch": "Igel",
+      "audio": "https://textbook.surayt.com/de/files/16196.mp3",
+      "audio2": "https://textbook.surayt.com/de/files/16095.mp3",
+      "lektion": 2,
+      "art": "wort",
+      "quelle": "lehrbuch",
+      "tags": []
+    }
+  ]
+}

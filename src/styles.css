@@ -1375,3 +1375,310 @@ button {
     transition: none !important;
   }
 }
+
+/* --- Aussprache: Lektion 1 und 2 ------------------------------------------- */
+
+/* Wenig Abstand nur für die allererste Überschrift und direkt unter der Sprungleiste */
+.aussprache > .abschnitt:first-child > .zwischentitel,
+.lautindex + .abschnitt > .zwischentitel {
+  margin-top: 6px;
+}
+
+.lehrtext {
+  margin: 0 4px 12px;
+  font-size: 0.95rem;
+}
+
+.lehrtext--kasten {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--rund);
+  background: var(--sonne-hell);
+}
+
+.bedienhinweis {
+  margin: 0 4px 14px;
+  font-size: 0.9rem;
+  color: var(--tinte-leise);
+}
+
+/* Das Alphabet als Kachelraster */
+.buchstaben {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 8px;
+}
+
+.buchstabe {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background: var(--flaeche);
+  box-shadow: inset 0 0 0 2px var(--linie);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--tinte-leise);
+  text-decoration: none;
+}
+
+.buchstabe--erklaert {
+  background: var(--marke-hell);
+  box-shadow: 0 3px 0 #d3cffb;
+  color: var(--marke);
+}
+
+.buchstabe--erklaert:active {
+  transform: translateY(2px);
+}
+
+/* Syrische Buchstaben mit Namen */
+.schrift {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.zeichen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 10px 4px 8px;
+  border-radius: 14px;
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  transition: transform 0.08s;
+}
+
+.zeichen:active {
+  transform: scale(0.96);
+}
+
+.zeichen--aktiv {
+  box-shadow:
+    0 0 0 3px var(--marke),
+    var(--schatten);
+}
+
+.zeichen__syr {
+  font-size: 1.9rem;
+  line-height: 1.3;
+}
+
+.zeichen__name {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.zeichen__wert {
+  font-size: 0.8rem;
+  color: var(--tinte-leise);
+}
+
+/* Sprungleiste zu den einzelnen Lauten: eine Zeile, seitlich wischbar */
+.lautindex {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  margin: 0 -16px 4px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--papier);
+}
+
+.lautindex::-webkit-scrollbar {
+  display: none;
+}
+
+.lautindex a {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 10px;
+  background: var(--flaeche);
+  box-shadow: inset 0 0 0 2px var(--linie);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* Ein Laut mit Erklärung und Beispielen */
+.laute {
+  display: grid;
+  gap: 12px;
+}
+
+.laut {
+  padding: 14px 16px 6px;
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  /* Platz für die Sprungleiste darüber */
+  scroll-margin-top: 72px;
+}
+
+.laut--ziel {
+  animation: aufleuchten 1.6s ease-out;
+}
+
+@keyframes aufleuchten {
+  0%,
+  40% {
+    box-shadow:
+      0 0 0 3px var(--sonne),
+      var(--schatten);
+  }
+}
+
+.laut__kopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.laut__zeichen {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--marke);
+}
+
+.laut__syr {
+  font-size: 1.8rem;
+  color: var(--tinte-leise);
+}
+
+.laut__text {
+  margin-top: 4px;
+  font-size: 0.93rem;
+}
+
+.beispiele {
+  margin-top: 8px;
+}
+
+.beispiel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.beispiel + .beispiel {
+  border-top: 1px solid #f1ece3;
+}
+
+.beispiel .ton {
+  width: 40px;
+  height: 40px;
+}
+
+.beispiel__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.beispiel__sur {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.beispiel__sur mark {
+  border-radius: 4px;
+  background: var(--sonne-hell);
+  box-shadow: inset 0 -3px 0 var(--sonne);
+  color: inherit;
+}
+
+.beispiel__de {
+  font-size: 0.9rem;
+  color: var(--tinte-leise);
+}
+
+/* Hörpaare */
+.paare {
+  display: grid;
+  gap: 10px;
+}
+
+.paar {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+}
+
+.paar__laute {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--tinte-leise);
+}
+
+.paar__woerter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.paar__wort {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--marke-hell);
+  text-align: left;
+  transition: transform 0.08s;
+}
+
+.paar__wort:active {
+  transform: scale(0.97);
+}
+
+.paar__wort--aktiv {
+  box-shadow: inset 0 0 0 3px var(--marke);
+}
+
+.paar__sur {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.paar__de {
+  font-size: 0.85rem;
+  color: var(--tinte-leise);
+  overflow-wrap: anywhere;
+}
+
+/* Antwort im Hörpaar: Wort und Bedeutung */
+.option__paar {
+  display: flex;
+  flex-direction: column;
+}
+
+.option__sur {
+  font-size: 1.1rem;
+}
+
+.option__de {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--tinte-leise);
+}
+
+/* Lautzeichen nicht in Großbuchstaben setzen: „ḥ - c“ ist etwas anderes als „Ḥ - C“ */
+.aufgabe__art [lang='tru'] {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}

@@ -16,6 +16,8 @@ export interface Eintrag {
   hinweis?: string;
   /** Nur bei Dialogzeilen. */
   sprecher?: string;
+  /** Hervorgehobener Teil der Umschrift (Start, Ende), z. B. der Laut, um den es in einem Beispiel geht. */
+  hervor?: [number, number];
   lektion: number;
   art: Art;
   quelle: Quelle;
@@ -39,6 +41,48 @@ export interface Lektion {
   /** Dialog oder Lesetext der Lektion. In Dialogen hat jede Zeile einen `sprecher`. */
   text: Eintrag[];
   wortschatz: Eintrag[];
+  /** Nur Lektion 1 und 2: Alphabet und Aussprache statt eines Textes. */
+  aussprache?: Aussprache;
+}
+
+/** Ein Buchstabe oder Laut mit Erklärung und Beispielwörtern. */
+export interface Laut {
+  id: string;
+  /** Der Buchstabe in Umschrift („ḥ“, „A a“) bzw. bei syrischen Buchstaben der Lautwert („b“). */
+  zeichen: string;
+  /** Der Buchstabe in syrischer Schrift. */
+  syrisch: string;
+  /** Name des syrischen Buchstabens („Olaf“), mit Aufnahme in `audio`. */
+  name?: string;
+  audio?: string;
+  /** Erklärung der Aussprache, wörtlich aus dem Lehrbuch. */
+  beschreibung?: string;
+  beispiele: Eintrag[];
+}
+
+/** Zwei Wörter, die sich nur in einem Laut unterscheiden, z. B. „talyo – ṭalyo“. */
+export interface Hoerpaar {
+  id: string;
+  /** Die beiden Laute, z. B. „t - ṭ“. */
+  laute: string;
+  woerter: [Eintrag, Eintrag];
+}
+
+/**
+ * Inhalte der Lektionen 1 und 2. Die Absätze in `texte` stehen wörtlich im
+ * Lehrbuch; die Überschriften der Abschnitte gehören zur Oberfläche.
+ */
+export interface Aussprache {
+  texte: { alphabet?: string[]; konsonanten?: string[]; vokale?: string[]; betonung?: string[] };
+  /** Die Buchstaben der Umschrift: „Aa“, „Ää“, „Bb“ … */
+  alphabet?: string[];
+  /** Die syrischen Buchstaben mit Namen. */
+  schrift?: Laut[];
+  /** Buchstaben, die für Surayt neu eingeführt wurden (č, j, ž). */
+  neueBuchstaben?: Laut[];
+  konsonanten?: Laut[];
+  vokale?: Laut[];
+  hoerpaare?: Hoerpaar[];
 }
 
 /** Eintrag im Lernpfad (auch für Lektionen, deren Inhalte noch fehlen). */

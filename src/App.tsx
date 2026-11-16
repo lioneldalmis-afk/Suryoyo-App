@@ -23,7 +23,7 @@ export function App() {
     <>
       {route.name === 'start' && <StartScreen />}
       {route.name === 'info' && <InfoScreen />}
-      {route.name === 'lektion' && <LektionScreen nr={route.nr} tab={route.tab} />}
+      {route.name === 'lektion' && <LektionScreen nr={route.nr} tab={route.tab} anker={route.anker} />}
       {route.name === 'runde' && <RundeScreen key={hash} nr={route.nr} art={route.art} />}
       <AudioHinweis />
     </>

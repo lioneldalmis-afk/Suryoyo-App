@@ -1,6 +1,6 @@
-// Die drei Übungstypen: Karteikarte, Multiple Choice und Hören & Auswählen.
-// Multiple Choice und Hören teilen sich eine Komponente – sie unterscheiden
-// sich nur darin, was als Frage zu sehen ist.
+// Die Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen und Hörpaar.
+// Alle außer der Karteikarte teilen sich eine Komponente – sie unterscheiden
+// sich nur darin, was als Frage und als Antwort zu sehen ist.
 
 import { useEffect, useState } from 'react';
 import { spiele, useAudioStatus } from '../lib/audio';
@@ -81,10 +81,11 @@ interface AuswahlProps {
   onWeiter: () => void;
 }
 
-/** Multiple Choice (Surayt ↔ Deutsch) und Hören & Auswählen. */
+/** Multiple Choice (Surayt ↔ Deutsch), Hören & Auswählen und Hörpaar. */
 export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps) {
   const e = schritt.eintrag;
-  const nurHoeren = schritt.typ === 'hoeren';
+  const paar = schritt.typ === 'paar';
+  const nurHoeren = schritt.typ === 'hoeren' || paar;
   // Gefragt wird auf Surayt (gelesen oder gehört), geantwortet auf Deutsch – oder umgekehrt.
   const frageAufSurayt = nurHoeren || schritt.richtung === 'sur-de';
 
@@ -110,9 +111,25 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
   return (
     <div className="aufgabe">
       <div className="aufgabe__inhalt">
-        <p className="aufgabe__art">{nurHoeren ? 'Hören & Auswählen' : 'Multiple Choice'}</p>
+        <p className="aufgabe__art">
+          {paar ? (
+            <>
+              Hörpaar <Surayt>{schritt.laute}</Surayt>
+            </>
+          ) : nurHoeren ? (
+            'Hören & Auswählen'
+          ) : (
+            'Multiple Choice'
+          )}
+        </p>
         <h1 className="aufgabe__frage">
-          {nurHoeren ? 'Was hörst du?' : frageAufSurayt ? 'Was bedeutet das?' : 'Wie sagt man das auf Surayt?'}
+          {paar
+            ? 'Welches Wort hörst du?'
+            : nurHoeren
+              ? 'Was hörst du?'
+              : frageAufSurayt
+                ? 'Was bedeutet das?'
+                : 'Wie sagt man das auf Surayt?'}
         </h1>
 
         <div className="frage">
@@ -149,7 +166,16 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
                   aria-disabled={antwort !== null}
                   onClick={() => waehle(option)}
                 >
-                  {frageAufSurayt ? option.deutsch : <Surayt>{option.latein}</Surayt>}
+                  {paar ? (
+                    <span className="option__paar">
+                      <Surayt className="option__sur">{option.latein}</Surayt>
+                      <span className="option__de">{option.deutsch}</span>
+                    </span>
+                  ) : frageAufSurayt ? (
+                    option.deutsch
+                  ) : (
+                    <Surayt>{option.latein}</Surayt>
+                  )}
                 </button>
               </li>
             );

@@ -1,4 +1,5 @@
-import type { KursLektion, Lektion } from '../types';
+import { lautSchluessel } from '../lib/text';
+import type { KursLektion, Laut, Lektion } from '../types';
 import kursJson from './kurs.json';
 
 /** Alle Lektionen von Level A in Lehrbuch-Reihenfolge. */
@@ -19,6 +20,19 @@ const lektionen = Object.values(dateien)
   .map((l) => ({ ...l, einleitung: l.einleitung.filter((e) => !e.tags.includes(NUR_MIT_BILD)) }));
 
 export const verfuegbar = new Map(lektionen.map((l) => [l.nr, l]));
+
+/**
+ * Alle Laute mit Erklärung (Konsonanten und Vokale aus Lektion 2), nach
+ * Kleinbuchstaben: „ḥ“ → Laut und Lektion. So verlinkt das Alphabet in
+ * Lektion 1 auf die Erklärung.
+ */
+export const LAUTE = new Map<string, { nr: number; laut: Laut }>(
+  lektionen.flatMap((l) =>
+    [...(l.aussprache?.konsonanten ?? []), ...(l.aussprache?.vokale ?? [])].map(
+      (laut) => [lautSchluessel(laut.zeichen), { nr: l.nr, laut }] as const,
+    ),
+  ),
+);
 
 /** Ein Dialog hat Sprecher, ein Lesetext nicht. */
 export const istDialog = (l: Lektion) => l.text.some((z) => z.sprecher);

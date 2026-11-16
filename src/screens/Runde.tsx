@@ -6,7 +6,7 @@ import { Surayt } from '../components/Surayt';
 import { LOB, verfuegbar } from '../data';
 import { aktuellerFortschritt, verbuche } from '../lib/progress';
 import { href } from '../lib/router';
-import { baueRunde, lernreihenfolge, nochmal, type Schritt, type Uebungsart } from '../lib/session';
+import { baueHoerrunde, baueRunde, lernreihenfolge, nochmal, type Schritt, type Uebungsart } from '../lib/session';
 import type { Eintrag, Lektion } from '../types';
 
 interface Verlauf {
@@ -71,9 +71,12 @@ export function RundeScreen({ nr, art }: { nr: number; art: Uebungsart }) {
 }
 
 function Runde({ lektion, art, onNochmal }: { lektion: Lektion; art: Uebungsart; onNochmal: () => void }) {
-  const vorrat = lernreihenfolge(lektion);
+  // Hörpaare üben eigene Wörter; alle anderen Runden den Wortschatz und Text der Lektion.
+  const paare = lektion.aussprache?.hoerpaare ?? [];
+  const vorrat = art === 'paare' ? paare.flatMap((p) => p.woerter) : lernreihenfolge(lektion);
   const [v, sende] = useReducer(schalte, null, (): Verlauf => ({
-    schritte: baueRunde(art, vorrat, aktuellerFortschritt()),
+    schritte:
+      art === 'paare' ? baueHoerrunde(paare, aktuellerFortschritt()) : baueRunde(art, vorrat, aktuellerFortschritt()),
     index: 0,
     antwort: null,
     fehler: [],
