@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { IconZurueck } from '../components/Icons';
 import { APP_NAME, QUELLE } from '../config';
 import { verfuegbar } from '../data';
+import { motivationZuruecksetzen, setzeSprechen as setSprechen, useMotivation } from '../lib/motivation';
 import { useFortschritt, zuruecksetzen } from '../lib/progress';
 import { href } from '../lib/router';
 
 export function InfoScreen() {
   const f = useFortschritt();
+  const m = useMotivation();
   const [sicher, setSicher] = useState(false);
-  const hatStand = Object.keys(f).length > 0;
+  const hatStand = Object.keys(f).length > 0 || m.xp > 0;
   const stand = [...verfuegbar.values()].map((l) => l.quelle.abgerufen).sort().at(-1);
 
   return (
@@ -38,9 +40,23 @@ export function InfoScreen() {
 
         <h2>Deine Daten</h2>
         <p>
-          Dein Lernstand wird nur auf diesem Gerät gespeichert. Es gibt kein Konto und keine Anmeldung. Die
-          Aufnahmen werden beim Abspielen direkt von der Lehrbuch-Website geladen; dafür brauchst du Internet.
+          Dein Lernstand, deine XP und Abzeichen werden nur auf diesem Gerät gespeichert. Es gibt kein Konto und
+          keine Anmeldung. Die Aufnahmen werden beim Abspielen direkt von der Lehrbuch-Website geladen; dafür
+          brauchst du Internet.
         </p>
+        <p>
+          Beim Nachsprechen nimmt die App deine Stimme nur auf, damit du sie mit dem Original vergleichen kannst.
+          Die Aufnahme bleibt auf dem Handy, wird nirgends hochgeladen und ist weg, sobald die Aufgabe vorbei ist.
+        </p>
+
+        <h2>Einstellungen</h2>
+        <label className="schalter schalter--zeile">
+          <span>
+            <strong>Nachsprechen in den Einheiten</strong>
+            <span>Am Ende jeder Einheit einen Satz aufnehmen und vergleichen</span>
+          </span>
+          <input type="checkbox" checked={m.sprechen} onChange={(e) => setSprechen(e.target.checked)} />
+        </label>
 
         {hatStand && (
           <>
@@ -55,6 +71,7 @@ export function InfoScreen() {
                   className="knopf knopf--warn"
                   onClick={() => {
                     zuruecksetzen();
+                    motivationZuruecksetzen();
                     setSicher(false);
                   }}
                 >

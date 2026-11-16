@@ -1,16 +1,39 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { AudioButton } from '../components/AudioButton';
-import { IconKarten, IconOhr, IconPfeil, IconPlay, IconStopp, IconWahl, IconZurueck } from '../components/Icons';
+import {
+  IconBausteine,
+  IconHaken,
+  IconKarten,
+  IconMikro,
+  IconOhr,
+  IconPfeil,
+  IconPlay,
+  IconRolle,
+  IconSchloss,
+  IconStern,
+  IconStopp,
+  IconWahl,
+  IconZurueck,
+} from '../components/Icons';
+import { Pfad } from '../components/Pfad';
 import { ProgressRing } from '../components/ProgressRing';
 import { Surayt } from '../components/Surayt';
 import { istDialog, verfuegbar } from '../data';
 import { entsperren, spiele, stopp, useAudioStatus } from '../lib/audio';
-import { stufe, useFortschritt } from '../lib/progress';
-import { ersetze, href, type LektionTab } from '../lib/router';
-import { lektionsstand, type Uebungsart } from '../lib/session';
+import { einheiten, einheitenZustand, naechsteEinheit, type Einheit } from '../lib/einheiten';
+import { lage, useFortschritt, type Lage } from '../lib/progress';
+import { rollen } from '../lib/rollenspiel';
+import { ersetze, href, type LektionTab, type Route } from '../lib/router';
+import { lektionsstand, lernreihenfolge, satzUebbar, type Uebungsart } from '../lib/session';
 import { AusspracheAnsicht } from './Aussprache';
-import { vorHinweis } from '../lib/text';
+import { bausteineAus, vorHinweis } from '../lib/text';
 import type { Eintrag, Lektion } from '../types';
+
+/** Wohin „Jetzt üben“ führt: in die nächste Einheit, sonst zum Üben-Reiter. */
+function ueben(lektion: Lektion, f: ReturnType<typeof useFortschritt>): Route {
+  const naechste = naechsteEinheit(lektion, f);
+  return naechste ? { name: 'einheit', nr: lektion.nr, einheit: naechste.nr } : { name: 'lektion', nr: lektion.nr, tab: 'ueben' };
+}
 
 export function LektionScreen({ nr, tab, anker }: { nr: number; tab: LektionTab; anker?: string }) {
   const lektion = verfuegbar.get(nr);
@@ -87,6 +110,7 @@ function ersterReiter(lektion: Lektion) {
 // --- Dialog oder Lesetext ----------------------------------------------------
 
 function Text({ lektion }: { lektion: Lektion }) {
+  const f = useFortschritt();
   const [mitDeutsch, setMitDeutsch] = useState(true);
   const [laeuft, setLaeuft] = useState(false);
   const status = useAudioStatus();
@@ -184,9 +208,14 @@ function Text({ lektion }: { lektion: Lektion }) {
       )}
 
       <div className="weiter-zu">
-        <a className="knopf" href={href({ name: 'runde', nr: lektion.nr, art: 'gemischt' })} onClick={entsperren}>
+        <a className="knopf" href={href(ueben(lektion, f))} onClick={entsperren}>
           Jetzt üben
         </a>
+        {dialog && (
+          <a className="knopf knopf--zweit" href={href({ name: 'rollenspiel', nr: lektion.nr })}>
+            <IconRolle size={22} /> Mitspielen
+          </a>
+        )}
       </div>
     </>
   );
@@ -227,7 +256,7 @@ function Gespraech({ zeilen, mitDeutsch, aktiv, tippe }: GespraechProps) {
 
 // --- Wörter ------------------------------------------------------------------
 
-const STAND = ['neu', 'geübt', 'geübt', 'sitzt'];
+const LAGE: Record<Lage, string> = { neu: 'neu', nochmal: 'nochmal üben', geuebt: 'geübt', sitzt: 'sitzt' };
 
 function Woerter({ lektion }: { lektion: Lektion }) {
   const f = useFortschritt();
@@ -236,9 +265,23 @@ function Woerter({ lektion }: { lektion: Lektion }) {
       <p className="legende">
         {lektion.wortschatz.length} Wörter aus dieser Lektion. Tippe auf den Lautsprecher, um sie zu hören.
       </p>
+      <p className="legende legende--punkte" aria-hidden="true">
+        <span>
+          <span className="punkt punkt--sitzt" /> sitzt
+        </span>
+        <span>
+          <span className="punkt punkt--geuebt" /> geübt
+        </span>
+        <span>
+          <span className="punkt punkt--nochmal" /> nochmal üben
+        </span>
+        <span>
+          <span className="punkt punkt--neu" /> neu
+        </span>
+      </p>
       <ul className="woerter">
         {lektion.wortschatz.map((wort) => {
-          const s = stufe(f, wort.id);
+          const l = lage(f, wort.id);
           return (
             <li key={wort.id} className="wort">
               <AudioButton url={wort.audio} label={wort.latein} />
@@ -254,8 +297,8 @@ function Woerter({ lektion }: { lektion: Lektion }) {
                 </span>
                 <span className="wort__de">{wort.deutsch}</span>
               </div>
-              <span className={`punkt punkt--${s}`}>
-                <span className="nur-vorlesen">{STAND[s]}</span>
+              <span className={`punkt punkt--${l}`}>
+                <span className="nur-vorlesen">{LAGE[l]}</span>
               </span>
             </li>
           );
@@ -270,35 +313,53 @@ function Woerter({ lektion }: { lektion: Lektion }) {
 function Ueben({ lektion }: { lektion: Lektion }) {
   const f = useFortschritt();
   const stand = lektionsstand(lektion, f);
+  const liste = einheiten(lektion);
+  const naechste = naechsteEinheit(lektion, f);
   const zu = (art: Uebungsart) => href({ name: 'runde', nr: lektion.nr, art });
+  const reihe = lernreihenfolge(lektion);
+  const mitSaetzen = lektion.text.some((z) => satzUebbar(z, reihe));
+  const spielbar = istDialog(lektion) && rollen(lektion.text).length > 0;
 
   return (
     <>
-      <a className="lernkarte" href={zu('gemischt')} onClick={entsperren}>
+      <a className="lernkarte" href={href(ueben(lektion, f))} onClick={entsperren}>
         <ProgressRing anteil={stand.anteil} groesse={72} dicke={8}>
           {Math.round(stand.anteil * 100)}%
         </ProgressRing>
         <span className="lernkarte__text">
-          <strong>{stand.geuebt > 0 ? 'Weiter lernen' : 'Lektion starten'}</strong>
+          <strong>{naechste ? (stand.geuebt > 0 ? 'Weiter lernen' : 'Lektion starten') : 'Lektion geschafft!'}</strong>
           <span>
-            {stand.anteil < 1
-              ? 'Neue Wörter kennenlernen und gleich abfragen. Dauert etwa 3 Minuten.'
-              : 'Alles einmal geübt – jetzt wird wiederholt.'}
+            {naechste
+              ? `Einheit ${naechste.nr} von ${liste.length}: neue Wörter kennenlernen und gleich üben. Dauert etwa 3 Minuten.`
+              : 'Alle Einheiten geschafft. Wiederhole sie oder übe frei.'}
           </span>
           <span className="lernkarte__stand">
             {stand.geuebt} von {stand.gesamt} geübt
           </span>
         </span>
-        <IconPfeil />
+        {naechste && <IconPfeil />}
       </a>
 
       <h2 className="zwischentitel">Frei üben</h2>
       <div className="arten">
+        {spielbar && (
+          <Art href={href({ name: 'rollenspiel', nr: lektion.nr })} icon={<IconRolle size={28} />} name="Rollenspiel">
+            Spiel den Dialog als eine der Personen
+          </Art>
+        )}
         {lektion.aussprache?.hoerpaare && (
           <Art href={zu('paare')} icon={<IconOhr size={28} />} name="Hörst du den Unterschied?">
             Zwei Wörter, ein kleiner Unterschied
           </Art>
         )}
+        {mitSaetzen && (
+          <Art href={zu('saetze')} icon={<IconBausteine size={28} />} name="Sätze bauen">
+            Wortbausteine ordnen und Lücken füllen
+          </Art>
+        )}
+        <Art href={zu('sprechen')} icon={<IconMikro size={28} />} name="Nachsprechen">
+          Aufnehmen und mit dem Original vergleichen
+        </Art>
         <Art href={zu('karten')} icon={<IconKarten size={28} />} name="Karteikarten">
           Hören, überlegen, aufdecken
         </Art>
@@ -309,7 +370,69 @@ function Ueben({ lektion }: { lektion: Lektion }) {
           Was hast du gehört?
         </Art>
       </div>
+
+      <h2 className="zwischentitel">Alle Einheiten</h2>
+      <EinheitenPfad lektion={lektion} einheiten={liste} />
     </>
+  );
+}
+
+const EPFAD = { breite: 300, stufe: 136, knoten: 66, ausschlag: 56 };
+
+/** Ein paar Wörter, damit man sieht, worum es in einer Einheit geht. */
+function vorschau(einheit: Einheit) {
+  const woerter = einheit.eintraege.filter((e) => e.art === 'wort' && bausteineAus(e.latein).length <= 2);
+  const teile = woerter.slice(0, 2).map((e) => e.latein);
+  return teile.length ? teile.join(' · ') + (woerter.length > 2 ? ' …' : '') : `${einheit.eintraege.length} Sätze`;
+}
+
+function EinheitenPfad({ lektion, einheiten: liste }: { lektion: Lektion; einheiten: Einheit[] }) {
+  const f = useFortschritt();
+  const zustand = einheitenZustand(lektion, f);
+  return (
+    <Pfad
+      {...EPFAD}
+      className="pfad--einheiten"
+      anzahl={liste.length}
+      stufeFuer={(i, stil) => {
+        const e = liste[i];
+        const z = zustand[i];
+        const text = (
+          <span className="pfad__text">
+            <span className="pfad__titel">Einheit {e.nr}</span>
+            <Surayt className="pfad__deutsch">{vorschau(e)}</Surayt>
+          </span>
+        );
+        const knoten = (
+          <span className={`knoten knoten--einheit knoten--${z}`} style={{ width: EPFAD.knoten, height: EPFAD.knoten }}>
+            {z === 'fertig' ? <IconHaken size={30} /> : z === 'aktuell' ? <IconStern size={30} /> : <IconSchloss size={24} />}
+          </span>
+        );
+        if (z === 'zu') {
+          return (
+            <li key={e.nr} className="pfad__stufe pfad__stufe--zu" style={stil}>
+              {knoten}
+              <span className="nur-vorlesen">gesperrt:</span>
+              {text}
+            </li>
+          );
+        }
+        return (
+          <li key={e.nr} className="pfad__stufe" style={stil}>
+            <a
+              className="pfad__link"
+              href={href({ name: 'einheit', nr: lektion.nr, einheit: e.nr })}
+              onClick={entsperren}
+              aria-label={`Einheit ${e.nr}${z === 'fertig' ? ', geschafft – nochmal üben' : ', jetzt dran'}`}
+            >
+              {z === 'aktuell' && <span className="pfad__start">Start</span>}
+              {knoten}
+              {text}
+            </a>
+          </li>
+        );
+      }}
+    />
   );
 }
 

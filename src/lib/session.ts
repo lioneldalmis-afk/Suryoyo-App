@@ -184,7 +184,7 @@ export function luecke(
   const teile = woerter(satz.latein);
   if (teile.length < 3) return null;
   const kerne = teile.map((t) => zerlege(t).kern);
-  const moeglich = kerne.map((k, i) => i).filter((i) => kleinGeschrieben(kerne[i]));
+  const moeglich = kerne.map((_, i) => i).filter((i) => kleinGeschrieben(kerne[i]));
   if (moeglich.length === 0) return null;
 
   const neu = new Set(einzelwoerter(bevorzugt).map(fold));

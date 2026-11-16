@@ -11,7 +11,11 @@ Prototyp mit allen 16 Lektionen aus Level A des Lehrbuchs *Šlomo Surayt*:
 - Lektion 1 und 2 als Aussprache-Guide: Alphabet, besondere Laute mit Beispielwörtern und Hörpaare („talyo – ṭalyo“)
 - Zu Lektion 3–16 der Dialog oder Lesetext zum Anhören, Zeile für Zeile oder am Stück
 - Zusammen gut 1.300 Wörter, jedes mit Aufnahme
-- Vier Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen, Hörpaar
+- Lernpfad wie bei Sprach-Apps: Jede Lektion ist in kleine Einheiten aufgeteilt (318 insgesamt), die nacheinander freigeschaltet werden
+- Acht Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen, Hörpaar, Satz bauen, Lückentext, Nachsprechen (eigene Aufnahme mit dem Original vergleichen) und Dialog-Rollenspiel
+- Karteikasten: Falsches kommt gleich wieder, Richtiges nach 1, 3, 7, 14 und 30 Tagen
+- XP, Tagesziel, Tagesserie und Abzeichen – bewusst ohne „Leben“, Fehler kosten nichts
+- Satz der Woche für den Familientisch (sobald die Familientisch-Liste geprüft ist)
 - Lernstand wird auf dem Gerät gespeichert, ohne Konto
 - Läuft offline (bis auf das Audio, das von der Lehrbuch-Website kommt)
 
@@ -49,8 +53,8 @@ npm run build
 |---|---|
 | `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-01.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext bzw. Aussprache, Wortschatz, Audio-Links), `glossar-a.json` (Glossar für den späteren Übersetzer) |
 | `inhalte/` | Listen zum Prüfen durch Menschen, z. B. die Familientisch-Sätze |
-| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Lernstand (`progress.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
-| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Über die App |
+| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Einheiten und Wiederholung (`einheiten.ts`), Lernstand und Karteikasten (`progress.ts`), XP, Serie und Satz der Woche (`motivation.ts`), Abzeichen (`abzeichen.ts`), Rollenspiel (`rollenspiel.ts`), eigene Aufnahme (`aufnahme.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
+| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Rollenspiel, Erfolge, Über die App |
 | `src/components/` | Bausteine wie Lautsprecher-Knopf und die Übungsaufgaben |
 | `src/styles.css` | Die gesamte Gestaltung; Farben stehen oben als Variablen |
 | `scripts/` | Einlesen der Lehrbuch-Website (`extract-lesson.mjs` mit den Modulen `lektion.mjs`, `alphabet.mjs`, `glossar.mjs`) und Übernahme der Familientisch-Häkchen |
@@ -78,7 +82,7 @@ Jede Änderung auf `main` wird automatisch getestet, gebaut und auf GitHub Pages
 
 ## Familientisch-Sätze prüfen
 
-In `inhalte/familientisch-vorschlag.md` stehen Sätze, die man zu Hause direkt verwenden kann – ein Vorschlag, den jemand prüft, der Surayt spricht. Auf GitHub die Datei bearbeiten und bei passenden Sätzen `[ ]` durch `[x]` ersetzen. Danach überträgt dieser Befehl die Häkchen in die Daten:
+In `inhalte/familientisch-vorschlag.md` stehen Sätze, die man zu Hause direkt verwenden kann – ein Vorschlag, den jemand prüft, der Surayt spricht. Aus den abgehakten Sätzen wählt die App jede Woche den **Satz der Woche**; solange nichts abgehakt ist, erscheint er nicht. Auf GitHub die Datei bearbeiten und bei passenden Sätzen `[ ]` durch `[x]` ersetzen. Danach überträgt dieser Befehl die Häkchen in die Daten:
 
 ```bash
 npm run familientisch

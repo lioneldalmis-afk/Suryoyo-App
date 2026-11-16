@@ -103,12 +103,13 @@ export function Rundenende({ bericht, gesamt, falsche, titel, children }: Props)
 }
 
 /** Fortschrittsbalken zum Tagesziel. */
-export function Tagesziel({ xp, ziel, geradeErreicht = false }: { xp: number; ziel: number; geradeErreicht?: boolean }) {
+export function Tagesziel(props: { xp: number; ziel: number; geradeErreicht?: boolean; titel?: string }) {
+  const { xp, ziel, geradeErreicht = false, titel = 'Tagesziel' } = props;
   const erreicht = xp >= ziel;
   return (
     <div className={`tagesziel${erreicht ? ' tagesziel--erreicht' : ''}`}>
       <div className="tagesziel__zeile">
-        <span>{geradeErreicht ? 'Tagesziel geschafft!' : 'Tagesziel'}</span>
+        <span>{geradeErreicht ? 'Tagesziel geschafft!' : xp >= ziel ? `${titel}: geschafft!` : titel}</span>
         <span>
           {Math.min(xp, ziel)} / {ziel} XP
         </span>
