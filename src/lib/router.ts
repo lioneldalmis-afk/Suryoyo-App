@@ -9,19 +9,34 @@ export type LektionTab = 'text' | 'woerter' | 'ueben';
 export type Route =
   | { name: 'start' }
   | { name: 'info' }
+  | { name: 'erfolge' }
+  /** Wiederholungsrunde mit den fälligen Einträgen aller Lektionen. */
+  | { name: 'wiederholen' }
   /** `anker`: Sprungziel auf der Seite, z. B. der Laut „ḥ“ in Lektion 2. */
   | { name: 'lektion'; nr: number; tab: LektionTab; anker?: string }
-  | { name: 'runde'; nr: number; art: Uebungsart };
+  /** Freies Üben einer Übungsart. */
+  | { name: 'runde'; nr: number; art: Uebungsart }
+  /** Übungsrunde einer Einheit im Lernpfad. */
+  | { name: 'einheit'; nr: number; einheit: number }
+  | { name: 'rollenspiel'; nr: number };
 
 const TABS: readonly string[] = ['text', 'woerter', 'ueben'];
-const ARTEN: readonly string[] = ['gemischt', 'karten', 'wahl', 'hoeren', 'paare'];
+const ARTEN: readonly string[] = ['gemischt', 'karten', 'wahl', 'hoeren', 'paare', 'saetze', 'sprechen'];
+const zahl = (teil: string | undefined) => (/^\d+$/.test(teil ?? '') ? Number(teil) : null);
 
 export function parse(hash: string): Route {
   const [a, b, c, d] = hash.replace(/^#\/?/, '').split('/');
   if (a === 'info') return { name: 'info' };
-  if (a === 'lektion' && /^\d+$/.test(b ?? '')) {
-    const nr = Number(b);
+  if (a === 'erfolge') return { name: 'erfolge' };
+  if (a === 'wiederholen') return { name: 'wiederholen' };
+  const nr = zahl(b);
+  if (a === 'lektion' && nr !== null) {
     if (c === 'ueben' && ARTEN.includes(d)) return { name: 'runde', nr, art: d as Uebungsart };
+    if (c === 'rollenspiel') return { name: 'rollenspiel', nr };
+    if (c === 'einheit') {
+      const einheit = zahl(d);
+      return einheit !== null ? { name: 'einheit', nr, einheit } : { name: 'lektion', nr, tab: 'ueben' };
+    }
     // Unbekannte Reiter (auch das frühere „dialog“) führen zum Text.
     const tab = TABS.includes(c) ? (c as LektionTab) : 'text';
     const anker = tab === 'text' && d ? entschluessle(d) : undefined;
@@ -35,11 +50,17 @@ export function href(route: Route): string {
     case 'start':
       return '#/';
     case 'info':
-      return '#/info';
+    case 'erfolge':
+    case 'wiederholen':
+      return `#/${route.name}`;
     case 'lektion':
       return `#/lektion/${route.nr}/${route.tab}${route.anker ? '/' + encodeURIComponent(route.anker) : ''}`;
     case 'runde':
       return `#/lektion/${route.nr}/ueben/${route.art}`;
+    case 'einheit':
+      return `#/lektion/${route.nr}/einheit/${route.einheit}`;
+    case 'rollenspiel':
+      return `#/lektion/${route.nr}/rollenspiel`;
   }
 }
 

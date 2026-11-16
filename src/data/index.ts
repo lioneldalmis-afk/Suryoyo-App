@@ -1,5 +1,6 @@
+import { lernreihenfolge } from '../lib/session';
 import { lautSchluessel } from '../lib/text';
-import type { KursLektion, Laut, Lektion } from '../types';
+import type { Eintrag, KursLektion, Laut, Lektion } from '../types';
 import kursJson from './kurs.json';
 
 /** Alle Lektionen von Level A in Lehrbuch-Reihenfolge. */
@@ -20,6 +21,13 @@ const lektionen = Object.values(dateien)
   .map((l) => ({ ...l, einleitung: l.einleitung.filter((e) => !e.tags.includes(NUR_MIT_BILD)) }));
 
 export const verfuegbar = new Map(lektionen.map((l) => [l.nr, l]));
+export const alleLektionen: readonly Lektion[] = lektionen;
+
+/** Antwortmöglichkeiten für einen Eintrag kommen aus seiner eigenen Lektion. */
+export const vorratFuer = (e: Eintrag): readonly Eintrag[] => {
+  const l = verfuegbar.get(e.lektion);
+  return l ? lernreihenfolge(l) : [];
+};
 
 /**
  * Alle Laute mit Erklärung (Konsonanten und Vokale aus Lektion 2), nach

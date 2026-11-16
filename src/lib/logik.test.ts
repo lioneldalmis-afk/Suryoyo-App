@@ -9,10 +9,8 @@ import {
   aktuelleLektion,
   baueHoerrunde,
   baueRunde,
-  lektionsstand,
   lernreihenfolge,
   optionenFuer,
-  type Schritt,
 } from './session';
 import { fold, kern, lautSchluessel, tokens, vorHinweis } from './text';
 
@@ -245,47 +243,26 @@ describe('Antwortmöglichkeiten', () => {
   });
 });
 
-describe('Übungsrunde', () => {
-  const eintraege = (schritte: Schritt[]) => [...new Set(schritte.map((s) => s.eintrag.latein))];
-
-  it('stellt am Anfang vier neue Wörter vor und fragt sie zweimal ab', () => {
-    const runde = baueRunde('gemischt', vorrat, {}, zufall(1));
-    expect(eintraege(runde)).toEqual(['šlomo', 'ono', 'ëšmi', 'yo']);
-    expect(runde.map((s) => s.typ).slice(0, 4)).toEqual(['karte', 'karte', 'wahl', 'wahl']);
-    expect(runde.filter((s) => s.typ === 'karte')).toHaveLength(4);
-    expect(runde.filter((s) => s.typ === 'wahl')).toHaveLength(4);
-    expect(runde.filter((s) => s.typ === 'hoeren')).toHaveLength(4);
-    // Jedes Wort wird erst gezeigt, bevor danach gefragt wird.
-    for (const name of eintraege(runde)) {
-      const erster = runde.find((s) => s.eintrag.latein === name)!;
-      expect(erster).toMatchObject({ typ: 'karte', neu: true });
-    }
-  });
-
-  it('mischt später Wiederholungen unter die neuen Wörter', () => {
-    const stand = { stufe: 1, richtig: 1, falsch: 0, zuletzt: 1 };
-    const f: Fortschritt = Object.fromEntries(vorrat.slice(0, 4).map((e) => [e.id, stand]));
-    const runde = baueRunde('gemischt', vorrat, f, zufall(2));
-    const neue = runde.filter((s) => s.typ === 'karte').map((s) => s.eintrag.id);
-    expect(neue).toEqual(vorrat.slice(4, 8).map((e) => e.id));
-    const wiederholt = eintraege(runde.filter((s) => vorrat.slice(0, 4).includes(s.eintrag)));
-    expect(wiederholt).toHaveLength(2);
-  });
-
-  it('wiederholt nur noch, wenn alles einmal geübt ist', () => {
-    const stand = { stufe: 1, richtig: 1, falsch: 0, zuletzt: 1 };
-    const f: Fortschritt = Object.fromEntries(vorrat.map((e) => [e.id, stand]));
-    const runde = baueRunde('gemischt', vorrat, f, zufall(3));
-    expect(runde).toHaveLength(8);
-    expect(runde.some((s) => s.typ === 'karte')).toBe(false);
-    expect(lektionsstand(lektion, f)).toMatchObject({ geuebt: vorrat.length, anteil: 1 });
-  });
-
+describe('Freies Üben', () => {
   it('bietet jede Übungsart auch einzeln an', () => {
     expect(baueRunde('karten', vorrat, {}, zufall(4)).every((s) => s.typ === 'karte' && !s.neu)).toBe(true);
     expect(baueRunde('wahl', vorrat, {}, zufall(5)).every((s) => s.typ === 'wahl')).toBe(true);
     expect(baueRunde('hoeren', vorrat, {}, zufall(6)).every((s) => s.typ === 'hoeren')).toBe(true);
     expect(baueRunde('hoeren', vorrat, {}, zufall(6))).toHaveLength(10);
+    const saetze = baueRunde('saetze', vorrat, {}, zufall(7));
+    expect(saetze).toHaveLength(10);
+    expect(saetze.every((s) => (s.typ === 'bauen' || s.typ === 'luecke') && s.eintrag.art === 'satz')).toBe(true);
+    const sprechen = baueRunde('sprechen', vorrat, {}, zufall(8));
+    expect(sprechen.every((s) => s.typ === 'sprechen')).toBe(true);
+    expect(sprechen[0].eintrag.art).toBe('satz');
+  });
+
+  it('nimmt die schwächsten Einträge zuerst', () => {
+    const sitzt = { stufe: 3, richtig: 3, falsch: 0, zuletzt: 1 };
+    const f: Fortschritt = Object.fromEntries(vorrat.map((e) => [e.id, sitzt]));
+    const schwach = vorrat[7];
+    const runde = baueRunde('wahl', vorrat, { ...f, [schwach.id]: { ...sitzt, stufe: 0 } }, zufall(9));
+    expect(runde[0].eintrag).toBe(schwach);
   });
 });
 
@@ -343,14 +320,14 @@ describe('Glossar A', () => {
 });
 
 describe('Lernstand', () => {
-  it('steigt bei fehlerfreien Runden und sinkt bei Fehlern, in festen Grenzen', () => {
+  it('schiebt richtige Einträge ein Fach weiter und falsche zurück ins erste', () => {
     let f: Fortschritt = {};
     f = nachRunde(f, [{ id: 'a', fehlerfrei: false }], 1);
     expect(f.a).toEqual({ stufe: 0, richtig: 0, falsch: 1, zuletzt: 1 });
-    for (let i = 0; i < 5; i++) f = nachRunde(f, [{ id: 'a', fehlerfrei: true }], 2);
+    for (let i = 0; i < 7; i++) f = nachRunde(f, [{ id: 'a', fehlerfrei: true }], 2);
     expect(f.a.stufe).toBe(MAX_STUFE);
     f = nachRunde(f, [{ id: 'a', fehlerfrei: false }], 3);
-    expect(f.a).toEqual({ stufe: MAX_STUFE - 1, richtig: 5, falsch: 2, zuletzt: 3 });
+    expect(f.a).toEqual({ stufe: 0, richtig: 7, falsch: 2, zuletzt: 3 });
   });
 });
 
@@ -393,6 +370,11 @@ describe('Adressen', () => {
       { name: 'lektion', nr: 2, tab: 'text', anker: 'ḥ' },
       { name: 'runde', nr: 2, art: 'paare' },
       { name: 'runde', nr: 3, art: 'hoeren' },
+      { name: 'runde', nr: 4, art: 'saetze' },
+      { name: 'einheit', nr: 3, einheit: 2 },
+      { name: 'rollenspiel', nr: 8 },
+      { name: 'wiederholen' },
+      { name: 'erfolge' },
     ];
     for (const r of routen) expect(parse(href(r))).toEqual(r);
     expect(parse('')).toEqual({ name: 'start' });
@@ -401,6 +383,7 @@ describe('Adressen', () => {
     expect(parse('#/lektion/3/dialog')).toEqual({ name: 'lektion', nr: 3, tab: 'text' });
     expect(parse('#/lektion/3/ueben')).toEqual({ name: 'lektion', nr: 3, tab: 'ueben' });
     expect(parse('#/quatsch')).toEqual({ name: 'start' });
+    expect(parse('#/lektion/3/einheit/x')).toEqual({ name: 'lektion', nr: 3, tab: 'ueben' });
     // So liefern manche Browser Sonderzeichen in der Adresse.
     expect(parse('#/lektion/2/text/%E1%B8%A5')).toEqual({ name: 'lektion', nr: 2, tab: 'text', anker: 'ḥ' });
   });

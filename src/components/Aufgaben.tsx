@@ -1,8 +1,9 @@
 // Die Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen und Hörpaar.
 // Alle außer der Karteikarte teilen sich eine Komponente – sie unterscheiden
-// sich nur darin, was als Frage und als Antwort zu sehen ist.
+// sich nur darin, was als Frage und als Antwort zu sehen ist. Satz bauen und
+// Lückentext stehen in Satzaufgaben.tsx, Nachsprechen in Nachsprechen.tsx.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { spiele, useAudioStatus } from '../lib/audio';
 import type { Schritt } from '../lib/session';
 import { vorHinweis } from '../lib/text';
@@ -12,7 +13,45 @@ import { IconHaken, IconSchliessen } from './Icons';
 import { Surayt } from './Surayt';
 
 type KarteSchritt = Extract<Schritt, { typ: 'karte' }>;
-type AuswahlSchritt = Exclude<Schritt, { typ: 'karte' }>;
+type AuswahlSchritt = Extract<Schritt, { typ: 'wahl' | 'hoeren' | 'paar' }>;
+
+export interface Antwort {
+  richtig: boolean;
+  gewaehlt: string;
+}
+
+/**
+ * Fußleiste einer Aufgabe: vor der Antwort z. B. „Prüfen“ (`children`), danach
+ * „Richtig!“ oder die Lösung, mit „Weiter“.
+ */
+export function Urteil(props: { antwort: Antwort | null; eintrag: Eintrag; onWeiter: () => void; children?: ReactNode }) {
+  const { antwort, eintrag: e } = props;
+  return (
+    <footer
+      className={`aufgabe__fuss${antwort ? (antwort.richtig ? ' aufgabe__fuss--richtig' : ' aufgabe__fuss--falsch') : ''}`}
+      aria-live="polite"
+    >
+      {antwort ? (
+        <>
+          <div className="urteil">
+            <span className="urteil__icon">{antwort.richtig ? <IconHaken /> : <IconSchliessen />}</span>
+            <div>
+              <strong>{antwort.richtig ? 'Richtig!' : 'Richtig ist:'}</strong>
+              <p>
+                <Surayt>{e.latein}</Surayt> = {e.deutsch}
+              </p>
+            </div>
+          </div>
+          <button type="button" className="knopf" autoFocus onClick={props.onWeiter}>
+            Weiter
+          </button>
+        </>
+      ) : (
+        props.children
+      )}
+    </footer>
+  );
+}
 
 /** Karteikarte: erst nur hören, dann aufdecken. */
 export function Karte({ schritt, onFertig }: { schritt: KarteSchritt; onFertig: (gewusst: boolean | null) => void }) {
@@ -76,7 +115,7 @@ export function Karte({ schritt, onFertig }: { schritt: KarteSchritt; onFertig: 
 
 interface AuswahlProps {
   schritt: AuswahlSchritt;
-  antwort: { richtig: boolean; gewaehlt: string } | null;
+  antwort: Antwort | null;
   onAntwort: (gewaehlt: Eintrag) => void;
   onWeiter: () => void;
 }
@@ -183,27 +222,7 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
         </ul>
       </div>
 
-      <footer
-        className={`aufgabe__fuss${antwort ? (antwort.richtig ? ' aufgabe__fuss--richtig' : ' aufgabe__fuss--falsch') : ''}`}
-        aria-live="polite"
-      >
-        {antwort && (
-          <>
-            <div className="urteil">
-              <span className="urteil__icon">{antwort.richtig ? <IconHaken /> : <IconSchliessen />}</span>
-              <div>
-                <strong>{antwort.richtig ? 'Richtig!' : 'Richtig ist:'}</strong>
-                <p>
-                  <Surayt>{e.latein}</Surayt> = {e.deutsch}
-                </p>
-              </div>
-            </div>
-            <button type="button" className="knopf" autoFocus onClick={onWeiter}>
-              Weiter
-            </button>
-          </>
-        )}
-      </footer>
+      <Urteil antwort={antwort} eintrag={e} onWeiter={onWeiter} />
     </div>
   );
 }

@@ -2,11 +2,17 @@
 // Lektion braucht nur Daten, keine eigens programmierten Aufgaben.
 
 import type { Eintrag, Hoerpaar, Lektion } from '../types';
-import { stufe, type Fortschritt } from './progress';
-import { fold, kern, tokens } from './text';
+import { geuebt, stufe, type Fortschritt } from './progress';
+import { bausteineAus, fold, kern, tokens, woerter, zerlege } from './text';
 
-export type Uebungsart = 'gemischt' | 'karten' | 'wahl' | 'hoeren' | 'paare';
+/** Freie Übungsarten einer Lektion. „gemischt“ führt zur nächsten Einheit. */
+export type Uebungsart = 'gemischt' | 'karten' | 'wahl' | 'hoeren' | 'paare' | 'saetze' | 'sprechen';
 export type Richtung = 'sur-de' | 'de-sur';
+
+export interface Baustein {
+  id: number;
+  text: string;
+}
 
 export type Schritt =
   /** Karteikarte: hören → aufdecken. `neu` = Wort wird zum ersten Mal vorgestellt. */
@@ -16,14 +22,26 @@ export type Schritt =
   /** Hören & Auswählen: nur Audio, Bedeutung wählen. */
   | { typ: 'hoeren'; eintrag: Eintrag; optionen: Eintrag[] }
   /** Hörpaar: eins von zwei fast gleich klingenden Wörtern hören und erkennen. */
-  | { typ: 'paar'; eintrag: Eintrag; optionen: Eintrag[]; laute: string };
+  | { typ: 'paar'; eintrag: Eintrag; optionen: Eintrag[]; laute: string }
+  /**
+   * Satz bauen: die Wörter des Satzes (und ein paar zu viel) in die richtige
+   * Reihenfolge tippen. `nachGehoer`: Der Satz wird vorgespielt statt auf Deutsch gezeigt.
+   */
+  | { typ: 'bauen'; eintrag: Eintrag; bausteine: Baustein[]; loesung: string[]; nachGehoer: boolean }
+  /** Lückentext: In `teile` (die Wörter des Satzes) fehlt das Wort an Stelle `luecke`. */
+  | { typ: 'luecke'; eintrag: Eintrag; teile: string[]; luecke: number; loesung: string; optionen: string[] }
+  /** Nachsprechen: Original hören, sich selbst aufnehmen, vergleichen und selbst bewerten. */
+  | { typ: 'sprechen'; eintrag: Eintrag };
 
 export type Zufall = () => number;
 
-const NEU_PRO_RUNDE = 4;
-const EINTRAEGE_PRO_RUNDE = 6;
-const NUR_WIEDERHOLUNG = 8;
+/** Woher die Antwortmöglichkeiten für einen Eintrag kommen: in der Regel aus seiner Lektion. */
+export type VorratFuer = (e: Eintrag) => readonly Eintrag[];
+
 const FREI_UEBEN = 10;
+const FREI_SPRECHEN = 6;
+/** Längere Sätze lassen sich auf dem Handy nicht mehr gut aus Bausteinen bauen – dafür gibt es den Lückentext. */
+export const MAX_BAUSTEINE = 9;
 
 export function mische<T>(liste: readonly T[], zufall: Zufall): T[] {
   const a = [...liste];
@@ -33,6 +51,8 @@ export function mische<T>(liste: readonly T[], zufall: Zufall): T[] {
   }
   return a;
 }
+
+const waehleAus = <T>(liste: readonly T[], zufall: Zufall): T => liste[Math.floor(zufall() * liste.length)];
 
 /**
  * Reihenfolge, in der eine Lektion gelernt wird: die Wörter so, wie sie im
@@ -72,6 +92,8 @@ function berechneReihenfolge(lektion: Lektion): Eintrag[] {
   return [...imText.map((x) => x.eintrag), ...rest];
 }
 
+// --- Die einzelnen Aufgaben --------------------------------------------------
+
 /**
  * Antwortmöglichkeiten: der richtige Eintrag plus falsche derselben Art.
  * Zum Verwechseln ähnliche Einträge („gut (m.Sg.)“ / „gut (pl.)“) kommen nie
@@ -92,78 +114,189 @@ export function optionenFuer(ziel: Eintrag, vorrat: readonly Eintrag[], zufall: 
   return mische([ziel, ...falsche], zufall);
 }
 
-function wahl(eintrag: Eintrag, richtung: Richtung, vorrat: readonly Eintrag[], zufall: Zufall): Schritt {
+export function wahl(eintrag: Eintrag, richtung: Richtung, vorrat: readonly Eintrag[], zufall: Zufall): Schritt {
   return { typ: 'wahl', eintrag, richtung, optionen: optionenFuer(eintrag, vorrat, zufall) };
 }
 
-function hoeren(eintrag: Eintrag, vorrat: readonly Eintrag[], zufall: Zufall): Schritt {
+export function hoeren(eintrag: Eintrag, vorrat: readonly Eintrag[], zufall: Zufall): Schritt {
   // Ohne Audio geht Hören nicht – dann wird andersherum abgefragt.
   if (!eintrag.audio) return wahl(eintrag, 'de-sur', vorrat, zufall);
   return { typ: 'hoeren', eintrag, optionen: optionenFuer(eintrag, vorrat, zufall) };
 }
 
-function irgendeine(eintrag: Eintrag, vorrat: readonly Eintrag[], zufall: Zufall): Schritt {
-  const wurf = zufall();
-  if (wurf < 1 / 3) return hoeren(eintrag, vorrat, zufall);
-  return wahl(eintrag, wurf < 2 / 3 ? 'sur-de' : 'de-sur', vorrat, zufall);
+/** Einzelne Wörter (ohne Leerzeichen) aus dem Wortschatz – Material für Bausteine und Lücken. */
+function einzelwoerter(vorrat: readonly Eintrag[]): string[] {
+  return vorrat
+    .filter((e) => e.art === 'wort')
+    .map((e) => bausteineAus(e.latein))
+    .filter((b) => b.length === 1)
+    .map((b) => b[0]);
 }
 
-/** Schwächste zuerst: niedrige Stufe, dann am längsten nicht geübt; Gleichstand zufällig. */
-function schwaechsteZuerst(vorrat: readonly Eintrag[], f: Fortschritt, zufall: Zufall): Eintrag[] {
+/**
+ * Füllwörter, die nicht in den Satz gehören: erst Wörter aus dem Wortschatz,
+ * dann aus anderen Sätzen. Nichts, was einem Wort im Satz zum Verwechseln ähnlich ist.
+ */
+function fuellwoerter(
+  satz: Eintrag,
+  vorrat: readonly Eintrag[],
+  anzahl: number,
+  zufall: Zufall,
+  passt: (wort: string) => boolean = () => true,
+): string[] {
+  const vergeben = new Set(bausteineAus(satz.latein).map(fold));
+  const andereSaetze = vorrat.filter((e) => e.art === 'satz' && e.id !== satz.id).flatMap((e) => bausteineAus(e.latein));
+  const gewaehlt: string[] = [];
+  for (const wort of [...mische(einzelwoerter(vorrat), zufall), ...mische(andereSaetze, zufall)]) {
+    if (gewaehlt.length === anzahl) break;
+    if (vergeben.has(fold(wort)) || !passt(wort)) continue;
+    vergeben.add(fold(wort));
+    gewaehlt.push(wort);
+  }
+  return gewaehlt;
+}
+
+/** Satz bauen – nur für Sätze mit 2 bis `MAX_BAUSTEINE` Wörtern, sonst `null`. */
+export function bauen(satz: Eintrag, vorrat: readonly Eintrag[], zufall: Zufall, nachGehoer = false): Schritt | null {
+  const loesung = bausteineAus(satz.latein);
+  if (loesung.length < 2 || loesung.length > MAX_BAUSTEINE) return null;
+  const extra = fuellwoerter(satz, vorrat, loesung.length <= 4 ? 2 : 3, zufall);
+  const bausteine = mische(
+    [...loesung, ...extra].map((text, id) => ({ id, text })),
+    zufall,
+  );
+  return { typ: 'bauen', eintrag: satz, bausteine, loesung, nachGehoer: nachGehoer && !!satz.audio };
+}
+
+const kleinGeschrieben = (wort: string) => wort.length >= 2 && /^\p{Ll}/u.test(wort);
+
+/**
+ * Lückentext: ein Wort des Satzes fehlt, vier stehen zur Wahl. Bevorzugt fehlt
+ * ein Wort aus `bevorzugt` (z. B. ein gerade gelerntes). Großgeschriebene Wörter
+ * (Namen, Satzanfänge) fehlen nie – das würde die Lösung verraten.
+ */
+export function luecke(
+  satz: Eintrag,
+  vorrat: readonly Eintrag[],
+  zufall: Zufall,
+  bevorzugt: readonly Eintrag[] = [],
+): Schritt | null {
+  const teile = woerter(satz.latein);
+  if (teile.length < 3) return null;
+  const kerne = teile.map((t) => zerlege(t).kern);
+  const moeglich = kerne.map((k, i) => i).filter((i) => kleinGeschrieben(kerne[i]));
+  if (moeglich.length === 0) return null;
+
+  const neu = new Set(einzelwoerter(bevorzugt).map(fold));
+  const bekannt = new Set(einzelwoerter(vorrat).map(fold));
+  const auswahl = [
+    moeglich.filter((i) => neu.has(fold(kerne[i]))),
+    moeglich.filter((i) => bekannt.has(fold(kerne[i]))),
+    moeglich,
+  ].find((liste) => liste.length > 0)!;
+  const stelle = waehleAus(auswahl, zufall);
+  const loesung = kerne[stelle];
+
+  const falsche = fuellwoerter(satz, vorrat, 3, zufall, kleinGeschrieben);
+  if (falsche.length < 2) return null;
+  return { typ: 'luecke', eintrag: satz, teile, luecke: stelle, loesung, optionen: mische([loesung, ...falsche], zufall) };
+}
+
+/** Eine Übung zu einem Satz: bauen, Lücke füllen oder hören – je nachdem, was der Satz hergibt. */
+function satzUebung(satz: Eintrag, vorrat: readonly Eintrag[], zufall: Zufall, bevorzugt: readonly Eintrag[]): Schritt {
+  const wurf = zufall();
+  const moeglich = [
+    bauen(satz, vorrat, zufall, wurf < 0.25),
+    luecke(satz, vorrat, zufall, bevorzugt),
+  ].filter((s): s is Schritt => s !== null);
+  if (moeglich.length === 0) return hoeren(satz, vorrat, zufall);
+  // Bauen kommt öfter dran als die Lücke, solange beides geht.
+  return moeglich.length === 1 || wurf < 0.65 ? moeglich[0] : moeglich[1];
+}
+
+/** Die zweite Begegnung mit einem neuen Eintrag: Wörter nach Gehör, Sätze bauen oder ergänzen. */
+export function festige(e: Eintrag, vorrat: readonly Eintrag[], zufall: Zufall, bevorzugt: readonly Eintrag[] = []): Schritt {
+  return e.art === 'satz' ? satzUebung(e, vorrat, zufall, bevorzugt) : hoeren(e, vorrat, zufall);
+}
+
+/** Irgendeine Aufgabe zu einem schon bekannten Eintrag – zum Wiederholen. */
+export function irgendeine(e: Eintrag, vorrat: readonly Eintrag[], zufall: Zufall, bevorzugt: readonly Eintrag[] = []): Schritt {
+  const wurf = zufall();
+  if (e.art === 'satz' && wurf < 0.6) return satzUebung(e, vorrat, zufall, bevorzugt);
+  if (wurf < 0.8 && e.audio) return hoeren(e, vorrat, zufall);
+  return wahl(e, zufall() < 0.5 ? 'sur-de' : 'de-sur', vorrat, zufall);
+}
+
+export function sprechen(e: Eintrag): Schritt | null {
+  return e.audio ? { typ: 'sprechen', eintrag: e } : null;
+}
+
+// --- Runden ------------------------------------------------------------------
+
+/** Schwächste zuerst: niedriges Fach, dann am längsten nicht geübt; Gleichstand zufällig. */
+export function schwaechsteZuerst(vorrat: readonly Eintrag[], f: Fortschritt, zufall: Zufall): Eintrag[] {
   return mische(vorrat, zufall).sort(
     (a, b) => stufe(f, a.id) - stufe(f, b.id) || (f[a.id]?.zuletzt ?? 0) - (f[b.id]?.zuletzt ?? 0),
   );
 }
 
+/** Lässt sich ein Satz bauen oder als Lückentext üben? */
+export const satzUebbar = (satz: Eintrag, vorrat: readonly Eintrag[]) =>
+  satz.art === 'satz' && (bauen(satz, vorrat, () => 0) !== null || luecke(satz, vorrat, () => 0) !== null);
+
 /**
- * Stellt eine Übungsrunde zusammen.
+ * Stellt eine Runde zum freien Üben einer Übungsart zusammen.
  * @param vorrat Einträge der Lektion in Lernreihenfolge (siehe `lernreihenfolge`).
  */
 export function baueRunde(
-  art: Uebungsart,
+  art: Exclude<Uebungsart, 'gemischt' | 'paare'>,
   vorrat: readonly Eintrag[],
   f: Fortschritt,
   zufall: Zufall = Math.random,
 ): Schritt[] {
-  if (art === 'karten') {
-    return schwaechsteZuerst(vorrat, f, zufall)
-      .slice(0, FREI_UEBEN)
-      .map((eintrag) => ({ typ: 'karte', eintrag, neu: false }));
+  switch (art) {
+    case 'karten':
+      return schwaechsteZuerst(vorrat, f, zufall)
+        .slice(0, FREI_UEBEN)
+        .map((eintrag) => ({ typ: 'karte', eintrag, neu: false }));
+    case 'wahl':
+      return schwaechsteZuerst(vorrat, f, zufall)
+        .slice(0, FREI_UEBEN)
+        .map((e) => wahl(e, zufall() < 0.5 ? 'sur-de' : 'de-sur', vorrat, zufall));
+    case 'hoeren':
+      return schwaechsteZuerst(
+        vorrat.filter((e) => e.audio),
+        f,
+        zufall,
+      )
+        .slice(0, FREI_UEBEN)
+        .map((e) => hoeren(e, vorrat, zufall));
+    case 'saetze':
+      return schwaechsteZuerst(
+        vorrat.filter((e) => satzUebbar(e, vorrat)),
+        f,
+        zufall,
+      )
+        .slice(0, FREI_UEBEN)
+        .map((e) => satzUebung(e, vorrat, zufall, []));
+    case 'sprechen':
+      // Erst die Sätze, dann die Wörter, jeweils die am wenigsten geübten.
+      return [
+        ...schwaechsteZuerst(
+          vorrat.filter((e) => e.art === 'satz'),
+          f,
+          zufall,
+        ),
+        ...schwaechsteZuerst(
+          vorrat.filter((e) => e.art === 'wort'),
+          f,
+          zufall,
+        ),
+      ]
+        .map(sprechen)
+        .filter((s): s is Schritt => s !== null)
+        .slice(0, FREI_SPRECHEN);
   }
-  if (art === 'wahl') {
-    return schwaechsteZuerst(vorrat, f, zufall)
-      .slice(0, FREI_UEBEN)
-      .map((e) => wahl(e, zufall() < 0.5 ? 'sur-de' : 'de-sur', vorrat, zufall));
-  }
-  if (art === 'hoeren') {
-    const mitAudio = vorrat.filter((e) => e.audio);
-    return schwaechsteZuerst(mitAudio, f, zufall)
-      .slice(0, FREI_UEBEN)
-      .map((e) => hoeren(e, vorrat, zufall));
-  }
-
-  // Gemischt: ein paar neue Einträge kennenlernen und ältere wiederholen.
-  const neue = vorrat.filter((e) => stufe(f, e.id) === 0).slice(0, NEU_PRO_RUNDE);
-  const bekannte = schwaechsteZuerst(
-    vorrat.filter((e) => stufe(f, e.id) > 0),
-    f,
-    zufall,
-  ).slice(0, neue.length ? EINTRAEGE_PRO_RUNDE - neue.length : NUR_WIEDERHOLUNG);
-
-  const schritte: Schritt[] = [];
-  // Neue in Zweierpäckchen: erst anhören und aufdecken, dann gleich abfragen.
-  for (let i = 0; i < neue.length; i += 2) {
-    const paar = neue.slice(i, i + 2);
-    for (const eintrag of paar) schritte.push({ typ: 'karte', eintrag, neu: true });
-    for (const eintrag of mische(paar, zufall)) schritte.push(wahl(eintrag, 'sur-de', vorrat, zufall));
-  }
-  // Zweite Runde: die neuen nur nach Gehör, dazu die Wiederholungen.
-  const zweiteRunde = [
-    ...neue.map((e) => hoeren(e, vorrat, zufall)),
-    ...bekannte.map((e) => irgendeine(e, vorrat, zufall)),
-  ];
-  schritte.push(...mische(zweiteRunde, zufall));
-  return schritte;
 }
 
 /**
@@ -184,17 +317,33 @@ export function baueHoerrunde(paare: readonly Hoerpaar[], f: Fortschritt, zufall
 }
 
 /** Dieselbe Aufgabe noch einmal, mit neu gemischten Antworten (nach einem Fehler). */
-export function nochmal(schritt: Schritt, vorrat: readonly Eintrag[], zufall: Zufall = Math.random): Schritt {
-  // Karten haben keine Antworten, Hörpaare immer dieselben zwei.
-  if (schritt.typ === 'karte' || schritt.typ === 'paar') return schritt;
-  return { ...schritt, optionen: optionenFuer(schritt.eintrag, vorrat, zufall) };
+export function nochmal(schritt: Schritt, zufall: Zufall = Math.random): Schritt {
+  switch (schritt.typ) {
+    case 'wahl':
+    case 'hoeren':
+      return { ...schritt, optionen: mische(schritt.optionen, zufall) };
+    case 'luecke':
+      return { ...schritt, optionen: mische(schritt.optionen, zufall) };
+    case 'bauen':
+      return { ...schritt, bausteine: mische(schritt.bausteine, zufall) };
+    default:
+      // Karten haben keine Antworten, Hörpaare immer dieselben zwei.
+      return schritt;
+  }
 }
 
-/** Wie weit eine Lektion geübt ist: Einträge, die mindestens einmal fehlerfrei dran waren. */
+/** Ist die Antwort beim Satzbauen richtig? Gleiche Wörter dürfen die Plätze tauschen. */
+export function richtigGebaut(loesung: readonly string[], gebaut: readonly string[]): boolean {
+  return loesung.length === gebaut.length && loesung.every((w, i) => w.toLowerCase() === gebaut[i].toLowerCase());
+}
+
+// --- Stand einer Lektion -----------------------------------------------------
+
+/** Wie weit eine Lektion geübt ist: Einträge, die mindestens einmal in einer Übung dran waren. */
 export function lektionsstand(lektion: Lektion, f: Fortschritt) {
   const alle = lernreihenfolge(lektion);
-  const geuebt = alle.filter((e) => stufe(f, e.id) > 0).length;
-  return { gesamt: alle.length, geuebt, anteil: alle.length ? geuebt / alle.length : 0 };
+  const anzahl = alle.filter((e) => geuebt(f, e.id)).length;
+  return { gesamt: alle.length, geuebt: anzahl, anteil: alle.length ? anzahl / alle.length : 0 };
 }
 
 /**
