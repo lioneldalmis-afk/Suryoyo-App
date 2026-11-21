@@ -1,11 +1,13 @@
-// Übersetzer / Schnell-Wörterbuch (Fahrplan, Phase 4): durchsucht den
-// Wortschatz, die Sätze aus Dialogen und Lesetexten und das Glossar aller
-// Lektionen – auf Deutsch und auf Surayt.
+// Übersetzer (Fahrplan, Phase 4 und 4b; bis November 2026 „Wörterbuch“):
+// durchsucht den Wortschatz, die Sätze aus Dialogen und Lesetexten und das
+// Glossar aller Lektionen – auf Deutsch und auf Surayt.
 //
 // Die Suche ist tolerant: Sonderzeichen sind egal („slomo“ findet „šlomo“),
 // „sch“ oder „sh“ gehen für „š“, Wortteile und kleine Tippfehler werden
-// erkannt. Gefunden wird aber nur, was in den Daten steht – nichts wird
-// zusammengesetzt, übersetzt oder geraten.
+// erkannt. Gefunden wird aber nur, was in den Daten steht – hier wird nichts
+// zusammengesetzt, übersetzt oder geraten. Zusammensetzen darf nur der
+// Baukasten (Phase 4b), und was er baut, trägt immer das Schild
+// „Zusammengesetzt – nicht geprüft“.
 
 import { useEffect, useState } from 'react';
 import { alleLektionen, NUR_MIT_BILD } from '../data';
@@ -32,6 +34,17 @@ export interface Fund {
   lektionen: number[];
   sprecher?: string;
 }
+
+/**
+ * Wie sicher eine Übersetzung ist – das Schild an jedem Treffer (Fahrplan, Phase 4b):
+ * `lehrbuch` steht wörtlich in Šlomo Surayt, `muttersprachler` hat ein Muttersprachler
+ * eingereicht oder bestätigt (und ein Mensch vor der Aufnahme geprüft),
+ * `zusammengesetzt` hat der Baukasten nach Lehrbuch-Regeln gebaut und niemand geprüft.
+ */
+export type Stufe = 'lehrbuch' | 'muttersprachler' | 'zusammengesetzt';
+
+/** Einträge aus den Daten sind immer geprüft; Zusammengesetztes steht nie in den Daten. */
+export const stufeVon = (f: Pick<Fund, 'quelle'>): Stufe => (f.quelle === 'community' ? 'muttersprachler' : 'lehrbuch');
 
 /** Ein durchsuchbarer Teil eines Fundes, schon zerlegt. */
 interface Feld {

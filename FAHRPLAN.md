@@ -152,10 +152,10 @@
 - [x] Großer Audio-Knopf für den Moment am Tisch, dazu Herkunft (Lehrbuch/Community) und ein Beispielsatz. *Bei Sätzen stehen statt des Beispielsatzes die Wörter des Satzes darunter. Außerdem „Zuletzt nachgeschlagen“.*
 - [x] Offline nutzbar (bei Oma gibt es vielleicht kein WLAN). *Suche und Glossar gehen offline, nur die Aufnahmen brauchen Internet (siehe Phase 0: eigene Kopien).*
 - [x] Nicht gefunden → **„Wort anfragen"**. *Die Anfragen werden vorerst auf dem Gerät gesammelt; verschickt werden sie mit Phase 5.*
-- [x] Grundsatz: **keine KI-Übersetzung**, nur geprüfte Einträge. Sonst drohen Fehler und eine Vermischung mit klassischem Syrisch. *Ein Test prüft, dass jeder Eintrag wörtlich aus Lektion oder Glossar stammt.*
+- [x] Grundsatz: **keine KI-Übersetzung**, nur geprüfte Einträge. Sonst drohen Fehler und eine Vermischung mit klassischem Syrisch. *Ein Test prüft, dass jeder Eintrag wörtlich aus Lektion oder Glossar stammt. Seit 21.11.2026 erweitert (Phase 4b): Der Baukasten darf Sätze aus Lehrbuch-Bausteinen zusammensetzen, wenn sie als „nicht geprüft“ gekennzeichnet sind; eine KI übersetzt weiterhin nichts.*
 - [ ] Test mit 2–3 Jugendlichen: Was suchen sie am Tisch, und was fehlt? (Die Wortanfragen zeigen es.)
 
-### Phase 4b – Vom Wörterbuch zum Übersetzer (Plan vom 21.11.2026, noch nicht begonnen)
+### Phase 4b – Vom Wörterbuch zum Übersetzer (Plan vom 21.11.2026, freigegeben am selben Tag)
 
 **Idee:** Der Bereich „Wörterbuch“ heißt künftig **„Übersetzer“**. Er zeigt weiterhin zuerst, was wörtlich im Lehrbuch steht. Steht ein Satz dort nicht, kann er einfache Sätze **nach den Regeln des Lehrbuchs zusammensetzen** – immer deutlich als ungeprüft gekennzeichnet und ohne Aufnahme. Ein Muttersprachler kann solche Sätze bestätigen oder verbessern, dann gelten sie als geprüft. Der Rest der App (Lernpfad, Übungen, Karteikasten, Satz der Woche) bleibt bei geprüften Inhalten.
 
@@ -191,7 +191,7 @@
 - **Claude formuliert weiterhin kein Surayt.** Claude programmiert den Baukasten nach dem Lehrbuch, die Sätze setzt das Programm aus den Daten zusammen, bestätigen kann nur ein Mensch.
 
 **Schritte**
-- [ ] 1. Umbenennen in „Übersetzer“ (Leiste, Überschrift, Kurzbefehl auf Android; die alte Adresse `#/woerterbuch` führt weiter, gespeicherte Suchen und Anfragen bleiben) und die drei Schilder einführen.
+- [x] 1. Umbenennen in „Übersetzer“ (Leiste, Überschrift, Kurzbefehl auf Android; die alte Adresse `#/woerterbuch` führt weiter, gespeicherte Suchen und Anfragen bleiben) und die drei Schilder einführen. *Jeder Treffer trägt sein Schild in der Liste und oben auf der Eintragsseite; auf der Startseite des Übersetzers erklärt „Was die Schilder bedeuten“ alle drei. Vorerst kommt nur „Lehrbuch“ vor: Community-Einträge gibt es noch keine, Zusammengesetztes erst mit Schritt 4. Ort und Datum der Bestätigung kommen mit Schritt 6 in die Daten.*
 - [ ] 2. Grammatik einlesen: Grammatik-Abschnitte 3–16 (Erklärungen wörtlich, Beispiele mit Aufnahme), Verbtabellen „Surcofo“ und die Formentabellen aus Teil 4. Beispiele und Formen werden im Übersetzer findbar, mit Schild „Lehrbuch“. *Das allein bringt schon viele neue, sichere Treffer, besonders gebeugte Verbformen.*
 - [ ] 3. Wort für Wort: Surayt-Sätze erklären, auch mit gebeugten Formen.
 - [ ] 4. Baukasten, Teil 1: „Ein Wort tauschen“ mit Gegenprobe, Bauplan und orangem Schild.
@@ -245,9 +245,9 @@
 - [ ] App-Name. *Die App läuft vorerst unter dem Arbeitstitel „Mamlo" (änderbar in `src/config.ts`, `index.html`, `vite.config.ts`).*
 - [ ] **„aramäisch/assyrisch" in Lehrbuchsätzen:** In 11 Sätzen der Lektionen 4, 5, 10, 13, 15 und 16 steht im Deutschen die Doppelform des Lehrbuchs (z. B. „Das ist eine aramäische/assyrische Familie."). Die Regel „keine Bezeichnungen für die Volksgruppe in der Oberfläche" gilt bisher für die eigenen Texte der App. Sollen diese Lehrbuchsätze wörtlich bleiben (Stand jetzt) oder ausgeblendet werden?
 - [ ] Antwort des Šlomo-Surayt-Teams zu Nutzungsrechten und Audio
-- [ ] **Übersetzer (Phase 4b): Grundsatz ändern?** Bisher gilt „keine zusammengesetzten Übersetzungen, nur geprüfte Einträge“ (Phase 4, `CLAUDE.md`). Vorschlag: Die App darf im Übersetzer Sätze aus Lehrbuch-Bausteinen zusammensetzen, wenn sie als „nicht geprüft“ gekennzeichnet sind und nirgends sonst in der App auftauchen; Claude formuliert weiterhin kein Surayt. Erst nach deinem Ja werden `CLAUDE.md` und der Grundsatz in Phase 4 angepasst.
-- [ ] **Übersetzer: Zusammengesetztes gleich zeigen oder erst auf Tippen** („Trotzdem zusammensetzen?“)? Vorschlag: gleich zeigen, aber nur, wenn nichts Geprüftes passt.
-- [ ] **Übersetzer: Reicht eine Bestätigung?** Vorschlag: eine Bestätigung durch einen eingetragenen Prüfer reicht; abweichende Fassungen aus anderen Orten werden mit Ort zusätzlich gespeichert.
+- [x] **Übersetzer (Phase 4b): Grundsatz ändern?** *Ja (21.11.2026), siehe Abschnitt 8.* Bisher gilt „keine zusammengesetzten Übersetzungen, nur geprüfte Einträge“ (Phase 4, `CLAUDE.md`). Vorschlag: Die App darf im Übersetzer Sätze aus Lehrbuch-Bausteinen zusammensetzen, wenn sie als „nicht geprüft“ gekennzeichnet sind und nirgends sonst in der App auftauchen; Claude formuliert weiterhin kein Surayt. Erst nach deinem Ja werden `CLAUDE.md` und der Grundsatz in Phase 4 angepasst.
+- [x] **Übersetzer: Zusammengesetztes gleich zeigen oder erst auf Tippen** *Gleich zeigen (21.11.2026).* („Trotzdem zusammensetzen?“)? Vorschlag: gleich zeigen, aber nur, wenn nichts Geprüftes passt.
+- [x] **Übersetzer: Reicht eine Bestätigung?** *Ja (21.11.2026).* Vorschlag: eine Bestätigung durch einen eingetragenen Prüfer reicht; abweichende Fassungen aus anderen Orten werden mit Ort zusätzlich gespeichert.
 
 ## 8. Getroffene Entscheidungen
 
@@ -325,3 +325,11 @@ Rückmeldung: Die Einheiten waren zu einfach (ein Wort wird vorgestellt und sofo
 - **Eintragsseite:** großer Lautsprecher, Umschrift, Zusatz, Deutsch, Herkunft („Aus Šlomo Surayt · Wortschatz, Lektion 3 …“, Link zur Lektion; Community-Einträge bekommen ein eigenes Schild „Community“) und ein Beispielsatz aus den Lektionen, in dem das Wort genau so vorkommt (bevorzugt aus derselben Lektion, möglichst kurz). Bei Sätzen stehen stattdessen die Wörter des Satzes aus dem Wortschatz da. Die syrische Schrift bleibt wie überall bis Phase 6 ausgeblendet.
 - **Wort anfragen:** unter jeder Suche; mit Wort (vorausgefüllt) und freiwilliger Situation, Hinweis „keine Namen“. Bis zu 30 Anfragen bleiben auf dem Gerät und stehen im Wörterbuch unter „Deine Anfragen“ (löschbar). Verschickt werden sie mit Phase 5. „Zuletzt nachgeschlagen“ merkt sich 8 Einträge. Beides liegt in `surayt.woerterbuch.v1` und wird von „Lernstand zurücksetzen“ nicht gelöscht.
 - **Offline:** Die Lektionen stecken ohnehin in der App. Das Glossar ist ein eigener Teil (etwa 60 KB komprimiert), der erst beim Öffnen des Wörterbuchs geladen wird, damit der Start schnell bleibt; der Service Worker legt ihn trotzdem beim Installieren ab. Geprüft: App einmal laden, Internet aus, neu laden – Suche samt Glossar geht.
+
+**21.11.2026 – Phase 4b (Übersetzer), Schritt 1**
+- **Grundsatz geändert:** Der Übersetzer darf Sätze aus Lehrbuch-Bausteinen nach Lehrbuch-Regeln zusammensetzen. Sie tragen immer das orange Schild „Zusammengesetzt – nicht geprüft“, haben keine Aufnahme und erscheinen nur im Übersetzer, nie in Übungen, Karteikasten oder Satz der Woche. Eine KI übersetzt weiterhin nichts, und Claude schreibt keine Surayt-Sätze von Hand. `CLAUDE.md` ist angepasst.
+- **Zusammengesetztes wird gleich gezeigt**, aber nur, wenn kein geprüfter Eintrag passt.
+- **Eine Bestätigung reicht:** Bestätigt ein eingetragener Prüfer einen Satz, bekommt er das Schild „Muttersprachler“. Abweichende Fassungen aus anderen Orten werden zusätzlich mit Ort gespeichert.
+- Der Bereich heißt jetzt **„Übersetzer“** (Leiste, Überschrift, Kurzbefehl auf Android), die Adresse `#/uebersetzer`. Alte Links auf `#/woerterbuch` führen weiter. Im Code heißen Dateien und der Speicher `surayt.woerterbuch.v1` weiter wie bisher, damit nichts verloren geht.
+- **Drei Schilder** mit Symbol, Farbe und Text, damit sie auch ohne Farbsehen zu unterscheiden sind: „Lehrbuch“ (grün, Haken), „Muttersprachler“ (blaugrün, Haken), „Zusammengesetzt – nicht geprüft“ (orange, Warndreieck; in Listen kurz „Nicht geprüft“). Das bisherige Schild „Community“ geht in „Muttersprachler“ auf; Einträge mit `quelle: 'community'` bekommen dieses Schild. Orange bedeutet in der App jetzt immer „nicht geprüft“.
+- Wo die Schilder stehen: in jeder Trefferzeile vor „Satz · Lektion 3“, oben auf der Karte der Eintragsseite (darunter wie bisher die genaue Herkunft) und erklärt auf der Startseite des Übersetzers unter „Was die Schilder bedeuten“.

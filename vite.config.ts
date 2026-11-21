@@ -8,8 +8,8 @@ export default defineConfig({
   base: './',
   // Alle Lektionen stecken bewusst mit im App-Code, damit sie offline da sind
   // (etwa 190 KB komprimiert). Die Standardwarnung ab 500 KB ist deshalb höher gesetzt.
-  // Das Glossar fürs Wörterbuch ist ein eigener Teil (etwa 60 KB), der erst beim
-  // Öffnen des Wörterbuchs geladen wird; der Service Worker legt ihn trotzdem ab.
+  // Das Glossar für den Übersetzer ist ein eigener Teil (etwa 60 KB), der erst beim
+  // Öffnen des Übersetzers geladen wird; der Service Worker legt ihn trotzdem ab.
   build: { chunkSizeWarningLimit: 1200 },
   plugins: [
     react(),
@@ -32,13 +32,13 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
-        // Langes Drücken auf das App-Symbol (Android): direkt ins Wörterbuch.
+        // Langes Drücken auf das App-Symbol (Android): direkt in den Übersetzer.
         shortcuts: [
           {
-            name: 'Wörterbuch',
-            short_name: 'Wörterbuch',
-            description: 'Wort oder Satz nachschlagen',
-            url: './#/woerterbuch',
+            name: 'Übersetzer',
+            short_name: 'Übersetzer',
+            description: 'Wort oder Satz übersetzen',
+            url: './#/uebersetzer',
             icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
           },
         ],

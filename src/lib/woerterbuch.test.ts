@@ -5,7 +5,17 @@ import type { Eintrag, Glossar } from '../types';
 import { ANFRAGE_LAENGE, aufbereiten, sauber } from './nachschlagen';
 import { href, parse, type Route } from './router';
 import { fold, kern, woerter, zerlege } from './text';
-import { abstand, baueWoerterbuch, beispielsatz, einzelneWoerter, stichwort, suche, woerterImSatz, type Fund } from './woerterbuch';
+import {
+  abstand,
+  baueWoerterbuch,
+  beispielsatz,
+  einzelneWoerter,
+  stichwort,
+  stufeVon,
+  suche,
+  woerterImSatz,
+  type Fund,
+} from './woerterbuch';
 
 const glossar = glossarJson as Glossar;
 const wb = baueWoerterbuch(alleLektionen, glossar);
@@ -224,6 +234,20 @@ describe('Wörterbuch: rund um einen Eintrag', () => {
   });
 });
 
+describe('Übersetzer: Schilder', () => {
+  it('gibt jedem Eintrag aus den Daten ein geprüftes Schild', () => {
+    // Zusammengesetztes steht nie in den Daten – das baut erst der Baukasten (Phase 4b).
+    for (const f of wb.funde) expect(stufeVon(f)).not.toBe('zusammengesetzt');
+    expect(stufeVon(fundVon('L03-W-slomo'))).toBe('lehrbuch');
+    expect(stufeVon(wb.nachId.get('G-abro-pl-abne.2')!)).toBe('lehrbuch');
+  });
+
+  it('kennzeichnet Community-Einträge als Muttersprachler', () => {
+    expect(stufeVon({ quelle: 'community' })).toBe('muttersprachler');
+    expect(stufeVon({ quelle: 'lehrbuch' })).toBe('lehrbuch');
+  });
+});
+
 describe('Wörterbuch: auf dem Gerät', () => {
   it('lädt alten oder kaputten Stand', () => {
     expect(aufbereiten(undefined)).toEqual({ verlauf: [], anfragen: [] });
@@ -241,13 +265,20 @@ describe('Wörterbuch: auf dem Gerät', () => {
 
   it('hat eigene Adressen', () => {
     const routen: Route[] = [
-      { name: 'woerterbuch' },
-      { name: 'woerterbuch', id: 'L03-W-slomo' },
-      { name: 'woerterbuch', id: 'G-abro-pl-abne.2' },
+      { name: 'uebersetzer' },
+      { name: 'uebersetzer', id: 'L03-W-slomo' },
+      { name: 'uebersetzer', id: 'G-abro-pl-abne.2' },
     ];
     for (const r of routen) expect(parse(href(r))).toEqual(r);
+    expect(href({ name: 'uebersetzer' })).toBe('#/uebersetzer');
     expect(fundVon('L03-W-slomo')).toBeDefined();
     expect(wb.nachId.get('G-abro-pl-abne.2')?.herkunft).toBe('glossar');
+  });
+
+  it('führt alte Wörterbuch-Adressen in den Übersetzer', () => {
+    expect(parse('#/woerterbuch')).toEqual({ name: 'uebersetzer' });
+    expect(parse('#/woerterbuch/L03-W-slomo')).toEqual({ name: 'uebersetzer', id: 'L03-W-slomo' });
+    expect(parse('#/woerterbuch/G-abro-pl-abne.2')).toEqual({ name: 'uebersetzer', id: 'G-abro-pl-abne.2' });
   });
 });
 

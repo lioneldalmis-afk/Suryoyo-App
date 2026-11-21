@@ -173,6 +173,14 @@ export const IconLupe = ({ size }: P) => (
   </Icon>
 );
 
+export const IconWarnung = ({ size }: P) => (
+  <Icon size={size}>
+    <path d="M12 4.5 21 19.5H3L12 4.5z" />
+    <path d="M12 10v4" />
+    <circle cx="12" cy="16.8" r="0.6" fill="currentColor" />
+  </Icon>
+);
+
 export const IconFrage = ({ size }: P) => (
   <Icon size={size}>
     <path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4 3.5v-3.5h-.5a2 2 0 0 1-2-2v-8z" />

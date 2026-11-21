@@ -1,11 +1,13 @@
-// Wörterbuch: Wörter und Sätze aus dem Lehrbuch nachschlagen, Deutsch ↔ Surayt.
-// Gedacht für den Moment am Familientisch: schnell finden, laut vorspielen.
-// Es gibt nur geprüfte Einträge – nichts wird von einer KI übersetzt.
+// Übersetzer (bis November 2026 „Wörterbuch“): Wörter und Sätze nachschlagen,
+// Deutsch ↔ Surayt. Gedacht für den Moment am Familientisch: schnell finden,
+// laut vorspielen. Jeder Treffer trägt ein Schild, das sagt, woher er stammt
+// und ob ihn jemand geprüft hat. Nichts wird von einer KI übersetzt.
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type MouseEvent } from 'react';
 import { AudioButton } from '../components/AudioButton';
 import { IconFrage, IconHaken, IconLupe, IconPfeil, IconSchliessen, IconZurueck } from '../components/Icons';
 import { Leiste } from '../components/Leiste';
+import { SCHILDER, Schild } from '../components/Schild';
 import { Surayt } from '../components/Surayt';
 import { QUELLE } from '../config';
 import { istDialog, kurs, verfuegbar } from '../data';
@@ -23,10 +25,12 @@ import { fold, vorHinweis } from '../lib/text';
 import {
   beispielsatz,
   einzelneWoerter,
+  stufeVon,
   suche,
   useWoerterbuch,
   woerterImSatz,
   type Fund,
+  type Stufe,
   type Woerterbuch,
 } from '../lib/woerterbuch';
 
@@ -35,11 +39,11 @@ const TREFFER = 40;
 
 // Bleibt erhalten, solange die App offen ist: Wer aus einem Eintrag
 // zurückkommt, findet seine Suche an derselben Stelle wieder.
-const merk = { suche: '', scroll: 0, ausDemWoerterbuch: false };
+const merk = { suche: '', scroll: 0, ausDerSuche: false };
 
-/** Ein Eintrag wird aus dem Wörterbuch heraus geöffnet – „Zurück“ führt dann einen Schritt zurück. */
+/** Ein Eintrag wird aus der Suche heraus geöffnet – „Zurück“ führt dann einen Schritt zurück. */
 const oeffnet = () => {
-  merk.ausDemWoerterbuch = true;
+  merk.ausDerSuche = true;
 };
 
 // --- Suche ---------------------------------------------------------------------
@@ -57,7 +61,7 @@ export function WoerterbuchScreen() {
   const online = useOnline();
 
   useEffect(() => {
-    merk.ausDemWoerterbuch = false;
+    merk.ausDerSuche = false;
     // Nach dem Zurückkommen dort weiterlesen, wo man war (nach dem Nach-oben-Scrollen der App).
     const y = merk.scroll;
     if (y > 0) requestAnimationFrame(() => void window.scrollTo(0, y));
@@ -78,7 +82,7 @@ export function WoerterbuchScreen() {
     <div className="seite seite--leiste woerterbuch">
       <header className="kopf kopf--bereich">
         <div className="kopf__titel">
-          <h1>Wörterbuch</h1>
+          <h1>Übersetzer</h1>
           <span>Deutsch ↔ Surayt</span>
         </div>
       </header>
@@ -125,7 +129,7 @@ export function WoerterbuchScreen() {
         ) : funde.length > 0 && nurAehnlich ? (
           <>
             <div className="nichts">
-              <p className="nichts__titel">So nicht im Wörterbuch</p>
+              <p className="nichts__titel">Nicht genau so gefunden</p>
               <p>„{gesucht}“ gibt es nicht genau so. Diese Einträge sind nur ähnlich geschrieben – meintest du einen davon?</p>
             </div>
             <Fundliste funde={funde} />
@@ -144,8 +148,8 @@ export function WoerterbuchScreen() {
             <div className="nichts">
               <p className="nichts__titel">Nichts gefunden</p>
               <p>
-                „{gesucht}“ steht nicht im Wörterbuch. Es enthält nur Wörter und Sätze aus dem Lehrbuch – nichts wird
-                automatisch übersetzt.
+                „{gesucht}“ ist nicht unter den Wörtern und Sätzen des Übersetzers. Er zeigt nur, was im Lehrbuch
+                steht oder von Muttersprachlern geprüft ist.
               </p>
             </div>
             {einzeln.length > 0 && (
@@ -164,7 +168,7 @@ export function WoerterbuchScreen() {
         )}
       </main>
 
-      <Leiste aktiv="woerterbuch" />
+      <Leiste aktiv="uebersetzer" />
     </div>
   );
 }
@@ -205,7 +209,7 @@ function Ohne({ wb }: { wb: Woerterbuch }) {
           </li>
           <li>Wortteile und kleine Tippfehler klappen auch.</li>
           <li>Tippe auf den Lautsprecher, um ein Wort zu hören – oder es am Tisch vorzuspielen.</li>
-          <li>Alles stammt aus dem Lehrbuch, nichts wird von einer KI übersetzt. Das Wörterbuch geht auch ohne Internet.</li>
+          <li>Nichts wird von einer KI übersetzt. Der Übersetzer geht auch ohne Internet.</li>
         </ul>
         <p className="tipps__zahl">
           {wb.funde.length.toLocaleString('de-DE')} Wörter und Sätze aus den Lektionen
@@ -213,12 +217,24 @@ function Ohne({ wb }: { wb: Woerterbuch }) {
         </p>
       </section>
 
+      <section className="schilder">
+        <h2 className="zwischentitel">Was die Schilder bedeuten</h2>
+        <ul>
+          {(Object.keys(SCHILDER) as Stufe[]).map((stufe) => (
+            <li key={stufe}>
+              <Schild stufe={stufe} />
+              <p>{SCHILDER[stufe].erklaerung}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {n.anfragen.length > 0 && <MeineAnfragen anfragen={n.anfragen} />}
     </>
   );
 }
 
-/** `inDerSuche`: die Liste gehört zu den Suchergebnissen – dann merkt sich das Wörterbuch, wie weit man gescrollt hat. */
+/** `inDerSuche`: die Liste gehört zu den Suchergebnissen – dann merkt sich der Übersetzer, wie weit man gescrollt hat. */
 function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDerSuche?: boolean }) {
   return (
     <ul className="woerter funde">
@@ -227,7 +243,7 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
           {f.audio ? <AudioButton url={f.audio} label={f.latein} /> : <span className="fund__still" aria-hidden="true" />}
           <a
             className="fund__link"
-            href={href({ name: 'woerterbuch', id: f.id })}
+            href={href({ name: 'uebersetzer', id: f.id })}
             onClick={() => {
               if (inDerSuche) merk.scroll = window.scrollY;
               oeffnet();
@@ -244,7 +260,10 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
                 )}
               </span>
               <span className="wort__de">{f.deutsch}</span>
-              <span className="fund__wo">{herkunftKurz(f)}</span>
+              <span className="fund__wo">
+                <Schild stufe={stufeVon(f)} klein />
+                {herkunftKurz(f)}
+              </span>
             </span>
             <IconPfeil size={18} />
           </a>
@@ -254,10 +273,9 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
   );
 }
 
-/** „Lektion 3“, „Satz · Lektion 4“, „Glossar“ … */
+/** „Lektion 3“, „Satz · Lektion 4“, „Glossar“ … (das Schild davor sagt, ob Lehrbuch oder Muttersprachler) */
 function herkunftKurz(f: Fund): string {
   const teile: string[] = [];
-  if (f.quelle === 'community') teile.push('Community');
   if (f.art === 'satz') teile.push('Satz');
   if (f.herkunft === 'glossar') teile.push('Glossar');
   if (f.lektionen.length) {
@@ -376,10 +394,10 @@ export function EintragScreen({ id }: { id: string }) {
     if (fund) merke(fund.id);
   }, [fund]);
 
-  // „Zurück“ geht einen Schritt zurück, wenn man aus dem Wörterbuch kam (dann
+  // „Zurück“ geht einen Schritt zurück, wenn man aus der Suche kam (dann
   // bleibt die Suche stehen); sonst direkt zur Suche.
   const zurueck = (ereignis: MouseEvent) => {
-    if (merk.ausDemWoerterbuch && window.history.length > 1) {
+    if (merk.ausDerSuche && window.history.length > 1) {
       ereignis.preventDefault();
       window.history.back();
     }
@@ -387,11 +405,11 @@ export function EintragScreen({ id }: { id: string }) {
 
   const kopf = (
     <header className="kopf">
-      <a className="kopf__zurueck" href={href({ name: 'woerterbuch' })} onClick={zurueck} aria-label="Zurück zum Wörterbuch">
+      <a className="kopf__zurueck" href={href({ name: 'uebersetzer' })} onClick={zurueck} aria-label="Zurück zum Übersetzer">
         <IconZurueck />
       </a>
       <div className="kopf__titel">
-        <h1>Wörterbuch</h1>
+        <h1>Übersetzer</h1>
         {fund && <span>{fund.art === 'satz' ? 'Satz' : 'Wort'}</span>}
       </div>
     </header>
@@ -403,8 +421,8 @@ export function EintragScreen({ id }: { id: string }) {
         {kopf}
         <main className="leer">
           {wb.mitGlossar ? <p>Diesen Eintrag gibt es nicht (mehr).</p> : <p>Einen Moment …</p>}
-          <a className="knopf" href={href({ name: 'woerterbuch' })}>
-            Zum Wörterbuch
+          <a className="knopf" href={href({ name: 'uebersetzer' })}>
+            Zum Übersetzer
           </a>
         </main>
       </div>
@@ -421,6 +439,7 @@ export function EintragScreen({ id }: { id: string }) {
       {kopf}
       <main className="eintrag__inhalt">
         <section className="eintrag__karte">
+          <Schild stufe={stufeVon(fund)} />
           {fund.sprecher && <p className="eintrag__wer">{fund.sprecher}:</p>}
           <p className="eintrag__sur">
             <Surayt>{fund.latein}</Surayt>
@@ -484,11 +503,10 @@ const WO: Record<Fund['herkunft'], string> = {
 };
 
 function Herkunft({ fund }: { fund: Fund }) {
-  if (fund.quelle === 'community') {
+  if (stufeVon(fund) === 'muttersprachler') {
     return (
-      <section className="herkunft herkunft--community">
-        <span className="herkunft__marke">Community</span>
-        <p>Eingereicht aus der Community und von einem Menschen geprüft, der Surayt spricht.</p>
+      <section className="herkunft">
+        <p>{SCHILDER.muttersprachler.erklaerung}</p>
       </section>
     );
   }
@@ -502,7 +520,6 @@ function Herkunft({ fund }: { fund: Fund }) {
 
   return (
     <section className="herkunft">
-      <span className="herkunft__marke">Lehrbuch</span>
       <p>
         Aus <em>{QUELLE.name}</em> · {wo}
         {titel && (

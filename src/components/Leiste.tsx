@@ -6,7 +6,7 @@ import { href } from '../lib/router';
 import { tagNummer } from '../lib/zeit';
 import { IconHaus, IconKarten, IconLupe } from './Icons';
 
-export type Bereich = 'lernen' | 'woerterbuch' | 'karteikasten';
+export type Bereich = 'lernen' | 'uebersetzer' | 'karteikasten';
 
 /** Leiste am unteren Rand mit den drei Hauptbereichen der App. */
 export function Leiste({ aktiv }: { aktiv: Bereich }) {
@@ -14,7 +14,7 @@ export function Leiste({ aktiv }: { aktiv: Bereich }) {
   const dran = karteikasten(alleLektionen, f, tagNummer(Date.now())).heuteDran;
   const punkte: { bereich: Bereich; ziel: string; name: string; icon: ReactNode }[] = [
     { bereich: 'lernen', ziel: href({ name: 'start' }), name: 'Lernen', icon: <IconHaus size={26} /> },
-    { bereich: 'woerterbuch', ziel: href({ name: 'woerterbuch' }), name: 'Wörterbuch', icon: <IconLupe size={26} /> },
+    { bereich: 'uebersetzer', ziel: href({ name: 'uebersetzer' }), name: 'Übersetzer', icon: <IconLupe size={26} /> },
     { bereich: 'karteikasten', ziel: href({ name: 'karteikasten' }), name: 'Karteikasten', icon: <IconKarten size={26} /> },
   ];
   return (
