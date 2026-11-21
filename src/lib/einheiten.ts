@@ -4,13 +4,14 @@
 // Übungsrunde von wenigen Minuten.
 
 import type { Eintrag, Lektion } from '../types';
-import { faelligAm, geuebt, istFaellig, stufe, type Fortschritt } from './progress';
+import { faelligAm, geuebt, istFaellig, MAX_STUFE, stufe, type Fortschritt } from './progress';
 import {
   ersteAbfrage,
   festige,
   irgendeine,
   lernreihenfolge,
   mische,
+  SCHWER_AB,
   sprechen,
   type Schritt,
   type VorratFuer,
@@ -35,7 +36,8 @@ const NUR_WOERTER = 5;
 const MINDESTENS = 3;
 /** So viele fällige Einträge aus früheren Einheiten werden in eine Runde gemischt. */
 const WIEDERHOLUNGEN_PRO_EINHEIT = 2;
-const WIEDERHOLUNGEN_PRO_RUNDE = 10;
+/** So viele Karten hat eine Runde im Karteikasten. */
+export const KARTEN_PRO_RUNDE = 20;
 
 export function einheiten(lektion: Lektion): Einheit[] {
   let liste = gemerkt.get(lektion);
@@ -194,14 +196,33 @@ export function baueEinheit(einheit: Einheit, f: Fortschritt, optionen: EinheitO
   return schritte;
 }
 
-/** Wiederholungsrunde über alle Lektionen: die fälligen Einträge, schwächste zuerst. */
-export function baueWiederholung(
-  faellig: readonly Eintrag[],
-  f: Fortschritt,
-  vorratFuer: VorratFuer,
-  zufall: Zufall = Math.random,
-): Schritt[] {
-  return mische(faellig.slice(0, WIEDERHOLUNGEN_PRO_RUNDE), zufall).map((e) =>
-    irgendeine(e, vorratFuer(e), zufall, [], stufe(f, e.id)),
-  );
+/**
+ * Runde im Karteikasten: die fälligen Karten aller Lektionen, schwächste und am
+ * längsten fällige zuerst. Erst überlegen, dann aufdecken und selbst sagen, ob
+ * man es wusste (Active Recall). Was schon sitzt, kommt umgedreht – vorne
+ * Deutsch –, dann muss man selbst auf das Surayt-Wort kommen.
+ */
+export function baueKartenrunde(faellig: readonly Eintrag[], f: Fortschritt, zufall: Zufall = Math.random): Schritt[] {
+  return mische(faellig.slice(0, KARTEN_PRO_RUNDE), zufall).map((eintrag) => ({
+    typ: 'karte',
+    eintrag,
+    neu: false,
+    umgekehrt: stufe(f, eintrag.id) >= SCHWER_AB,
+  }));
+}
+
+/** Wie viele Karten in welchem Fach liegen (Fach 0 bis `MAX_STUFE`), und wie viele heute und morgen dran sind. */
+export function karteikasten(lektionen: readonly Lektion[], f: Fortschritt, heute: number) {
+  const faecher = Array.from({ length: MAX_STUFE + 1 }, () => 0);
+  let heuteDran = 0;
+  let morgenDran = 0;
+  const gesehen = new Set<string>();
+  for (const e of lektionen.flatMap((l) => lernreihenfolge(l))) {
+    if (gesehen.has(e.id) || !geuebt(f, e.id)) continue;
+    gesehen.add(e.id);
+    faecher[stufe(f, e.id)]++;
+    if (istFaellig(f, e.id, heute)) heuteDran++;
+    else if (istFaellig(f, e.id, heute + 1)) morgenDran++;
+  }
+  return { faecher, gesamt: gesehen.size, heuteDran, morgenDran };
 }

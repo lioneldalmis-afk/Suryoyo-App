@@ -1,5 +1,5 @@
 // Übungsrunden: eine Einheit des Lernpfads, freies Üben einer Übungsart oder
-// die Wiederholung aus dem Karteikasten. Alle teilen sich denselben Ablauf.
+// eine Runde im Karteikasten. Alle teilen sich denselben Ablauf.
 
 import { useEffect, useReducer, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Auswahl, Karte } from '../components/Aufgaben';
@@ -9,7 +9,7 @@ import { Rundenende } from '../components/Rundenende';
 import { Bauen, Luecke } from '../components/Satzaufgaben';
 import { alleLektionen, verfuegbar, vorratFuer } from '../data';
 import { entsperren } from '../lib/audio';
-import { baueEinheit, baueWiederholung, einheiten, faellige, naechsteEinheit, type Einheit } from '../lib/einheiten';
+import { baueEinheit, baueKartenrunde, einheiten, faellige, naechsteEinheit, type Einheit } from '../lib/einheiten';
 import {
   gutschreiben,
   motivation,
@@ -19,7 +19,7 @@ import {
   type Bericht,
   type Rundenart,
 } from '../lib/motivation';
-import { aktuellerFortschritt, useFortschritt, verbucheAusRunde } from '../lib/progress';
+import { aktuellerFortschritt, stufe, useFortschritt, verbucheAusRunde, type Bewertung } from '../lib/progress';
 import { ersetze, href, type Route } from '../lib/router';
 import { baueHoerrunde, baueRunde, lernreihenfolge, nochmal, type Schritt, type Uebungsart } from '../lib/session';
 import { tagNummer } from '../lib/zeit';
@@ -36,6 +36,8 @@ interface Verlauf {
   fehler: string[];
   /** Einträge, zu denen schon eine Aufgabe beantwortet ist – ihr Lernstand wird gleich gespeichert. */
   geuebt: string[];
+  /** Karteikarten, die nur „knapp“ gewusst waren: Sie bleiben in ihrem Fach. */
+  knapp: string[];
   /** Richtige Antworten – je 1 XP. */
   richtige: number;
   nachgesprochen: number;
@@ -44,7 +46,8 @@ interface Verlauf {
 
 type Aktion =
   | { typ: 'antwort'; richtig: boolean; gewaehlt: string }
-  | { typ: 'karte'; gewusst: boolean | null }
+  /** Karteikarte: angesehen (neu) oder selbst bewertet. */
+  | { typ: 'karte'; bewertung: Bewertung | null }
   | { typ: 'gesprochen'; gesprochen: boolean }
   /** „Kann gerade nicht sprechen“: alle Nachsprechen-Aufgaben der Runde fallen weg. */
   | { typ: 'sprechenAus' }
@@ -78,10 +81,13 @@ function schalte(v: Verlauf, a: Aktion): Verlauf {
       if (a.richtig) return { ...geuebt, antwort, richtige: v.richtige + 1 };
       return { ...mitFehler(geuebt, nochmal(schritt)), antwort };
     }
-    case 'karte':
-      if (a.gewusst === null) return weiter(v);
-      if (a.gewusst === false) return weiter(mitFehler(mitGeuebt(v, schritt.eintrag.id), schritt));
-      return weiter({ ...mitGeuebt(v, schritt.eintrag.id), richtige: v.richtige + 1 });
+    case 'karte': {
+      const id = schritt.eintrag.id;
+      if (a.bewertung === null) return weiter(v);
+      if (a.bewertung === 'falsch') return weiter(mitFehler(mitGeuebt(v, id), schritt));
+      const knapp = a.bewertung === 'knapp' && !v.knapp.includes(id) ? [...v.knapp, id] : v.knapp;
+      return weiter({ ...mitGeuebt(v, id), knapp, richtige: v.richtige + 1 });
+    }
     case 'gesprochen':
       return weiter(a.gesprochen ? { ...v, richtige: v.richtige + 1, nachgesprochen: v.nachgesprochen + 1 } : v);
     case 'sprechenAus': {
@@ -116,6 +122,7 @@ function Runde({ baue, art, schliessen, titel, knoepfe, leer }: RundeProps) {
     antwort: null,
     fehler: [],
     geuebt: [],
+    knapp: [],
     richtige: 0,
     nachgesprochen: 0,
     fertig: false,
@@ -133,9 +140,9 @@ function Runde({ baue, art, schliessen, titel, knoepfe, leer }: RundeProps) {
     if (v.geuebt.length === 0) return;
     verbucheAusRunde(
       basis.current,
-      v.geuebt.map((id) => ({ id, fehlerfrei: !v.fehler.includes(id) })),
+      v.geuebt.map((id) => ({ id, fehlerfrei: !v.fehler.includes(id), knapp: v.knapp.includes(id) })),
     );
-  }, [v.geuebt, v.fehler]);
+  }, [v.geuebt, v.fehler, v.knapp]);
 
   // XP für richtige Antworten gleich gutschreiben.
   const gutgeschrieben = useRef(0);
@@ -197,7 +204,13 @@ function Runde({ baue, art, schliessen, titel, knoepfe, leer }: RundeProps) {
       </header>
 
       {schritt.typ === 'karte' ? (
-        <Karte key={v.index} schritt={schritt} onFertig={(gewusst) => sende({ typ: 'karte', gewusst })} />
+        <Karte
+          key={v.index}
+          schritt={schritt}
+          fach={stufe(basis.current, schritt.eintrag.id)}
+          schonFalsch={v.fehler.includes(schritt.eintrag.id)}
+          onFertig={(bewertung) => sende({ typ: 'karte', bewertung })}
+        />
       ) : schritt.typ === 'bauen' ? (
         <Bauen key={v.index} schritt={schritt} {...antworten} />
       ) : schritt.typ === 'luecke' ? (
@@ -367,46 +380,42 @@ function FreieRunde({ lektion, art, onNochmal }: { lektion: Lektion; art: Exclud
   );
 }
 
-// --- Wiederholen aus dem Karteikasten ----------------------------------------
+// --- Runde im Karteikasten --------------------------------------------------
 
-export function WiederholenScreen() {
+export function KartenrundeScreen() {
   const [lauf, setLauf] = useState(0);
   const f = useFortschritt();
   const nochFaellig = faellige(alleLektionen, f, tagNummer(Date.now())).length;
-  const start = href({ name: 'start' });
+  const kasten = href({ name: 'karteikasten' });
 
   return (
     <Runde
       key={lauf}
       baue={() => {
-        const f = aktuellerFortschritt();
-        return baueWiederholung(faellige(alleLektionen, f, tagNummer(Date.now())), f, vorratFuer);
+        const fortschritt = aktuellerFortschritt();
+        return baueKartenrunde(faellige(alleLektionen, fortschritt, tagNummer(Date.now())), fortschritt);
       }}
       art="wiederholung"
-      schliessen={start}
-      titel={() => (nochFaellig > 0 ? `Noch ${nochFaellig} zum Wiederholen` : 'Alles wiederholt für heute')}
+      schliessen={kasten}
+      titel={() => (nochFaellig > 0 ? `Noch ${nochFaellig} Karten für heute` : 'Alle Karten für heute gelernt')}
       knoepfe={
         <>
-          {nochFaellig > 0 ? (
-            <button type="button" className="knopf" onClick={() => setLauf((n) => n + 1)}>
-              Weiter wiederholen
-            </button>
-          ) : (
-            <Weiter ziel={{ name: 'start' }}>Zum Lernpfad</Weiter>
-          )}
           {nochFaellig > 0 && (
-            <a className="knopf knopf--zweit" href={start}>
-              Zum Lernpfad
-            </a>
+            <button type="button" className="knopf" onClick={() => setLauf((n) => n + 1)}>
+              Weitere Karten
+            </button>
           )}
+          <Weiter ziel={{ name: 'karteikasten' }} zweit={nochFaellig > 0}>
+            Zum Karteikasten
+          </Weiter>
         </>
       }
       leer={
         <div className="seite leer">
-          <p className="leer__gross">Alles wiederholt!</p>
-          <p>Heute ist im Karteikasten nichts mehr fällig. Lerne neue Wörter oder schau morgen wieder vorbei.</p>
-          <a className="knopf" href={start}>
-            Zum Lernpfad
+          <p className="leer__gross">Alles gelernt!</p>
+          <p>Heute ist im Karteikasten nichts mehr dran. Lerne neue Wörter in den Einheiten oder schau morgen wieder vorbei.</p>
+          <a className="knopf" href={kasten}>
+            Zum Karteikasten
           </a>
         </div>
       }

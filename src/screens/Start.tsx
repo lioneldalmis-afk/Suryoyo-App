@@ -1,5 +1,5 @@
 import { AudioButton } from '../components/AudioButton';
-import { IconFlamme, IconHaken, IconPfeil, IconSchloss, IconWiederholen } from '../components/Icons';
+import { IconFlamme, IconHaken, IconKarten, IconPfeil, IconSchloss } from '../components/Icons';
 import { InstallHint } from '../components/InstallHint';
 import { Pfad } from '../components/Pfad';
 import { ProgressRing } from '../components/ProgressRing';
@@ -8,7 +8,7 @@ import { Surayt } from '../components/Surayt';
 import { APP_NAME, QUELLE } from '../config';
 import { alleLektionen, kurs, verfuegbar } from '../data';
 import { entsperren } from '../lib/audio';
-import { einheitGeuebt, einheiten, faellige, naechsteEinheit } from '../lib/einheiten';
+import { einheitGeuebt, einheiten, karteikasten, naechsteEinheit } from '../lib/einheiten';
 import { useMotivation } from '../lib/motivation';
 import { useFortschritt } from '../lib/progress';
 import { href, type Route } from '../lib/router';
@@ -26,15 +26,15 @@ export function StartScreen() {
   const stand = lektionsstand(aktuelle, f);
   const naechste = naechsteEinheit(aktuelle, f);
   const begruessung = verfuegbar.get(3)?.titel;
-  const zuWiederholen = faellige(alleLektionen, f, heute).length;
+  const kasten = karteikasten(alleLektionen, f, heute);
   const { laenge, heuteDabei } = serie(m.tage, heute);
   const xpHeute = m.tage[tagSchluessel(heute)] ?? 0;
 
   // Sind alle Lektionen geschafft, bleibt der Karteikasten.
   const los: Route = naechste
     ? { name: 'einheit', nr: aktuelle.nr, einheit: naechste.nr }
-    : zuWiederholen > 0
-      ? { name: 'wiederholen' }
+    : kasten.heuteDran > 0
+      ? { name: 'kartenrunde' }
       : { name: 'lektion', nr: aktuelle.nr, tab: 'ueben' };
 
   return (
@@ -72,7 +72,7 @@ export function StartScreen() {
         </div>
         <p className="start__text">Lerne Surayt – damit du am Familientisch mitreden kannst.</p>
         <a className="knopf knopf--sonne" href={href(los)} onClick={entsperren}>
-          {!naechste && zuWiederholen > 0 ? 'Wiederholen' : stand.geuebt > 0 ? 'Weiter lernen' : 'Los geht’s'}
+          {!naechste && kasten.heuteDran > 0 ? 'Karten lernen' : stand.geuebt > 0 ? 'Weiter lernen' : 'Los geht’s'}
         </a>
         <p className="start__stand">
           {naechste
@@ -86,16 +86,21 @@ export function StartScreen() {
 
       <div className="start__karten">
         <SatzDerWoche bisLektion={aktuelle.nr} />
-        {zuWiederholen > 0 && naechste && (
-          <a className="karteikasten" href={href({ name: 'wiederholen' })} onClick={entsperren}>
+        {kasten.gesamt > 0 && (
+          <a
+            className={`karteikasten${kasten.heuteDran > 0 ? ' karteikasten--dran' : ''}`}
+            href={href({ name: 'karteikasten' })}
+          >
             <span className="karteikasten__icon">
-              <IconWiederholen size={26} />
+              <IconKarten size={26} />
+              {kasten.heuteDran > 0 && <span className="karteikasten__zahl">{kasten.heuteDran}</span>}
             </span>
             <span className="karteikasten__text">
-              <strong>Wiederholen</strong>
+              <strong>Karteikasten</strong>
               <span>
-                {zuWiederholen === 1 ? '1 Wort oder Satz ist' : `${zuWiederholen} Wörter und Sätze sind`} heute im
-                Karteikasten dran.
+                {kasten.heuteDran > 0
+                  ? `${kasten.heuteDran === 1 ? '1 Karte ist' : `${kasten.heuteDran} Karten sind`} heute dran.`
+                  : `Heute alles gelernt · ${kasten.gesamt} Karten im Kasten`}
               </span>
             </span>
             <IconPfeil size={20} />

@@ -284,8 +284,6 @@ describe('Freies Üben', () => {
   it('bietet jede Übungsart auch einzeln an', () => {
     expect(baueRunde('karten', vorrat, {}, zufall(4)).every((s) => s.typ === 'karte' && !s.neu)).toBe(true);
     expect(baueRunde('wahl', vorrat, {}, zufall(5)).every((s) => s.typ === 'wahl')).toBe(true);
-    expect(baueRunde('hoeren', vorrat, {}, zufall(6)).every((s) => s.typ === 'hoeren')).toBe(true);
-    expect(baueRunde('hoeren', vorrat, {}, zufall(6))).toHaveLength(10);
     const saetze = baueRunde('saetze', vorrat, {}, zufall(7));
     expect(saetze).toHaveLength(10);
     expect(saetze.every((s) => (s.typ === 'bauen' || s.typ === 'luecke') && s.eintrag.art === 'satz')).toBe(true);
@@ -406,11 +404,12 @@ describe('Adressen', () => {
       { name: 'lektion', nr: 9, tab: 'text' },
       { name: 'lektion', nr: 2, tab: 'text', anker: 'ḥ' },
       { name: 'runde', nr: 2, art: 'paare' },
-      { name: 'runde', nr: 3, art: 'hoeren' },
+      { name: 'runde', nr: 3, art: 'karten' },
       { name: 'runde', nr: 4, art: 'saetze' },
       { name: 'einheit', nr: 3, einheit: 2 },
       { name: 'rollenspiel', nr: 8 },
-      { name: 'wiederholen' },
+      { name: 'karteikasten' },
+      { name: 'kartenrunde' },
       { name: 'erfolge' },
     ];
     for (const r of routen) expect(parse(href(r))).toEqual(r);
@@ -421,6 +420,9 @@ describe('Adressen', () => {
     expect(parse('#/lektion/3/ueben')).toEqual({ name: 'lektion', nr: 3, tab: 'ueben' });
     expect(parse('#/quatsch')).toEqual({ name: 'start' });
     expect(parse('#/lektion/3/einheit/x')).toEqual({ name: 'lektion', nr: 3, tab: 'ueben' });
+    // Frühere Adressen: „Wiederholen“ ist jetzt der Karteikasten, „Hören & Auswählen“ gibt es nicht mehr einzeln.
+    expect(parse('#/wiederholen')).toEqual({ name: 'karteikasten' });
+    expect(parse('#/lektion/3/ueben/hoeren')).toEqual({ name: 'lektion', nr: 3, tab: 'ueben' });
     // So liefern manche Browser Sonderzeichen in der Adresse.
     expect(parse('#/lektion/2/text/%E1%B8%A5')).toEqual({ name: 'lektion', nr: 2, tab: 'text', anker: 'ḥ' });
   });

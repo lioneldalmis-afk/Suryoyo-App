@@ -3,10 +3,12 @@ import { verfuegbar } from '../data';
 import type { Eintrag } from '../types';
 import {
   baueEinheit,
-  baueWiederholung,
+  baueKartenrunde,
   einheiten,
   einheitenZustand,
   faellige,
+  karteikasten,
+  KARTEN_PRO_RUNDE,
   naechsteEinheit,
 } from './einheiten';
 import {
@@ -17,7 +19,9 @@ import {
   lage,
   MAX_STUFE,
   nachRunde,
+  neuesFach,
   verbucheAusRunde,
+  wannWieder,
   zuruecksetzen,
   type Fortschritt,
 } from './progress';
@@ -293,8 +297,58 @@ describe('Karteikasten', () => {
       [d.id]: { stufe: 3, richtig: 3, falsch: 0, zuletzt: MITTAG - 2 * TAG }, // erst in 5 Tagen dran
     };
     expect(faellige(alleLektionen, f, heute, zufall(1))).toEqual([b, c, a]);
-    const runde = baueWiederholung([b, c, a], f, vorratFuer, zufall(2));
-    expect(runde.map((s) => s.eintrag).sort((x, y) => x.id.localeCompare(y.id))).toEqual([a, b, c].sort((x, y) => x.id.localeCompare(y.id)));
+  });
+
+  it('übt in einer Runde die fälligen Karten, was sitzt umgedreht', () => {
+    const f: Fortschritt = Object.fromEntries(
+      vorrat3.map((e, i) => [e.id, { stufe: i % 4, richtig: 1, falsch: 0, zuletzt: MITTAG - 40 * TAG }]),
+    );
+    const faellig = faellige(alleLektionen, f, tagNummer(MITTAG), zufall(1));
+    const runde = baueKartenrunde(faellig, f, zufall(2));
+    expect(runde).toHaveLength(KARTEN_PRO_RUNDE);
+    for (const s of runde) {
+      if (s.typ !== 'karte') throw new Error('keine Karte');
+      expect(s.neu).toBe(false);
+      expect(s.umgekehrt, s.eintrag.latein).toBe(f[s.eintrag.id].stufe >= SCHWER_AB);
+    }
+    // Die schwächsten zuerst: Alle Karten aus Fach 1 sind dabei.
+    const fach1 = vorrat3.filter((e) => f[e.id].stufe === 0);
+    for (const e of fach1) expect(runde.some((s) => s.eintrag === e)).toBe(true);
+  });
+
+  it('zählt, wie viele Karten in welchem Fach liegen und wann sie dran sind', () => {
+    const heute = tagNummer(MITTAG);
+    const [a, b, c, d] = vorrat3;
+    const f: Fortschritt = {
+      [a.id]: { stufe: 0, richtig: 0, falsch: 1, zuletzt: MITTAG },
+      [b.id]: { stufe: 1, richtig: 1, falsch: 0, zuletzt: MITTAG },
+      [c.id]: { stufe: 1, richtig: 1, falsch: 0, zuletzt: MITTAG },
+      [d.id]: { stufe: 5, richtig: 5, falsch: 0, zuletzt: MITTAG - 40 * TAG },
+    };
+    expect(karteikasten(alleLektionen, f, heute)).toEqual({
+      faecher: [1, 2, 0, 0, 0, 1],
+      gesamt: 4,
+      heuteDran: 2,
+      morgenDran: 2,
+    });
+  });
+
+  it('lässt Karten bei „knapp“ im Fach und zeigt, wann sie wiederkommen', () => {
+    expect(neuesFach(3, 'gewusst')).toBe(4);
+    expect(neuesFach(MAX_STUFE, 'gewusst')).toBe(MAX_STUFE);
+    expect(neuesFach(3, 'knapp')).toBe(3);
+    expect(neuesFach(0, 'knapp')).toBe(1);
+    expect(neuesFach(4, 'falsch')).toBe(0);
+    const f = nachRunde({ a: { stufe: 3, richtig: 3, falsch: 0, zuletzt: 1 } }, [{ id: 'a', fehlerfrei: true, knapp: true }], MITTAG);
+    expect(f.a).toEqual({ stufe: 3, richtig: 4, falsch: 0, zuletzt: MITTAG });
+    expect([0, 1, 2, 3, 4, 5].map(wannWieder)).toEqual([
+      'gleich nochmal',
+      'morgen',
+      'in 3 Tagen',
+      'in 1 Woche',
+      'in 2 Wochen',
+      'in 1 Monat',
+    ]);
   });
 });
 

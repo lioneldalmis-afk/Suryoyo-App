@@ -93,7 +93,7 @@ export function alleAbzeichen(lektionen: readonly Lektion[]): Regel[] {
       id: 'wiederholt',
       art: 'wiederholen',
       name: 'Drangeblieben',
-      text: 'Eine Wiederholungsrunde mit Karteikasten-Wörtern geschafft.',
+      text: 'Eine Runde mit dem Karteikasten geschafft.',
       erreicht: ({ m }) => m.zaehler.wiederholungen >= 1,
     },
     {

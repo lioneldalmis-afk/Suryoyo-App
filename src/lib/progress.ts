@@ -42,6 +42,17 @@ export function istFaellig(f: Fortschritt, id: string, heute: number): boolean {
   return !!s && s.zuletzt > 0 && faelligAm(s) <= heute;
 }
 
+/** „gleich nochmal“, „morgen“, „in 3 Tagen“ … – wann ein Eintrag aus diesem Fach wieder drankommt. */
+export function wannWieder(fach: number): string {
+  const tage = INTERVALL_TAGE[Math.min(Math.max(fach, 0), MAX_STUFE)];
+  if (tage === 0) return 'gleich nochmal';
+  if (tage === 1) return 'morgen';
+  if (tage === 7) return 'in 1 Woche';
+  if (tage === 14) return 'in 2 Wochen';
+  if (tage === 30) return 'in 1 Monat';
+  return `in ${tage} Tagen`;
+}
+
 /** Wie gut ein Eintrag sitzt – für die Punkte in der Wörterliste. */
 export type Lage = 'neu' | 'nochmal' | 'geuebt' | 'sitzt';
 
@@ -51,17 +62,30 @@ export function lage(f: Fortschritt, id: string): Lage {
   return s === 0 ? 'nochmal' : s >= SITZT ? 'sitzt' : 'geuebt';
 }
 
+/** Ergebnis eines Eintrags in einer Runde. */
+export interface Ergebnis {
+  id: string;
+  fehlerfrei: boolean;
+  /** Bei Karteikarten: gewusst, aber nur knapp – der Eintrag bleibt in seinem Fach (mindestens im zweiten). */
+  knapp?: boolean;
+}
+
+export type Bewertung = 'falsch' | 'knapp' | 'gewusst';
+
+/** In welches Fach ein Eintrag nach einer Antwort kommt. */
+export function neuesFach(vorher: number, bewertung: Bewertung): number {
+  if (bewertung === 'falsch') return 0;
+  if (bewertung === 'knapp') return Math.max(1, vorher);
+  return Math.min(MAX_STUFE, vorher + 1);
+}
+
 /** Neuer Lernstand nach einer Übungsrunde (ändert nichts, gibt nur zurück). */
-export function nachRunde(
-  f: Fortschritt,
-  ergebnisse: { id: string; fehlerfrei: boolean }[],
-  jetzt: number,
-): Fortschritt {
+export function nachRunde(f: Fortschritt, ergebnisse: Ergebnis[], jetzt: number): Fortschritt {
   const neu: Record<string, Stand> = { ...f };
-  for (const { id, fehlerfrei } of ergebnisse) {
+  for (const { id, fehlerfrei, knapp } of ergebnisse) {
     const alt = f[id] ?? { stufe: 0, richtig: 0, falsch: 0, zuletzt: 0 };
     neu[id] = {
-      stufe: fehlerfrei ? Math.min(MAX_STUFE, alt.stufe + 1) : 0,
+      stufe: neuesFach(alt.stufe, !fehlerfrei ? 'falsch' : knapp ? 'knapp' : 'gewusst'),
       richtig: alt.richtig + (fehlerfrei ? 1 : 0),
       falsch: alt.falsch + (fehlerfrei ? 0 : 1),
       zuletzt: jetzt,
@@ -70,7 +94,7 @@ export function nachRunde(
   return neu;
 }
 
-export function verbuche(ergebnisse: { id: string; fehlerfrei: boolean }[], jetzt = Date.now()) {
+export function verbuche(ergebnisse: Ergebnis[], jetzt = Date.now()) {
   lernstand.setze(nachRunde(lernstand.lies(), ergebnisse, jetzt));
 }
 
@@ -80,7 +104,7 @@ export function verbuche(ergebnisse: { id: string; fehlerfrei: boolean }[], jetz
  * (`basis`) aus – so rückt ein Eintrag pro Runde höchstens ein Fach weiter, auch
  * wenn er mehrmals drankommt, und ein späterer Fehler in derselben Runde zählt.
  */
-export function verbucheAusRunde(basis: Fortschritt, ergebnisse: { id: string; fehlerfrei: boolean }[], jetzt = Date.now()) {
+export function verbucheAusRunde(basis: Fortschritt, ergebnisse: Ergebnis[], jetzt = Date.now()) {
   const neu = nachRunde(basis, ergebnisse, jetzt);
   lernstand.setze({ ...lernstand.lies(), ...Object.fromEntries(ergebnisse.map(({ id }) => [id, neu[id]])) });
 }

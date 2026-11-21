@@ -5,6 +5,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { spiele, useAudioStatus } from '../lib/audio';
+import { neuesFach, wannWieder, type Bewertung } from '../lib/progress';
 import type { Schritt } from '../lib/session';
 import { vorHinweis } from '../lib/text';
 import type { Eintrag } from '../types';
@@ -53,12 +54,23 @@ export function Urteil(props: { antwort: Antwort | null; eintrag: Eintrag; onWei
   );
 }
 
+interface KarteProps {
+  schritt: KarteSchritt;
+  /** Fach im Karteikasten vor dieser Runde – daraus ergibt sich, wann die Karte wiederkommt. */
+  fach?: number;
+  /** In dieser Runde schon einmal nicht gewusst: Dann kommt sie auf jeden Fall bald wieder. */
+  schonFalsch?: boolean;
+  /** `null`: neue Karte nur angesehen. */
+  onFertig: (bewertung: Bewertung | null) => void;
+}
+
 /**
- * Karteikarte. Vorne Surayt in Schrift und Ton, hinten Deutsch – so lässt sie
- * sich auch ohne Ton lernen. `umgekehrt` (für Einträge, die schon sitzen): vorne
- * Deutsch, hinten Surayt. Neue Einträge zeigen gleich beide Seiten.
+ * Karteikarte (Active Recall): erst selbst überlegen, dann aufdecken und ehrlich
+ * sagen, ob man es wusste. Vorne Surayt in Schrift und Ton, hinten Deutsch – so
+ * lässt sie sich auch ohne Ton lernen. `umgekehrt` (für Einträge, die schon
+ * sitzen): vorne Deutsch, hinten Surayt. Neue Einträge zeigen gleich beide Seiten.
  */
-export function Karte({ schritt, onFertig }: { schritt: KarteSchritt; onFertig: (gewusst: boolean | null) => void }) {
+export function Karte({ schritt, fach = 0, schonFalsch = false, onFertig }: KarteProps) {
   const e = schritt.eintrag;
   const umgekehrt = !!schritt.umgekehrt && !schritt.neu;
   const [offen, setOffen] = useState(schritt.neu);
@@ -134,13 +146,25 @@ export function Karte({ schritt, onFertig }: { schritt: KarteSchritt; onFertig: 
             Weiter
           </button>
         ) : (
-          <div className="zwei">
-            <button type="button" className="knopf knopf--zweit" onClick={() => onFertig(false)}>
-              Noch nicht
-            </button>
-            <button type="button" className="knopf" onClick={() => onFertig(true)}>
-              Wusste ich
-            </button>
+          <div className="bewertung" role="group" aria-label="Wusstest du es?">
+            {(
+              [
+                ['falsch', 'Nicht gewusst'],
+                ['knapp', 'Knapp'],
+                ['gewusst', 'Gewusst'],
+              ] as const
+            ).map(([bewertung, name]) => (
+              <button
+                key={bewertung}
+                type="button"
+                className={`bewertung__knopf bewertung__knopf--${bewertung}`}
+                onClick={() => onFertig(bewertung)}
+              >
+                <strong>{name}</strong>
+                {/* Wann die Karte wiederkommt – so sieht man, wie der Karteikasten arbeitet. */}
+                <span>{schonFalsch ? 'heute nochmal' : wannWieder(neuesFach(fach, bewertung))}</span>
+              </button>
+            ))}
           </div>
         )}
       </footer>

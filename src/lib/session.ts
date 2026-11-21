@@ -7,7 +7,7 @@ import { geuebt, stufe, type Fortschritt } from './progress';
 import { bausteineAus, fold, tokens, woerter, zerlege } from './text';
 
 /** Freie Übungsarten einer Lektion. „gemischt“ führt zur nächsten Einheit. */
-export type Uebungsart = 'gemischt' | 'karten' | 'wahl' | 'hoeren' | 'paare' | 'saetze' | 'sprechen';
+export type Uebungsart = 'gemischt' | 'karten' | 'wahl' | 'paare' | 'saetze' | 'sprechen';
 export type Richtung = 'sur-de' | 'de-sur';
 
 export interface Baustein {
@@ -309,14 +309,6 @@ export function baueRunde(
       return schwaechsteZuerst(vorrat, f, zufall)
         .slice(0, FREI_UEBEN)
         .map((e) => wahl(e, sitzt(e) || zufall() < 0.5 ? 'de-sur' : 'sur-de', vorrat, zufall, sitzt(e)));
-    case 'hoeren':
-      return schwaechsteZuerst(
-        vorrat.filter((e) => e.audio),
-        f,
-        zufall,
-      )
-        .slice(0, FREI_UEBEN)
-        .map((e) => hoeren(e, vorrat, zufall, sitzt(e)));
     case 'saetze':
       return schwaechsteZuerst(
         vorrat.filter((e) => satzUebbar(e, vorrat)),

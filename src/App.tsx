@@ -6,7 +6,8 @@ import { ErfolgeScreen } from './screens/Erfolge';
 import { InfoScreen } from './screens/Info';
 import { LektionScreen } from './screens/Lektion';
 import { RollenspielScreen } from './screens/Rollenspiel';
-import { EinheitScreen, RundeScreen, WiederholenScreen } from './screens/Runde';
+import { KarteikastenScreen } from './screens/Karteikasten';
+import { EinheitScreen, KartenrundeScreen, RundeScreen } from './screens/Runde';
 import { StartScreen } from './screens/Start';
 
 export function App() {
@@ -30,7 +31,8 @@ export function App() {
       {route.name === 'lektion' && <LektionScreen nr={route.nr} tab={route.tab} anker={route.anker} />}
       {route.name === 'runde' && <RundeScreen key={hash} nr={route.nr} art={route.art} />}
       {route.name === 'einheit' && <EinheitScreen key={hash} nr={route.nr} einheit={route.einheit} />}
-      {route.name === 'wiederholen' && <WiederholenScreen key={hash} />}
+      {route.name === 'karteikasten' && <KarteikastenScreen />}
+      {route.name === 'kartenrunde' && <KartenrundeScreen key={hash} />}
       {route.name === 'rollenspiel' && <RollenspielScreen key={hash} nr={route.nr} />}
       <AudioHinweis />
     </>

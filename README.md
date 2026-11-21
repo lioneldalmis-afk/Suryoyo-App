@@ -21,7 +21,7 @@ Neue Versionen kommen von selbst: Einfach die App schließen und neu öffnen. Di
 2. Beim Nachsprechen am Ende einer Einheit das Mikrofon erlauben, sich aufnehmen und mit dem Original vergleichen.
 3. In Lektion 3 unter „Üben“ das **Rollenspiel** starten, z. B. als Afrem.
 4. Oben auf der Startseite die Flamme antippen: „Deine Erfolge“ mit Serie, Tagesziel und Abzeichen.
-5. Am nächsten Tag wiederkommen: Auf der Startseite steht dann „Wiederholen“ mit den Wörtern aus dem Karteikasten.
+5. Am nächsten Tag wiederkommen: Auf der Startseite zeigt der **Karteikasten**, wie viele Karten dran sind. Erst überlegen, dann aufdecken und ehrlich bewerten: „Nicht gewusst“, „Knapp“ oder „Gewusst“.
 
 **Fragen fürs Feedback:** Sind die Einheiten zu lang oder zu kurz? Klappen Audio und Mikrofon? Ist irgendwo unklar, was man tun soll? Klingt beim Nachsprechen etwas komisch?
 
@@ -35,8 +35,8 @@ Prototyp mit allen 16 Lektionen aus Level A des Lehrbuchs *Šlomo Surayt*:
 - Zu Lektion 3–16 der Dialog oder Lesetext zum Anhören, Zeile für Zeile oder am Stück
 - Zusammen gut 1.300 Wörter, jedes mit Aufnahme
 - Lernpfad wie bei Sprach-Apps: Jede Lektion ist in kleine Einheiten aufgeteilt (318 insgesamt), die nacheinander freigeschaltet werden
-- Acht Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen, Hörpaar, Satz bauen, Lückentext, Nachsprechen (eigene Aufnahme mit dem Original vergleichen) und Dialog-Rollenspiel
-- Karteikasten: Falsches kommt gleich wieder, Richtiges nach 1, 3, 7, 14 und 30 Tagen – und je sicherer ein Wort sitzt, desto kniffliger werden die Aufgaben dazu
+- Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen und „Genau hinhören“ (in den Einheiten), Hörpaar, Satz bauen, Lückentext, Nachsprechen (eigene Aufnahme mit dem Original vergleichen) und Dialog-Rollenspiel
+- Karteikasten mit 6 Fächern (Active Recall + Spaced Repetition): Karte ansehen, selbst überlegen, aufdecken und bewerten. Was man nicht wusste, kommt gleich wieder, Gewusstes nach 1, 3, 7, 14 und 30 Tagen. Was sitzt, kommt umgedreht (Deutsch vorne), und auch die Aufgaben in den Einheiten werden kniffliger
 - Der Fortschritt wird nach jeder Antwort gespeichert; eine abgebrochene Einheit geht beim nächsten Mal an derselben Stelle weiter
 - XP, Tagesziel, Tagesserie und Abzeichen – bewusst ohne „Leben“, Fehler kosten nichts
 - Satz der Woche für den Familientisch (sobald die Familientisch-Liste geprüft ist)
@@ -77,8 +77,8 @@ npm run build
 |---|---|
 | `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-01.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext bzw. Aussprache, Wortschatz, Audio-Links), `glossar-a.json` (Glossar für den späteren Übersetzer) |
 | `inhalte/` | Listen zum Prüfen durch Menschen, z. B. die Familientisch-Sätze |
-| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Einheiten und Wiederholung (`einheiten.ts`), Lernstand und Karteikasten (`progress.ts`), XP, Serie und Satz der Woche (`motivation.ts`), Abzeichen (`abzeichen.ts`), Rollenspiel (`rollenspiel.ts`), eigene Aufnahme (`aufnahme.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
-| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Rollenspiel, Erfolge, Über die App |
+| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Einheiten und Karteikasten-Runden (`einheiten.ts`), falsche Antwortmöglichkeiten (`ablenker.ts`), Lernstand und Karteikasten (`progress.ts`), XP, Serie und Satz der Woche (`motivation.ts`), Abzeichen (`abzeichen.ts`), Rollenspiel (`rollenspiel.ts`), eigene Aufnahme (`aufnahme.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
+| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Karteikasten, Rollenspiel, Erfolge, Über die App |
 | `src/components/` | Bausteine wie Lautsprecher-Knopf und die Übungsaufgaben |
 | `src/styles.css` | Die gesamte Gestaltung; Farben stehen oben als Variablen |
 | `scripts/` | Einlesen der Lehrbuch-Website (`extract-lesson.mjs` mit den Modulen `lektion.mjs`, `alphabet.mjs`, `glossar.mjs`) und Übernahme der Familientisch-Häkchen |

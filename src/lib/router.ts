@@ -10,8 +10,10 @@ export type Route =
   | { name: 'start' }
   | { name: 'info' }
   | { name: 'erfolge' }
-  /** Wiederholungsrunde mit den fälligen Einträgen aller Lektionen. */
-  | { name: 'wiederholen' }
+  /** Karteikasten: Fächer, fällige Karten. */
+  | { name: 'karteikasten' }
+  /** Eine Runde mit den fälligen Karten aller Lektionen. */
+  | { name: 'kartenrunde' }
   /** `anker`: Sprungziel auf der Seite, z. B. der Laut „ḥ“ in Lektion 2. */
   | { name: 'lektion'; nr: number; tab: LektionTab; anker?: string }
   /** Freies Üben einer Übungsart. */
@@ -21,14 +23,17 @@ export type Route =
   | { name: 'rollenspiel'; nr: number };
 
 const TABS: readonly string[] = ['text', 'woerter', 'ueben'];
-const ARTEN: readonly string[] = ['gemischt', 'karten', 'wahl', 'hoeren', 'paare', 'saetze', 'sprechen'];
+// „hoeren“ gab es bis November 2026 als eigene Übungsart; alte Links führen jetzt zum Reiter „Üben“.
+const ARTEN: readonly string[] = ['gemischt', 'karten', 'wahl', 'paare', 'saetze', 'sprechen'];
 const zahl = (teil: string | undefined) => (/^\d+$/.test(teil ?? '') ? Number(teil) : null);
 
 export function parse(hash: string): Route {
   const [a, b, c, d] = hash.replace(/^#\/?/, '').split('/');
   if (a === 'info') return { name: 'info' };
   if (a === 'erfolge') return { name: 'erfolge' };
-  if (a === 'wiederholen') return { name: 'wiederholen' };
+  if (a === 'karteikasten') return b === 'lernen' ? { name: 'kartenrunde' } : { name: 'karteikasten' };
+  // Früher hieß die Runde mit den fälligen Einträgen „Wiederholen“.
+  if (a === 'wiederholen') return { name: 'karteikasten' };
   const nr = zahl(b);
   if (a === 'lektion' && nr !== null) {
     if (c === 'ueben' && ARTEN.includes(d)) return { name: 'runde', nr, art: d as Uebungsart };
@@ -51,8 +56,10 @@ export function href(route: Route): string {
       return '#/';
     case 'info':
     case 'erfolge':
-    case 'wiederholen':
+    case 'karteikasten':
       return `#/${route.name}`;
+    case 'kartenrunde':
+      return '#/karteikasten/lernen';
     case 'lektion':
       return `#/lektion/${route.nr}/${route.tab}${route.anker ? '/' + encodeURIComponent(route.anker) : ''}`;
     case 'runde':

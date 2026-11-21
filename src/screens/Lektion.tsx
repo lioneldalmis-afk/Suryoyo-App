@@ -369,9 +369,6 @@ function Ueben({ lektion }: { lektion: Lektion }) {
         <Art href={zu('wahl')} icon={<IconWahl size={28} />} name="Multiple Choice">
           Surayt ↔ Deutsch
         </Art>
-        <Art href={zu('hoeren')} icon={<IconOhr size={28} />} name="Hören & Auswählen">
-          Was hast du gehört?
-        </Art>
       </div>
 
       <h2 className="zwischentitel">Alle Einheiten</h2>
