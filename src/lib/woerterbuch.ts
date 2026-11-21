@@ -206,7 +206,7 @@ export function merkmaleZusammen(merkmale: readonly string[]): string | undefine
 // --- Wörterbuch aufbauen -------------------------------------------------------
 
 /** Welcher von zwei gleichen Einträgen gezeigt wird: Wortschatz vor Beispielen, Sätzen, Grammatik, Glossar und Formentabellen. */
-const RANG: Record<Herkunft, number> = { wortschatz: 0, aussprache: 1, text: 2, einleitung: 2, grammatik: 3, glossar: 4, formen: 5 };
+export const RANG: Record<Herkunft, number> = { wortschatz: 0, aussprache: 1, text: 2, einleitung: 2, grammatik: 3, glossar: 4, formen: 5 };
 
 /**
  * Die Stelle, nach der ein Fund beschriftet und gezeigt wird: Verbformen nach
@@ -442,11 +442,15 @@ const UMLAUTE: [RegExp, string][] = [
 
 const ersetze = (text: string, regeln: [RegExp, string][]) => regeln.reduce((t, [muster, neu]) => t.replace(muster, neu), text);
 
+/** Wie ein Surayt-Wort ohne Sonderzeichen getippt sein könnte: „schlomo“ → „slomo“, „shlomo“ → „slomo“ (Eingabe schon gefaltet). */
+export const getipptVarianten = (gefaltet: string) =>
+  [...new Set([ersetze(gefaltet, DEUTSCH_GETIPPT), ersetze(gefaltet, ENGLISCH_GETIPPT)])].filter((v) => v !== gefaltet);
+
 /** Artikel müssen nicht gefunden werden: „der Vater“ findet auch „Vater“. */
 const FUELLWOERTER = new Set(['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'einer', 'eines']);
 
 /** Enthält die Suche Buchstaben, die es nur in der Umschrift gibt (š, ṭ, ë …)? Dann ist sie Surayt. */
-const istUmschrift = (text: string) =>
+export const istUmschrift = (text: string) =>
   [...text.normalize('NFC')].some((z) => /\p{L}/u.test(z) && z > '\u{7F}' && !'\u{E4}\u{F6}\u{FC}\u{DF}\u{C4}\u{D6}\u{DC}'.includes(z));
 
 /** Abstand zweier Wörter in Tippfehlern (vertauschte Nachbarn zählen als einer); bricht ab, sobald er `grenze` übersteigt. */
@@ -693,23 +697,32 @@ export function beispielsatz(wb: Woerterbuch, fund: Fund): Fund | undefined {
   return passende.sort((a, b) => eigene(a) - eigene(b) || a.latein.length - b.latein.length)[0];
 }
 
-/** Wörter aus dem Wortschatz, die in einem Satz vorkommen – in der Reihenfolge des Satzes. */
-export function woerterImSatz(wb: Woerterbuch, satz: Fund, hoechstens = 8): Fund[] {
-  const ganz = genau(satz.latein);
-  const gefunden: { fund: Fund; wo: number }[] = [];
-  for (const f of wb.funde) {
-    if (f.art !== 'wort' || f.herkunft === 'glossar') continue;
-    const wo = enthaelt(ganz, genau(stichwort(f.latein)));
-    if (wo >= 0) gefunden.push({ fund: f, wo });
+// --- Beschreibungen für die Oberfläche -----------------------------------------------
+
+/** Steht der Fund (vor allem) in einer Tabelle der Grammatik, Verb- oder Formentabellen? */
+export const ausTabelle = (f: Fund) => f.herkunft === 'grammatik' || f.herkunft === 'formen';
+
+/** „Präsens, Sg., 1. f. · ich, weiblich“: die Beschriftung der Tabelle, bei Verbformen mit der Person in Worten. */
+export function merkmalText(f: Fund): string {
+  const wer = f.verb ? person(f.merkmal) : undefined;
+  return [f.merkmal, wer?.klar].filter(Boolean).join(' · ');
+}
+
+/** „Lektion 3“, „Satz · Lektion 4“, „Glossar“, „Grammatik 4“, „Verbtabelle“ … (das Schild davor sagt, ob Lehrbuch oder Muttersprachler) */
+export function herkunftKurz(f: Fund): string {
+  const teile: string[] = [];
+  if (f.art === 'satz') teile.push('Satz');
+  if (f.herkunft === 'glossar') teile.push('Glossar');
+  if (ausTabelle(f) && f.tabelle) {
+    // „Der bestimmte Artikel“ ist zugleich Bedeutung und Name der Tabelle – nicht zweimal.
+    teile.push(f.tabelle === f.deutsch ? 'Formentabellen' : f.tabelle);
+    return teile.join(' · ');
   }
-  const eigene = (f: Fund) => (f.lektionen.includes(satz.lektion ?? 0) ? 0 : 1);
-  gefunden.sort((a, b) => a.wo - b.wo || eigene(a.fund) - eigene(b.fund));
-  // Pro Stelle im Satz nur ein Wort, am liebsten aus derselben Lektion.
-  const stellen = new Set<number>();
-  return gefunden
-    .filter((g) => !stellen.has(g.wo) && stellen.add(g.wo))
-    .slice(0, hoechstens)
-    .map((g) => g.fund);
+  if (f.lektionen.length) {
+    const nr = f.lektionen.slice(0, 3);
+    teile.push(`Lektion ${nr.join(', ')}${f.lektionen.length > 3 ? ' …' : ''}`);
+  }
+  return teile.join(' · ');
 }
 
 // --- Laden ---------------------------------------------------------------------

@@ -620,6 +620,73 @@ function paareImAbsatz(teile) {
   return aus;
 }
 
+// --- Kleinwörter aus Erklärtexten (Fahrplan, Phase 4b, Schritt 3) ----------------------------
+//
+// Einige der häufigsten Wörter stellt das Lehrbuch nicht in einer Tabelle mit deutscher
+// Spalte vor, sondern im Text – ohne sie bliebe in fast jedem Satz etwas unerklärt
+// („b“, „d“, „gëd“, der Artikel). Sie werden wörtlich übernommen:
+// - die Präpositionen aus „Die häufigsten Präpositionen sind b ܒـ „in“, …“ (Grammatik 11);
+//   bei „m ܡـ, me ܡܶܐ „von, aus““ gilt die Bedeutung dahinter für beide Formen,
+// - Wörter direkt hinter einer grammatischen Bezeichnung („der Präsensmarker ko-“, „der
+//   Futurmarker gëd“, „die Genitivpartikel /d/“, „die Konjunktion d“): Die Bezeichnung ist
+//   dann die Bedeutung,
+// - die Formen der Tabelle „Der bestimmte Artikel“ (u, i, aK, an), die dort keine eigene
+//   deutsche Spalte haben: Die Überschrift der Tabelle ist die Bedeutung,
+// - Beispiele, deren Bedeutung in derselben Zelle steht („bu bayto ܒܘ ܒܰܝܬܐ „im Haus““).
+// Sie bekommen ihre Kennung erst nach allen übrigen Einträgen, damit deren Kennungen bleiben.
+
+const PRAEPOSITIONEN = /^Die häufigsten Präpositionen sind /;
+const BEZEICHNUNG = /(Präsensmarker|Futurmarker|Genitivpartikel|Konjunktion)\s*\/?$/;
+const ARTIKEL_TABELLE = 'Der bestimmte Artikel';
+const ZELL_BEDEUTUNG = /^\s*„([^“”]+)“[,.;]?\s*$/;
+
+/** Kleinwörter aus einem Absatz der Grammatik: Präpositionen und Wörter hinter einer Bezeichnung. */
+function kleinwoerterImAbsatz(teile) {
+  const aus = [];
+  if (PRAEPOSITIONEN.test(textVon(teile))) {
+    let davor = '';
+    teile.forEach((t, i) => {
+      if (!t.syr) {
+        davor += t.text;
+        return;
+      }
+      const latein = /([\p{L}\p{M}]+)\s*$/u.exec(davor)?.[1];
+      const de = /^\s*„([^“”]+)“/.exec(teile[i + 1]?.text ?? '')?.[1];
+      if (latein) aus.push({ latein: clean(latein), syrisch: clean(t.text), deutsch: de && clean(de) });
+      davor = '';
+    });
+    // „m ܡـ, me ܡܶܐ „von, aus““: Die Bedeutung gilt auch für die Form davor.
+    for (let k = aus.length - 2; k >= 0; k--) aus[k].deutsch ??= aus[k + 1].deutsch;
+  }
+  teile.forEach((t, i) => {
+    const b = !t.sur && !t.syr && BEZEICHNUNG.exec(t.text.trimEnd());
+    const form = teile[i + 1];
+    if (!b || !form?.sur) return;
+    let latein = clean(form.text);
+    if (/^-/.test(teile[i + 2]?.text ?? '') && !latein.endsWith('-')) latein += '-';
+    const syr = teile.slice(i + 2, i + 4).find((x) => x.syr);
+    aus.push({ latein, syrisch: syr ? clean(syr.text) : '', deutsch: b[1] });
+  });
+  return aus.filter((k) => k.latein && k.deutsch);
+}
+
+/** Beispiele mit der Bedeutung in derselben Zelle: Umschrift, Schrift, „Bedeutung“. */
+function glossenInZellen(tab) {
+  const aus = [];
+  for (const zeile of tab.zeilen) {
+    for (const z of zeile) {
+      const t = z.teile;
+      for (let i = 0; i + 2 < t.length; i++) {
+        const [l, s, d] = [t[i], t[i + 1], t[i + 2]];
+        const de = ZELL_BEDEUTUNG.exec(d.text)?.[1];
+        if (!de || !LATEIN.test(l.text) || SYRISCH.test(l.text) || !SYRISCH.test(s.text) || LATEIN.test(s.text)) continue;
+        aus.push({ latein: clean(l.text), syrisch: clean(s.text), deutsch: clean(de), audio: l.audio, audio2: s.audio });
+      }
+    }
+  }
+  return aus;
+}
+
 // --- Seite einlesen ------------------------------------------------------------------------
 
 function seiteLesen($, seite, url, gestrichen) {
@@ -680,7 +747,10 @@ export async function extrahiereGrammatik(kapitel) {
       }
       const kontext = kette.map((t) => t.text);
       if (b.art === 'absatz') {
-        if (seite.art === 'grammatik') return;
+        if (seite.art === 'grammatik') {
+          for (const k of kleinwoerterImAbsatz(b.teile)) seite.roh.push({ ...k, block: nr, kontext, klein: true });
+          return;
+        }
         const text = textVon(b.teile);
         // Eine Verbzeile oder Bedeutung zählt nur, wenn die Tabelle des Verbs direkt folgt
         // („… yqr ܝܩܪ II … werden analog zu ḥlq II flektiert“ stellt kein eigenes Verb vor).
@@ -747,11 +817,15 @@ export async function extrahiereGrammatik(kapitel) {
             merkmal = merkmal.split(', ').filter((m) => m !== deutsch).join(', ');
           }
           delete e.zahl;
-          eintraege.push({ ...e, deutsch, verb: verbZitat, merkmal, block: nr, kontext });
+          // Der Artikel (u, i, aK, an) hat keine deutsche Spalte – die Überschrift sagt, was er ist.
+          const artikel = !deutsch && seite.titel === ARTIKEL_TABELLE;
+          if (artikel) deutsch = seite.titel;
+          eintraege.push({ ...e, deutsch, verb: verbZitat, merkmal, block: nr, kontext, ...(artikel && { klein: true }) });
         }
       }
       if (eintraege.length && eintraege.every((e) => !e.deutsch)) offen.push({ seite, eintraege });
       seite.roh.push(...eintraege);
+      for (const k of glossenInZellen(b)) seite.roh.push({ ...k, block: nr, kontext, klein: true });
     });
   }
 
@@ -787,14 +861,24 @@ export async function extrahiereGrammatik(kapitel) {
     }
   }
 
-  // Einträge bauen
+  // Einträge bauen – die Kleinwörter zuletzt, damit die Kennungen der übrigen Einträge bleiben.
   let ohneBedeutung = 0;
-  for (const seite of ergebnis) {
-    seite.eintraege = [];
+  let kleinwoerter = 0;
+  const schonKlein = new Set();
+  for (const seite of ergebnis) seite.eintraege = [];
+  for (const runde of ['tabellen', 'klein']) for (const seite of ergebnis) {
     for (const r of seite.roh) {
+      if (!!r.klein !== (runde === 'klein')) continue;
       if (!r.deutsch || !r.latein) {
         ohneBedeutung++;
         continue;
+      }
+      if (r.klein) {
+        // „die Konjunktion d“ steht auf mehreren Seiten: nur die erste Stelle zählt.
+        const k = `${r.latein}|${r.deutsch}`;
+        if (schonKlein.has(k)) continue;
+        schonKlein.add(k);
+        kleinwoerter++;
       }
       const id = kennung(seite, r.latein);
       const woerter = r.latein.split(/\s+/).filter(Boolean).length;
@@ -817,8 +901,8 @@ export async function extrahiereGrammatik(kapitel) {
       };
       seite.eintraege.push(e);
     }
-    delete seite.roh;
   }
+  for (const seite of ergebnis) delete seite.roh;
 
   await writeFile(
     datei(DATEI),
@@ -832,6 +916,7 @@ export async function extrahiereGrammatik(kapitel) {
   }
   const alle = ergebnis.flatMap((s) => s.eintraege);
   console.log(`Zusammen: ${alle.length} Einträge, ${alle.filter((e) => e.audio).length} mit Aufnahme, ${ohneBedeutung} Formen ohne Bedeutung nur in den Tabellen`);
+  console.log(`Davon ${kleinwoerter} Kleinwörter und Beispiele aus Erklärtexten (Präpositionen, Artikel, Marker, Partikeln)`);
   if (gestrichen.length) console.log(`Nicht übernommen (${gestrichen.length} Sätze):\n  ${gestrichen.join('\n  ')}`);
 }
 

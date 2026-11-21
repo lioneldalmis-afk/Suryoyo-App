@@ -10,6 +10,7 @@ import { IconFrage, IconHaken, IconLupe, IconPfeil, IconSchliessen, IconZurueck 
 import { Leiste } from '../components/Leiste';
 import { SCHILDER, Schild } from '../components/Schild';
 import { Surayt } from '../components/Surayt';
+import { WortFuerWort } from '../components/WortFuerWort';
 import { QUELLE } from '../config';
 import { istDialog, kurs, verfuegbar } from '../data';
 import {
@@ -24,19 +25,21 @@ import {
 import { href, type LektionTab } from '../lib/router';
 import { fold, vorHinweis } from '../lib/text';
 import {
+  ausTabelle,
   beispielsatz,
   einzelneWoerter,
   hauptStelle,
+  herkunftKurz,
   istGrundform,
-  person,
+  merkmalText,
   stufeVon,
   suche,
   useWoerterbuch,
-  woerterImSatz,
   type Fund,
   type Stufe,
   type Woerterbuch,
 } from '../lib/woerterbuch';
+import { anzahlWoerter, erklaere, ganzGleich, siehtNachSuraytAus } from '../lib/wortfuerwort';
 import type { GrammatikTeil } from '../types';
 
 /** Höchstens so viele Treffer stehen in der Liste. */
@@ -51,6 +54,12 @@ const oeffnet = () => {
   merk.ausDerSuche = true;
 };
 
+/** Aus der Trefferliste heraus: Die Suche merkt sich auch, wie weit man gescrollt hat. */
+const oeffnetAusSuche = () => {
+  merk.scroll = window.scrollY;
+  oeffnet();
+};
+
 // --- Suche ---------------------------------------------------------------------
 
 export function WoerterbuchScreen() {
@@ -61,7 +70,16 @@ export function WoerterbuchScreen() {
     () => (gesucht ? suche(wb, gesucht, TREFFER) : { funde: [], nurAehnlich: false }),
     [wb, gesucht],
   );
-  const einzeln = useMemo(() => (gesucht && !funde.length ? einzelneWoerter(wb, gesucht) : []), [wb, gesucht, funde]);
+  // Ein Satz auf Surayt, der so nicht in den Daten steht: Wort für Wort erklären (Phase 4b, Schritt 3).
+  const wortFuerWort = useMemo(() => {
+    if (!gesucht || anzahlWoerter(gesucht) < 2 || !siehtNachSuraytAus(wb, gesucht)) return null;
+    if (funde[0] && ganzGleich(funde[0].latein, gesucht)) return null;
+    return erklaere(wb, gesucht, { mitSaetzen: true, mitAehnlichen: true });
+  }, [wb, gesucht, funde]);
+  const einzeln = useMemo(
+    () => (gesucht && !funde.length && !wortFuerWort ? einzelneWoerter(wb, gesucht) : []),
+    [wb, gesucht, funde, wortFuerWort],
+  );
   const feld = useRef<HTMLInputElement>(null);
   const online = useOnline();
 
@@ -131,6 +149,27 @@ export function WoerterbuchScreen() {
 
         {!gesucht ? (
           <Ohne wb={wb} />
+        ) : wortFuerWort ? (
+          <>
+            <div className="nichts">
+              <p className="nichts__titel">Nicht als Ganzes gefunden</p>
+              <p>
+                „{gesucht}“ steht so nicht im Übersetzer. Hier ist jedes Wort einzeln erklärt – einen deutschen Satz baut die
+                App daraus nicht.
+              </p>
+            </div>
+            <section>
+              <h2 className="zwischentitel">Wort für Wort</h2>
+              <WortFuerWort erklaerung={wortFuerWort} oeffnen={oeffnetAusSuche} />
+            </section>
+            {funde.length > 0 && (
+              <section>
+                <h2 className="zwischentitel">{nurAehnlich ? 'Ähnlich geschriebene Einträge' : 'Einträge mit diesen Wörtern'}</h2>
+                <Fundliste funde={funde} />
+              </section>
+            )}
+            <AnfrageKasten key={gesucht} text={gesucht} satz />
+          </>
         ) : funde.length > 0 && nurAehnlich ? (
           <>
             <div className="nichts">
@@ -250,10 +289,7 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
           <a
             className="fund__link"
             href={href({ name: 'uebersetzer', id: f.id })}
-            onClick={() => {
-              if (inDerSuche) merk.scroll = window.scrollY;
-              oeffnet();
-            }}
+            onClick={inDerSuche ? oeffnetAusSuche : oeffnet}
           >
             <span className="wort__text">
               <span>
@@ -280,34 +316,11 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
   );
 }
 
-/** Steht der Fund (vor allem) in einer Tabelle der Grammatik, Verb- oder Formentabellen? */
-const ausTabelle = (f: Fund) => f.herkunft === 'grammatik' || f.herkunft === 'formen';
-
-/** „Präsens, Sg., 1. f. · ich, weiblich“: die Beschriftung der Tabelle, bei Verbformen mit der Person in Worten. */
-function merkmalText(f: Fund): string {
-  const wer = f.verb ? person(f.merkmal) : undefined;
-  return [f.merkmal, wer?.klar].filter(Boolean).join(' · ');
-}
-
-/** „Lektion 3“, „Satz · Lektion 4“, „Glossar“, „Grammatik 4“, „Verbtabelle“ … (das Schild davor sagt, ob Lehrbuch oder Muttersprachler) */
-function herkunftKurz(f: Fund): string {
-  const teile: string[] = [];
-  if (f.art === 'satz') teile.push('Satz');
-  if (f.herkunft === 'glossar') teile.push('Glossar');
-  if (ausTabelle(f) && f.tabelle) {
-    teile.push(f.tabelle);
-    return teile.join(' · ');
-  }
-  if (f.lektionen.length) {
-    const nr = f.lektionen.slice(0, 3);
-    teile.push(`Lektion ${nr.join(', ')}${f.lektionen.length > 3 ? ' …' : ''}`);
-  }
-  return teile.join(' · ');
-}
 
 // --- Wort anfragen -----------------------------------------------------------
 
-function AnfrageKasten({ text, knapp = false }: { text: string; knapp?: boolean }) {
+/** `satz`: Es geht um einen ganzen Satz (Wort für Wort erklärt), nicht um ein Wort. */
+function AnfrageKasten({ text, knapp = false, satz = false }: { text: string; knapp?: boolean; satz?: boolean }) {
   const [offen, setOffen] = useState(false);
   const [wort, setWort] = useState(text.slice(0, ANFRAGE_LAENGE));
   const [situation, setSituation] = useState('');
@@ -334,9 +347,13 @@ function AnfrageKasten({ text, knapp = false }: { text: string; knapp?: boolean 
       </button>
     ) : (
       <div className="anfrage">
-        <p>Fehlt ein Wort, das du brauchst? Frag danach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.</p>
+        <p>
+          {satz
+            ? 'Verstehst du den Satz nicht ganz? Frag nach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.'
+            : 'Fehlt ein Wort, das du brauchst? Frag danach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.'}
+        </p>
         <button type="button" className="knopf" onClick={() => setOffen(true)}>
-          <IconFrage size={22} /> Wort anfragen
+          <IconFrage size={22} /> {satz ? 'Satz anfragen' : 'Wort anfragen'}
         </button>
       </div>
     );
@@ -450,7 +467,9 @@ export function EintragScreen({ id }: { id: string }) {
   }
 
   const beispiel = beispielsatz(wb, fund);
-  const imSatz = fund.art === 'satz' ? woerterImSatz(wb, fund) : [];
+  // Sätze und mehrteilige Beispiele der Grammatik: jedes Wort einzeln (Phase 4b, Schritt 3).
+  const wortFuerWort =
+    fund.art === 'satz' || (ausTabelle(fund) && anzahlWoerter(fund.latein) >= 2) ? erklaere(wb, fund.latein, { ohne: fund }) : null;
   const glossar = wb.imGlossar.get(fund) ?? [];
   const wortschatz = wb.zwilling.get(fund);
 
@@ -492,10 +511,10 @@ export function EintragScreen({ id }: { id: string }) {
           </section>
         )}
 
-        {imSatz.length > 0 && (
+        {wortFuerWort && (
           <section>
-            <h2 className="zwischentitel">Wörter aus diesem Satz</h2>
-            <Fundliste funde={imSatz} inDerSuche={false} />
+            <h2 className="zwischentitel">Wort für Wort</h2>
+            <WortFuerWort erklaerung={wortFuerWort} oeffnen={oeffnet} />
           </section>
         )}
 

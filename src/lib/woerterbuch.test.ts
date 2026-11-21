@@ -17,7 +17,6 @@ import {
   stichwort,
   stufeVon,
   suche,
-  woerterImSatz,
   type Fund,
 } from './woerterbuch';
 
@@ -237,17 +236,6 @@ describe('Wörterbuch: rund um einen Eintrag', () => {
     const tawdi = fundVon('L03-W-tawdi');
     expect(beispielsatz(wb, tawdi)?.lektion).toBe(3);
     expect(beispielsatz(wb, fundVon('L03-D-01'))).toBeUndefined();
-  });
-
-  it('zeigt die Wörter eines Satzes in seiner Reihenfolge', () => {
-    const satz = fundVon('L03-D-01');
-    const liste = woerterImSatz(wb, satz);
-    expect(liste.length).toBeGreaterThan(2);
-    const worte = genau(satz.latein);
-    const stellen = liste.map((f) => worte.indexOf(genau(stichwort(f.latein))[0]));
-    expect(stellen.every((s) => s >= 0)).toBe(true);
-    expect([...stellen].sort((a, b) => a - b)).toEqual(stellen);
-    expect(liste.some((f) => f.id === 'L03-W-slomo')).toBe(true);
   });
 });
 

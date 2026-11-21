@@ -579,7 +579,8 @@
       {"id":"L07-G-aydarbo-ged-soqal-u-bayto","latein":"aydarbo gëd šoqal u bayto?","syrisch":"ܐܰܝܕܰܪܒܐ ܓܷܕ ܫܳܩܰܠ ܐܘ ܒܰܝܬܐ؟","deutsch":"wie wird er das Haus kaufen?","audio":"https://textbook.surayt.com/de/files/18020.mp3","audio2":"https://textbook.surayt.com/de/files/18021.mp3","fett":[[8,17]],"lektion":7,"art":"satz","quelle":"lehrbuch","block":20,"tags":[]},
       {"id":"L07-G-afrem-ged-yolaf-u-lisono","latein":"Afrem gëd yolaf u lišono","syrisch":"ܐܰܦܪܶܡ ܓܷܕ ܝܳܠܰܦ ܐܘ ܠܝܫܳܢܐ","deutsch":"Afrem wird die Sprache lernen","audio":"https://textbook.surayt.com/de/files/18022.mp3","audio2":"https://textbook.surayt.com/de/files/18023.mp3","fett":[[6,15]],"lektion":7,"art":"satz","quelle":"lehrbuch","block":20,"tags":[]},
       {"id":"L07-G-hiya-ged-netro-gusma","latein":"hiya gëd nëṭro gušma","syrisch":"ܗܝـܝܰܐ ܓܷܕ ܢܷܛܪܐ ܓܘܫܡܰܗ","deutsch":"sie wird sich um ihren Körper kümmern","audio":"https://textbook.surayt.com/de/files/18024.mp3","audio2":"https://textbook.surayt.com/de/files/18025.mp3","fett":[[5,14]],"lektion":7,"art":"satz","quelle":"lehrbuch","block":20,"tags":[]},
-      {"id":"L07-G-ged-demxina-bi-qelayto","latein":"gëd dëmxina bi qelayto","syrisch":"ܓܷܕ ܕܷܡܟ݂ܝܢܰܐ ܒܝ ܩܶܠܰܝܬܐ","deutsch":"wir werden im Zimmer schlafen","audio":"https://textbook.surayt.com/de/files/18026.mp3","audio2":"https://textbook.surayt.com/de/files/18027.mp3","fett":[[0,11]],"lektion":7,"art":"satz","quelle":"lehrbuch","block":20,"tags":[]}
+      {"id":"L07-G-ged-demxina-bi-qelayto","latein":"gëd dëmxina bi qelayto","syrisch":"ܓܷܕ ܕܷܡܟ݂ܝܢܰܐ ܒܝ ܩܶܠܰܝܬܐ","deutsch":"wir werden im Zimmer schlafen","audio":"https://textbook.surayt.com/de/files/18026.mp3","audio2":"https://textbook.surayt.com/de/files/18027.mp3","fett":[[0,11]],"lektion":7,"art":"satz","quelle":"lehrbuch","block":20,"tags":[]},
+      {"id":"L07-G-d","latein":"d","syrisch":"ܕ","deutsch":"Konjunktion","lektion":7,"art":"wort","quelle":"lehrbuch","block":8,"tags":[]}
     ]},
     {"id":"1.8.2","titel":"Grammatik 8","art":"grammatik","lektion":8,"url":"https://textbook.surayt.com/de/Online%20Course/1.8.2",
     "bloecke":[
@@ -933,7 +934,8 @@
       {"id":"L10-G-dette","latein":"dëṯṯe","syrisch":"ܕܷܬ݂ܬ݂ܶܗ","deutsch":"ihr","audio":"https://textbook.surayt.com/files/19575.mp3","audio2":"https://textbook.surayt.com/files/19576.mp3","merkmal":"Plural, 3. Person","lektion":10,"art":"wort","quelle":"lehrbuch","block":13,"tags":[]},
       {"id":"L10-G-ah-haqlotani-didan-ne","latein":"aḥ ḥaqloṯani diḏan ne","syrisch":"ܐܰܚ ܚܰܩܠܳܬ݂ܰܢܝ ܕܝܕ݂ܰܢ ܢܶܐ","deutsch":"diese Felder gehören uns (sind unsere)","audio":"https://textbook.surayt.com/files/19579.mp3","audio2":"https://textbook.surayt.com/files/19580.mp3","lektion":10,"art":"satz","quelle":"lehrbuch","block":15,"tags":[]},
       {"id":"L10-G-kohozina-hawrone-me-didan","latein":"koḥozina ḥawrone me diḏan","syrisch":"ܟܳܚܳܙܝܢܰܐ ܚܰܘܪܳܢܶܐ ܡܶܐ ܕܝܕ݂ܰܢ","deutsch":"wir sehen Freunde von uns","audio":"https://textbook.surayt.com/files/19581.mp3","audio2":"https://textbook.surayt.com/files/19582.mp3","lektion":10,"art":"satz","quelle":"lehrbuch","block":15,"tags":[]},
-      {"id":"L10-G-makinat-modern-xud-detxu","latein":"makinat modern xud dëṯxu","syrisch":"ܡܰܟܝܢܰܬ ܡܳܕܶܪܢ ܟ݂ܘܕ ܕܷܬ݂ܟ݂ܘ","deutsch":"moderne Maschinen wie eure","audio":"https://textbook.surayt.com/files/19583.mp3","audio2":"https://textbook.surayt.com/files/19584.mp3","lektion":10,"art":"satz","quelle":"lehrbuch","block":15,"tags":[]}
+      {"id":"L10-G-makinat-modern-xud-detxu","latein":"makinat modern xud dëṯxu","syrisch":"ܡܰܟܝܢܰܬ ܡܳܕܶܪܢ ܟ݂ܘܕ ܕܷܬ݂ܟ݂ܘ","deutsch":"moderne Maschinen wie eure","audio":"https://textbook.surayt.com/files/19583.mp3","audio2":"https://textbook.surayt.com/files/19584.mp3","lektion":10,"art":"satz","quelle":"lehrbuch","block":15,"tags":[]},
+      {"id":"L10-G-d","latein":"d","syrisch":"","deutsch":"Genitivpartikel","lektion":10,"art":"wort","quelle":"lehrbuch","block":1,"tags":[]}
     ]},
     {"id":"1.11.2","titel":"Grammatik 11","art":"grammatik","lektion":11,"url":"https://textbook.surayt.com/de/Online%20Course/1.11.2",
     "bloecke":[
@@ -1076,7 +1078,32 @@
       {"id":"L11-G-betre","latein":"bëṯre","syrisch":"ܒܷܬ݂ܪܶܗ","deutsch":"hinter ihm","audio":"https://textbook.surayt.com/files/20161.mp3","audio2":"https://textbook.surayt.com/files/20162.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":21,"tags":[]},
       {"id":"L11-G-betr-u-bayto","latein":"bëṯr u bayto","syrisch":"ܒܷܬ݂ܪ ܐܘ ܒܰܝܬܐ","deutsch":"hinter dem Haus","audio":"https://textbook.surayt.com/files/20163.mp3","audio2":"https://textbook.surayt.com/files/20164.mp3","lektion":11,"art":"satz","quelle":"lehrbuch","block":21,"tags":[]},
       {"id":"L11-G-tahta","latein":"taḥta","syrisch":"ܬܰܚܬܰܗ","deutsch":"unter ihr","audio":"https://textbook.surayt.com/files/20165.mp3","audio2":"https://textbook.surayt.com/files/20166.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":22,"tags":[]},
-      {"id":"L11-G-taht-i-teblito","latein":"taḥt i ṭëbliṯo","syrisch":"ܬܰܚܬ ܐܝ ܛܷܒܠܝܬ݂ܐ","deutsch":"unter dem Tisch","audio":"https://textbook.surayt.com/files/20167.mp3","audio2":"https://textbook.surayt.com/files/20168.mp3","lektion":11,"art":"satz","quelle":"lehrbuch","block":22,"tags":[]}
+      {"id":"L11-G-taht-i-teblito","latein":"taḥt i ṭëbliṯo","syrisch":"ܬܰܚܬ ܐܝ ܛܷܒܠܝܬ݂ܐ","deutsch":"unter dem Tisch","audio":"https://textbook.surayt.com/files/20167.mp3","audio2":"https://textbook.surayt.com/files/20168.mp3","lektion":11,"art":"satz","quelle":"lehrbuch","block":22,"tags":[]},
+      {"id":"L11-G-b","latein":"b","syrisch":"ܒـ","deutsch":"in","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-betr","latein":"bëṯr","syrisch":"ܒܷܬ݂ܪ","deutsch":"hinter","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-cal","latein":"cal","syrisch":"ܥܰܠ","deutsch":"auf","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-cam","latein":"cam","syrisch":"ܥܰܡ","deutsch":"mit","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-gab","latein":"gab","syrisch":"ܓܰܒ","deutsch":"bei, neben","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-l","latein":"l","syrisch":"ܠـ","deutsch":"für, zu","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-laf","latein":"laf","syrisch":"ܠܰܦ","deutsch":"hin zu","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-m","latein":"m","syrisch":"ܡـ","deutsch":"von, aus","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-me","latein":"me","syrisch":"ܡܶܐ","deutsch":"von, aus","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-qem","latein":"qëm","syrisch":"ܩܷܡ","deutsch":"vor","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-s","latein":"s","syrisch":"ܣـ","deutsch":"bei, neben","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-se","latein":"se","syrisch":"ܣܶܐ","deutsch":"bei, neben","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-taht","latein":"taḥt","syrisch":"ܬܰܚܬ","deutsch":"unter","lektion":11,"art":"wort","quelle":"lehrbuch","block":14,"tags":[]},
+      {"id":"L11-G-bu-bayto","latein":"bu bayto","syrisch":"ܒܘ ܒܰܝܬܐ","deutsch":"im Haus","audio":"https://textbook.surayt.com/files/20103.mp3","audio2":"https://textbook.surayt.com/files/20104.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-bi-qrito","latein":"bi qriṯo","syrisch":"ܒܝ ܩܪܝܬ݂ܐ","deutsch":"im Dorf","audio":"https://textbook.surayt.com/files/20105.mp3","audio2":"https://textbook.surayt.com/files/20106.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-bak-karme","latein":"bak karme","syrisch":"ܒܰܟ ܟܰܪܡܶܐ","deutsch":"in den Weingärten","audio":"https://textbook.surayt.com/files/20107.mp3","audio2":"https://textbook.surayt.com/files/20108.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-lu-bayto","latein":"lu bayto","syrisch":"ܠܘ ܒܰܝܬܐ","deutsch":"ins Haus","audio":"https://textbook.surayt.com/files/20111.mp3","audio2":"https://textbook.surayt.com/files/20112.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-li-qrito","latein":"li qriṯo","syrisch":"ܠܝ ܩܪܝܬ݂ܐ","deutsch":"in das Dorf","audio":"https://textbook.surayt.com/files/20113.mp3","audio2":"https://textbook.surayt.com/files/20114.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-lak-karme","latein":"lak karme","syrisch":"ܠܰܟ ܟܰܪܡܶܐ","deutsch":"in die Weingärten","audio":"https://textbook.surayt.com/files/20115.mp3","audio2":"https://textbook.surayt.com/files/20116.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-mu-bayto","latein":"mu bayto","syrisch":"ܡܘ ܒܰܝܬܐ","deutsch":"aus dem Haus","audio":"https://textbook.surayt.com/files/20119.mp3","audio2":"https://textbook.surayt.com/files/20120.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-mi-qrito","latein":"mi qriṯo","syrisch":"ܡܝ ܩܪܝܬ݂ܐ","deutsch":"aus dem Dorf","audio":"https://textbook.surayt.com/files/20121.mp3","audio2":"https://textbook.surayt.com/files/20122.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-mak-karme","latein":"mak karme","syrisch":"ܡܰܟ ܟܰܪܡܶܐ","deutsch":"aus den Weingärten","audio":"https://textbook.surayt.com/files/20123.mp3","audio2":"https://textbook.surayt.com/files/20124.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-su-bayto","latein":"su bayto","syrisch":"ܣܘ ܒܰܝܬܐ","deutsch":"bei dem Haus","audio":"https://textbook.surayt.com/files/20127.mp3","audio2":"https://textbook.surayt.com/files/20128.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-si-qrito","latein":"si qriṯo","syrisch":"ܣܝ ܩܪܝܬ݂ܐ","deutsch":"bei dem Dorf","audio":"https://textbook.surayt.com/files/20129.mp3","audio2":"https://textbook.surayt.com/files/20130.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]},
+      {"id":"L11-G-sak-karme","latein":"sak karme","syrisch":"ܣܰܟ ܟܰܪܡܶܐ","deutsch":"bei den Weingärten","audio":"https://textbook.surayt.com/files/20131.mp3","audio2":"https://textbook.surayt.com/files/20132.mp3","lektion":11,"art":"wort","quelle":"lehrbuch","block":16,"tags":[]}
     ]},
     {"id":"1.12.3","titel":"Grammatik 12","art":"grammatik","lektion":12,"url":"https://textbook.surayt.com/de/Online%20Course/1.12.3",
     "bloecke":[
@@ -1316,7 +1343,9 @@
       {"id":"L13-G-mhalaqlan","latein":"mḥalaqlan","syrisch":"ܡܚܰܠܰܩܠܰܢ","deutsch":"wegwerfen","audio":"https://textbook.surayt.com/files/22387.mp3","audio2":"https://textbook.surayt.com/files/21399.mp3","merkmal":"Plural, 1. Person","verb":"mḥalaq - mḥalaqle","fett":[[6,9]],"lektion":13,"art":"wort","quelle":"lehrbuch","block":44,"tags":[]},
       {"id":"L13-G-msaralle-bu-muklo-w-bu-stoyo","latein":"Mšaralle bu muklo w bu štoyo.","syrisch":"ܡܫܰܪܰܠܠܶܗ ܒܽܘ ܡܘܟܠܐ ܘ ܒܘ ܫܬܳܝܐ.","deutsch":"Sie fingen an zu essen und zu trinken.","audio":"https://textbook.surayt.com/files/22399.mp3","audio2":"https://textbook.surayt.com/files/21385.mp3","fett":[[0,8]],"lektion":13,"art":"satz","quelle":"lehrbuch","block":48,"tags":[]},
       {"id":"L13-G-mcayadde-risa-d-sato-cam-hdode","latein":"Mcayaḏḏe riša d šato cam ḥḏoḏe.","syrisch":"ܡܥܰܝܰܕ݂ܕ݂ܶܗ ܪܺܝܫܰܗ ܕܫܰܬ݁ܳܐ ܥܰܡ ܚܕ݂ܳܕ݂ܶܐ.","deutsch":"Sie feierten gemeinsam Silvester.","audio":"https://textbook.surayt.com/files/22400.mp3","audio2":"https://textbook.surayt.com/files/21386.mp3","fett":[[0,8]],"lektion":13,"art":"satz","quelle":"lehrbuch","block":48,"tags":[]},
-      {"id":"L13-G-elo-serke-lu-tecmiro-xayifo-lo-mqafalle","latein":"Elo šërke lu tëcmiro xayifo lo mqafalle.","syrisch":"ܐܶܠܐ ܫܷܪܟܶܐ ܠܘ ܬܷܥܡܝܪܐ ܟ݂ܰܝـܝܦܐ ܠܐ ܡܩܰܦܰܠܠܶܗ.","deutsch":"Doch sie fanden so schnell keine Baufirma.","audio":"https://textbook.surayt.com/files/22401.mp3","audio2":"https://textbook.surayt.com/files/21387.mp3","fett":[[31,39]],"lektion":13,"art":"satz","quelle":"lehrbuch","block":48,"tags":[]}
+      {"id":"L13-G-elo-serke-lu-tecmiro-xayifo-lo-mqafalle","latein":"Elo šërke lu tëcmiro xayifo lo mqafalle.","syrisch":"ܐܶܠܐ ܫܷܪܟܶܐ ܠܘ ܬܷܥܡܝܪܐ ܟ݂ܰܝـܝܦܐ ܠܐ ܡܩܰܦܰܠܠܶܗ.","deutsch":"Doch sie fanden so schnell keine Baufirma.","audio":"https://textbook.surayt.com/files/22401.mp3","audio2":"https://textbook.surayt.com/files/21387.mp3","fett":[[31,39]],"lektion":13,"art":"satz","quelle":"lehrbuch","block":48,"tags":[]},
+      {"id":"L13-G-ko","latein":"ko-","syrisch":"ܟܳـ","deutsch":"Präsensmarker","lektion":13,"art":"wort","quelle":"lehrbuch","block":37,"tags":[]},
+      {"id":"L13-G-ged","latein":"gëd","syrisch":"ܓܷܕ","deutsch":"Futurmarker","lektion":13,"art":"wort","quelle":"lehrbuch","block":37,"tags":[]}
     ]},
     {"id":"1.14.3","titel":"Grammatik 14","art":"grammatik","lektion":14,"url":"https://textbook.surayt.com/de/Online%20Course/1.14.3",
     "bloecke":[
@@ -3145,7 +3174,11 @@
       {"id":"F-u-gawro","latein":"u gawro","syrisch":"ܐܘ ܓܰܘܪܐ","deutsch":"der Mann","merkmal":"Sg., m.","art":"wort","quelle":"lehrbuch","block":1,"tags":[]},
       {"id":"F-i-atto","latein":"i aṯto","syrisch":"ܐܝ ܐܰܬ݂ܬܐ","deutsch":"die Frau","merkmal":"Sg., f.","art":"wort","quelle":"lehrbuch","block":1,"tags":[]},
       {"id":"F-ab-babe","latein":"ab babe","syrisch":"ܐܰܒ ܒܰܒܶܐ","deutsch":"die Väter","merkmal":"Pl., vor Konsonant","art":"wort","quelle":"lehrbuch","block":1,"tags":[]},
-      {"id":"F-an-emote","latein":"an emoṯe","syrisch":"ܐܰܢ ܐܶܡܳܬ݂ܶܐ","deutsch":"die Mütter","merkmal":"Pl., vor Vokal","art":"wort","quelle":"lehrbuch","block":1,"tags":[]}
+      {"id":"F-an-emote","latein":"an emoṯe","syrisch":"ܐܰܢ ܐܶܡܳܬ݂ܶܐ","deutsch":"die Mütter","merkmal":"Pl., vor Vokal","art":"wort","quelle":"lehrbuch","block":1,"tags":[]},
+      {"id":"F-u","latein":"u","syrisch":"ܐܘ","deutsch":"Der bestimmte Artikel","merkmal":"Sg., m.","art":"wort","quelle":"lehrbuch","block":1,"tags":[]},
+      {"id":"F-i-2","latein":"i","syrisch":"ܐܝ","deutsch":"Der bestimmte Artikel","merkmal":"Sg., f.","art":"wort","quelle":"lehrbuch","block":1,"tags":[]},
+      {"id":"F-ak","latein":"aK","syrisch":"ܐܰـ","deutsch":"Der bestimmte Artikel","merkmal":"Pl., vor Konsonant","art":"wort","quelle":"lehrbuch","block":1,"tags":[]},
+      {"id":"F-an-2","latein":"an","syrisch":"ܐܰܢ","deutsch":"Der bestimmte Artikel","merkmal":"Pl., vor Vokal","art":"wort","quelle":"lehrbuch","block":1,"tags":[]}
     ]},
     {"id":"4.2","titel":"Pronomina","art":"formen","url":"https://textbook.surayt.com/de/Online%20Course/4.2",
     "bloecke":[
