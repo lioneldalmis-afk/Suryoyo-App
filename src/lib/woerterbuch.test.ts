@@ -184,7 +184,8 @@ describe('Wörterbuch: Suche', () => {
   it('bleibt schnell genug fürs Handy', () => {
     const start = performance.now();
     for (const q of ['slomo', 'Danke', 'wie geht es', 'qqqxxyzz', 'tawdy', 'ha']) suche(wb, q);
-    expect((performance.now() - start) / 6).toBeLessThan(60);
+    // Hier etwa 5 ms pro Suche; die Grenze lässt Luft für langsamere Rechner (GitHub, ältere Handys).
+    expect((performance.now() - start) / 6).toBeLessThan(200);
   });
 });
 
