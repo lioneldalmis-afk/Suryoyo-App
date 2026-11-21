@@ -44,7 +44,10 @@ export const TAGESZIELE = [
   { xp: 50, name: 'Intensiv' },
 ] as const;
 
-/** XP-Regeln: 1 XP pro richtiger Antwort (zählt die Übungsrunde selbst), dazu diese Boni. */
+/**
+ * XP-Regeln: 1 XP pro richtiger Antwort – gleich gutgeschrieben, auch wenn die
+ * Runde abgebrochen wird (`gutschreiben`) –, dazu diese Boni am Ende einer Runde.
+ */
 export const XP = {
   /** Für jede abgeschlossene Runde – auch wenn viel schiefging. */
   abschluss: 5,
@@ -105,12 +108,20 @@ export function mitXp(m: Motivation, xp: number, jetzt: number): Motivation {
   return { ...m, xp: m.xp + xp, tage: { ...m.tage, [tag]: (m.tage[tag] ?? 0) + xp } };
 }
 
-/** Neuer Stand nach einer Runde, noch ohne Abzeichen. */
+/** XP für richtige Antworten sofort gutschreiben – noch ohne Abzeichen. */
+export function gutschreiben(xp: number, jetzt = Date.now()) {
+  if (xp > 0) zustand.setze(mitXp(zustand.lies(), xp, jetzt));
+}
+
+/**
+ * Neuer Stand am Ende einer Runde, noch ohne Abzeichen: Bonus-XP und Zähler.
+ * Die XP für die einzelnen Antworten sind schon während der Runde gutgeschrieben.
+ */
 export function nachRunde(m: Motivation, r: Rundenergebnis, jetzt: number): Motivation {
-  const { gesamt, fehlerfrei } = xpFuer(r);
+  const { abschluss, bonus, fehlerfrei } = xpFuer(r);
   const z = m.zaehler;
   return {
-    ...mitXp(m, gesamt, jetzt),
+    ...mitXp(m, abschluss + bonus, jetzt),
     zaehler: {
       runden: z.runden + 1,
       fehlerfrei: z.fehlerfrei + (fehlerfrei ? 1 : 0),
@@ -159,11 +170,17 @@ function uebernimm(vorher: Motivation, nachher: Motivation, lektionen: readonly 
 
 /**
  * Am Ende einer Runde aufrufen – nachdem der Lernstand verbucht ist, damit
- * Abzeichen wie „Lektion geschafft“ ihn schon sehen.
+ * Abzeichen wie „Lektion geschafft“ ihn schon sehen. `start` ist der Stand vom
+ * Anfang der Runde: Der Bericht zählt die XP der ganzen Runde, auch die schon
+ * während der Runde gutgeschriebenen.
  */
-export function schliesseRundeAb(r: Rundenergebnis, lektionen: readonly Lektion[], jetzt = Date.now()): Bericht {
-  const vorher = zustand.lies();
-  return uebernimm(vorher, nachRunde(vorher, r, jetzt), lektionen, jetzt);
+export function schliesseRundeAb(
+  r: Rundenergebnis,
+  lektionen: readonly Lektion[],
+  start: Motivation = zustand.lies(),
+  jetzt = Date.now(),
+): Bericht {
+  return uebernimm(start, nachRunde(zustand.lies(), r, jetzt), lektionen, jetzt);
 }
 
 /** „Hab ich gesagt!“: Der Satz der Woche wurde zu Hause ausprobiert. */

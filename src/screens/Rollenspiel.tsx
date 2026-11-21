@@ -8,8 +8,8 @@ import { Rundenende } from '../components/Rundenende';
 import { Surayt } from '../components/Surayt';
 import { alleLektionen, istDialog, verfuegbar } from '../data';
 import { entsperren, spiele, stopp } from '../lib/audio';
-import { schliesseRundeAb, type Bericht } from '../lib/motivation';
-import { verbuche } from '../lib/progress';
+import { gutschreiben, motivation, schliesseRundeAb, type Bericht } from '../lib/motivation';
+import { aktuellerFortschritt, verbucheAusRunde } from '../lib/progress';
 import { href } from '../lib/router';
 import { baueRollenspiel, rollen, type Zug } from '../lib/rollenspiel';
 import type { Eintrag, Lektion } from '../types';
@@ -139,13 +139,16 @@ function Spiel(props: { lektion: Lektion; rolle: string; onNochmal: () => void; 
     ende.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
   }, [index, geloest]);
 
-  // Am Ende: eigene Zeilen verbuchen, XP und Abzeichen vergeben.
+  // Stand vom Anfang: Jede eigene Zeile wird gespeichert, sobald sie gesagt ist.
+  const basis = useRef(aktuellerFortschritt());
+  const start = useRef(motivation());
+
+  // Am Ende: Bonus-XP und Abzeichen vergeben.
   const verbucht = useRef(false);
   useEffect(() => {
     if (!fertig || verbucht.current) return;
     verbucht.current = true;
     const eigene = zuege.filter((z) => z.eigene).map((z) => z.zeile.id);
-    verbuche(eigene.map((id) => ({ id, fehlerfrei: !fehler.includes(id) })));
     setBericht(
       schliesseRundeAb(
         {
@@ -156,6 +159,7 @@ function Spiel(props: { lektion: Lektion; rolle: string; onNochmal: () => void; 
           nachgesprochen: 0,
         },
         alleLektionen,
+        start.current,
       ),
     );
   });
@@ -192,6 +196,10 @@ function Spiel(props: { lektion: Lektion; rolle: string; onNochmal: () => void; 
   const waehle = (option: Eintrag) => {
     if (geloest === index || daneben.includes(option.id)) return;
     if (option.id === zug.zeile.id) {
+      // Gleich speichern und XP gutschreiben – wer abbricht, verliert nichts.
+      const aufAnhieb = !fehler.includes(zug.zeile.id);
+      verbucheAusRunde(basis.current, [{ id: zug.zeile.id, fehlerfrei: aufAnhieb }]);
+      if (aufAnhieb) gutschreiben(1);
       setDaneben([]);
       setGeloest(index);
     } else {

@@ -11,6 +11,7 @@ import { alleLektionen, verfuegbar, vorratFuer } from '../data';
 import { entsperren } from '../lib/audio';
 import { baueEinheit, baueWiederholung, einheiten, faellige, naechsteEinheit, type Einheit } from '../lib/einheiten';
 import {
+  gutschreiben,
   motivation,
   schliesseRundeAb,
   sprechenMoeglich,
@@ -18,7 +19,7 @@ import {
   type Bericht,
   type Rundenart,
 } from '../lib/motivation';
-import { aktuellerFortschritt, useFortschritt, verbuche } from '../lib/progress';
+import { aktuellerFortschritt, useFortschritt, verbucheAusRunde } from '../lib/progress';
 import { ersetze, href, type Route } from '../lib/router';
 import { baueHoerrunde, baueRunde, lernreihenfolge, nochmal, type Schritt, type Uebungsart } from '../lib/session';
 import { tagNummer } from '../lib/zeit';
@@ -33,6 +34,8 @@ interface Verlauf {
   antwort: { richtig: boolean; gewaehlt: string } | null;
   /** Einträge, bei denen in dieser Runde etwas falsch war. */
   fehler: string[];
+  /** Einträge, zu denen schon eine Aufgabe beantwortet ist – ihr Lernstand wird gleich gespeichert. */
+  geuebt: string[];
   /** Richtige Antworten – je 1 XP. */
   richtige: number;
   nachgesprochen: number;
@@ -60,18 +63,25 @@ function mitFehler(v: Verlauf, nachholen: Schritt): Verlauf {
   return { ...v, fehler: [...v.fehler, id], schritte: [...v.schritte, nachholen] };
 }
 
+/** Der Eintrag ist in dieser Runde geübt worden. */
+function mitGeuebt(v: Verlauf, id: string): Verlauf {
+  return v.geuebt.includes(id) ? v : { ...v, geuebt: [...v.geuebt, id] };
+}
+
 function schalte(v: Verlauf, a: Aktion): Verlauf {
   const schritt = v.schritte[v.index];
   switch (a.typ) {
     case 'antwort': {
       if (v.antwort) return v;
       const antwort = { richtig: a.richtig, gewaehlt: a.gewaehlt };
-      if (a.richtig) return { ...v, antwort, richtige: v.richtige + 1 };
-      return { ...mitFehler(v, nochmal(schritt)), antwort };
+      const geuebt = mitGeuebt(v, schritt.eintrag.id);
+      if (a.richtig) return { ...geuebt, antwort, richtige: v.richtige + 1 };
+      return { ...mitFehler(geuebt, nochmal(schritt)), antwort };
     }
     case 'karte':
-      if (a.gewusst === false) return weiter(mitFehler(v, schritt));
-      return weiter(a.gewusst ? { ...v, richtige: v.richtige + 1 } : v);
+      if (a.gewusst === null) return weiter(v);
+      if (a.gewusst === false) return weiter(mitFehler(mitGeuebt(v, schritt.eintrag.id), schritt));
+      return weiter({ ...mitGeuebt(v, schritt.eintrag.id), richtige: v.richtige + 1 });
     case 'gesprochen':
       return weiter(a.gesprochen ? { ...v, richtige: v.richtige + 1, nachgesprochen: v.nachgesprochen + 1 } : v);
     case 'sprechenAus': {
@@ -105,6 +115,7 @@ function Runde({ baue, art, schliessen, titel, knoepfe, leer }: RundeProps) {
     index: 0,
     antwort: null,
     fehler: [],
+    geuebt: [],
     richtige: 0,
     nachgesprochen: 0,
     fertig: false,
@@ -113,16 +124,36 @@ function Runde({ baue, art, schliessen, titel, knoepfe, leer }: RundeProps) {
 
   const geprueft = [...new Set(v.schritte.filter(zaehlt).map((s) => s.eintrag.id))];
 
-  // Lernstand, XP und Abzeichen genau einmal verbuchen, wenn die Runde zu Ende ist.
+  // Stand vom Anfang der Runde: Davon aus wird gerechnet, auch wenn mittendrin gespeichert wird.
+  const basis = useRef(aktuellerFortschritt());
+  const start = useRef(motivation());
+
+  // Lernstand nach jeder Antwort speichern – wer abbricht, verliert nichts.
+  useEffect(() => {
+    if (v.geuebt.length === 0) return;
+    verbucheAusRunde(
+      basis.current,
+      v.geuebt.map((id) => ({ id, fehlerfrei: !v.fehler.includes(id) })),
+    );
+  }, [v.geuebt, v.fehler]);
+
+  // XP für richtige Antworten gleich gutschreiben.
+  const gutgeschrieben = useRef(0);
+  useEffect(() => {
+    gutschreiben(v.richtige - gutgeschrieben.current);
+    gutgeschrieben.current = v.richtige;
+  }, [v.richtige]);
+
+  // Am Ende: Bonus, Zähler und Abzeichen genau einmal.
   const verbucht = useRef(false);
   useEffect(() => {
     if (!v.fertig || verbucht.current) return;
     verbucht.current = true;
-    verbuche(geprueft.map((id) => ({ id, fehlerfrei: !v.fehler.includes(id) })));
     setBericht(
       schliesseRundeAb(
         { art, richtige: v.richtige, aufgaben: geprueft.length, fehler: v.fehler.length, nachgesprochen: v.nachgesprochen },
         alleLektionen,
+        start.current,
       ),
     );
   });
@@ -347,7 +378,10 @@ export function WiederholenScreen() {
   return (
     <Runde
       key={lauf}
-      baue={() => baueWiederholung(faellige(alleLektionen, aktuellerFortschritt(), tagNummer(Date.now())), vorratFuer)}
+      baue={() => {
+        const f = aktuellerFortschritt();
+        return baueWiederholung(faellige(alleLektionen, f, tagNummer(Date.now())), f, vorratFuer);
+      }}
       art="wiederholung"
       schliessen={start}
       titel={() => (nochFaellig > 0 ? `Noch ${nochFaellig} zum Wiederholen` : 'Alles wiederholt für heute')}

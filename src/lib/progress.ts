@@ -74,6 +74,17 @@ export function verbuche(ergebnisse: { id: string; fehlerfrei: boolean }[], jetz
   lernstand.setze(nachRunde(lernstand.lies(), ergebnisse, jetzt));
 }
 
+/**
+ * Lernstand während einer Runde: nach jeder Antwort speichern, damit beim
+ * Abbrechen nichts verloren geht. Gerechnet wird immer vom Stand vor der Runde
+ * (`basis`) aus – so rückt ein Eintrag pro Runde höchstens ein Fach weiter, auch
+ * wenn er mehrmals drankommt, und ein späterer Fehler in derselben Runde zählt.
+ */
+export function verbucheAusRunde(basis: Fortschritt, ergebnisse: { id: string; fehlerfrei: boolean }[], jetzt = Date.now()) {
+  const neu = nachRunde(basis, ergebnisse, jetzt);
+  lernstand.setze({ ...lernstand.lies(), ...Object.fromEntries(ergebnisse.map(({ id }) => [id, neu[id]])) });
+}
+
 export function zuruecksetzen() {
   lernstand.setze({});
 }

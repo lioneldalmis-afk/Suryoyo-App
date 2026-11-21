@@ -9,8 +9,20 @@ import {
   faellige,
   naechsteEinheit,
 } from './einheiten';
-import { faelligAm, INTERVALL_TAGE, istFaellig, lage, MAX_STUFE, nachRunde, type Fortschritt } from './progress';
 import {
+  aktuellerFortschritt,
+  faelligAm,
+  INTERVALL_TAGE,
+  istFaellig,
+  lage,
+  MAX_STUFE,
+  nachRunde,
+  verbucheAusRunde,
+  zuruecksetzen,
+  type Fortschritt,
+} from './progress';
+import {
+  baueRunde,
   bauen,
   irgendeine,
   lektionsstand,
@@ -20,6 +32,7 @@ import {
   nochmal,
   richtigGebaut,
   satzUebbar,
+  SCHWER_AB,
   type Schritt,
 } from './session';
 import { geuebtAm, zufall } from './testhilfe';
@@ -91,16 +104,22 @@ describe('Übungsrunde einer Einheit', () => {
   const zaehlt = (s: Schritt) => s.typ !== 'sprechen' && (s.typ !== 'karte' || !s.neu);
 
   it('stellt jeden neuen Eintrag erst vor und fragt ihn dann zweimal ab', () => {
-    const runde = baueEinheit(erste, {}, { vorratFuer }, zufall(1));
-    expect(runde.slice(0, 4).map((s) => s.typ)).toEqual(['karte', 'karte', 'wahl', 'wahl']);
-    for (const e of erste.eintraege) {
-      const schritte = runde.filter((s) => s.eintrag === e);
-      expect(schritte[0], e.latein).toMatchObject({ typ: 'karte', neu: true });
-      expect(schritte.filter(zaehlt), e.latein).toHaveLength(2);
+    for (let i = 0; i < 20; i++) {
+      const runde = baueEinheit(erste, {}, { vorratFuer }, zufall(i));
+      expect(runde.slice(0, 4).map((s) => s.typ)).toEqual(['karte', 'karte', 'karte', 'karte']);
+      for (const e of erste.eintraege) {
+        const schritte = runde.filter((s) => s.eintrag === e);
+        expect(schritte[0], e.latein).toMatchObject({ typ: 'karte', neu: true });
+        const [erste_, zweite] = schritte.filter(zaehlt);
+        expect(schritte.filter(zaehlt), e.latein).toHaveLength(2);
+        // Nicht gleich nach dem Kennenlernen: Dazwischen kommen mindestens zwei andere Aufgaben.
+        expect(runde.indexOf(erste_) - runde.indexOf(schritte[0]), e.latein).toBeGreaterThan(2);
+        // Zuerst nach Gehör, dann selbst auf Surayt (Wörter) bzw. bauen oder ergänzen (Sätze).
+        expect(erste_.typ, e.latein).toBe('hoeren');
+        if (e.art === 'wort') expect(zweite, e.latein).toMatchObject({ typ: 'wahl', richtung: 'de-sur' });
+        else expect(['bauen', 'luecke'], e.latein).toContain(zweite.typ);
+      }
     }
-    // Der Satz wird beim zweiten Mal gebaut oder ergänzt, nicht nur gehört.
-    const satz = erste.eintraege.find((e) => e.art === 'satz')!;
-    expect(['bauen', 'luecke']).toContain(runde.filter((s) => s.eintrag === satz).at(-1)!.typ);
   });
 
   it('mischt fällige Wiederholungen unter und endet mit Nachsprechen', () => {
@@ -274,7 +293,58 @@ describe('Karteikasten', () => {
       [d.id]: { stufe: 3, richtig: 3, falsch: 0, zuletzt: MITTAG - 2 * TAG }, // erst in 5 Tagen dran
     };
     expect(faellige(alleLektionen, f, heute, zufall(1))).toEqual([b, c, a]);
-    const runde = baueWiederholung([b, c, a], vorratFuer, zufall(2));
+    const runde = baueWiederholung([b, c, a], f, vorratFuer, zufall(2));
     expect(runde.map((s) => s.eintrag).sort((x, y) => x.id.localeCompare(y.id))).toEqual([a, b, c].sort((x, y) => x.id.localeCompare(y.id)));
+  });
+});
+
+describe('Schwierigkeit', () => {
+  const woerter = vorrat3.filter((e) => e.art === 'wort' && e.audio);
+
+  it('steigt mit dem Fach im Karteikasten: Was sitzt, muss man selbst auf Surayt finden', () => {
+    for (let i = 0; i < 200; i++) {
+      const e = woerter[i % woerter.length];
+      const leicht = irgendeine(e, vorrat3, zufall(i), [], 0);
+      const schwer = irgendeine(e, vorrat3, zufall(i), [], SCHWER_AB);
+      expect(['wahl', 'hoeren']).toContain(leicht.typ);
+      // Schwer: nie mehr nur „Was bedeutet das?“ mit deutschen Antworten.
+      if (schwer.typ === 'wahl') expect(schwer.richtung).toBe('de-sur');
+      else expect(schwer).toMatchObject({ typ: 'hoeren', schreibweise: true });
+    }
+  });
+
+  it('dreht Karteikarten um, sobald ein Wort sitzt', () => {
+    const sitzt = { stufe: SCHWER_AB, richtig: 2, falsch: 0, zuletzt: MITTAG };
+    const f: Fortschritt = Object.fromEntries(vorrat3.slice(0, 5).map((e) => [e.id, sitzt]));
+    for (const s of baueRunde('karten', vorrat3, f, zufall(3))) {
+      if (s.typ !== 'karte') throw new Error('keine Karte');
+      expect(s.umgekehrt, s.eintrag.latein).toBe(f[s.eintrag.id] !== undefined);
+    }
+  });
+});
+
+describe('Speichern während der Runde', () => {
+  it('rechnet vom Stand vor der Runde: höchstens ein Fach weiter, ein späterer Fehler zählt', () => {
+    zuruecksetzen();
+    const basis: Fortschritt = { a: { stufe: 2, richtig: 2, falsch: 0, zuletzt: MITTAG - 5 * TAG } };
+    verbucheAusRunde(basis, [{ id: 'a', fehlerfrei: true }], MITTAG);
+    verbucheAusRunde(basis, [{ id: 'a', fehlerfrei: true }], MITTAG);
+    expect(aktuellerFortschritt().a).toEqual({ stufe: 3, richtig: 3, falsch: 0, zuletzt: MITTAG });
+    verbucheAusRunde(basis, [{ id: 'a', fehlerfrei: false }], MITTAG);
+    expect(aktuellerFortschritt().a).toEqual({ stufe: 0, richtig: 2, falsch: 1, zuletzt: MITTAG });
+  });
+
+  it('macht nach einer abgebrochenen Runde mit dem Rest der Einheit weiter', () => {
+    const erste = einheiten(l3)[0];
+    const geuebt = erste.eintraege.slice(0, 2);
+    const f = geuebtAm(
+      geuebt.map((e) => e.id),
+      MITTAG,
+    );
+    const runde = baueEinheit(erste, f, { vorratFuer }, zufall(5));
+    const karten = runde.filter((s) => s.typ === 'karte').map((s) => s.eintrag);
+    expect(karten).toEqual(erste.eintraege.slice(2));
+    // Die schon geübten kommen trotzdem noch einmal dran.
+    for (const e of geuebt) expect(runde.some((s) => s.eintrag === e)).toBe(true);
   });
 });

@@ -1180,6 +1180,15 @@ button {
   animation: auftauchen 0.25s ease;
 }
 
+/* Umgedrehte Karteikarte: Deutsch steht vorne, groß */
+.karte__de--vorne {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--tinte);
+  animation: none;
+}
+
 @keyframes auftauchen {
   from {
     opacity: 0;

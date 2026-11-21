@@ -6,12 +6,12 @@
 import type { Eintrag, Lektion } from '../types';
 import { faelligAm, geuebt, istFaellig, stufe, type Fortschritt } from './progress';
 import {
+  ersteAbfrage,
   festige,
   irgendeine,
   lernreihenfolge,
   mische,
   sprechen,
-  wahl,
   type Schritt,
   type VorratFuer,
   type Zufall,
@@ -83,6 +83,9 @@ function gleichmaessig(reihe: readonly Eintrag[], groesse: number): Eintrag[][] 
 /** Eine Einheit ist geschafft, wenn jeder ihrer Einträge einmal geübt wurde. */
 export const einheitFertig = (einheit: Einheit, f: Fortschritt) => einheit.eintraege.every((e) => geuebt(f, e.id));
 
+/** Wie viele Einträge einer Einheit schon geübt sind – z. B. nach einer abgebrochenen Runde. */
+export const einheitGeuebt = (einheit: Einheit, f: Fortschritt) => einheit.eintraege.filter((e) => geuebt(f, e.id)).length;
+
 export type EinheitZustand = 'fertig' | 'aktuell' | 'zu';
 
 /**
@@ -131,11 +134,13 @@ export interface EinheitOptionen {
 }
 
 /**
- * Übungsrunde einer Einheit. Neue Einträge werden in Zweierpäckchen vorgestellt
- * und gleich abgefragt, dann ein zweites Mal geübt (Wörter nach Gehör, Sätze
- * bauen oder ergänzen). Dazu kommen zwei fällige Wiederholungen und am Ende
- * eine Aufgabe zum Nachsprechen. Ist die Einheit schon geschafft, wird alles
- * einmal wiederholt.
+ * Übungsrunde einer Einheit. Neue Einträge werden in Zweierpäckchen vorgestellt.
+ * Abgefragt werden sie nicht gleich danach, sondern erst, wenn schon das nächste
+ * Päckchen vorgestellt ist – zuerst nach Gehör („Was bedeutet das?“), beim
+ * zweiten Mal muss man selbst auf Surayt kommen (Sätze bauen oder ergänzen).
+ * Dazu kommen zwei fällige Wiederholungen und am Ende eine Aufgabe zum
+ * Nachsprechen. Ist die Einheit schon (teilweise) geübt, kommen die geübten
+ * Einträge als Wiederholung – je nach Fach im Karteikasten unterschiedlich schwer.
  */
 export function baueEinheit(einheit: Einheit, f: Fortschritt, optionen: EinheitOptionen, zufall: Zufall = Math.random): Schritt[] {
   const { vorratFuer } = optionen;
@@ -144,31 +149,42 @@ export function baueEinheit(einheit: Einheit, f: Fortschritt, optionen: EinheitO
   const bekannte = alle.filter((e) => geuebt(f, e.id));
   const vorrat = alle.length ? vorratFuer(alle[0]) : [];
 
-  const schritte: Schritt[] = [];
-  // Neue in Zweierpäckchen: erst anhören und aufdecken, dann gleich abfragen.
-  for (let i = 0; i < neue.length; i += 2) {
-    const paar = neue.slice(i, i + 2);
-    for (const eintrag of paar) schritte.push({ typ: 'karte', eintrag, neu: true });
-    for (const eintrag of mische(paar, zufall)) schritte.push(wahl(eintrag, 'sur-de', vorrat, zufall));
-  }
-
   const inDerEinheit = new Set(alle.map((e) => e.id));
   const wiederholungen = (optionen.faellige ?? [])
     .filter((e) => !inDerEinheit.has(e.id))
     .slice(0, WIEDERHOLUNGEN_PRO_EINHEIT)
-    .map((e) => irgendeine(e, vorratFuer(e), zufall));
+    .map((e) => irgendeine(e, vorratFuer(e), zufall, [], stufe(f, e.id)));
 
   // Zweite Runde: jeder Eintrag der Einheit noch einmal, dazu die Wiederholungen.
-  schritte.push(
-    ...mische(
-      [
-        ...neue.map((e) => festige(e, vorrat, zufall, neue)),
-        ...bekannte.map((e) => irgendeine(e, vorrat, zufall, alle)),
-        ...wiederholungen,
-      ],
-      zufall,
-    ),
+  const zweite = mische(
+    [
+      ...neue.map((e) => festige(e, vorrat, zufall, neue)),
+      ...bekannte.map((e) => irgendeine(e, vorrat, zufall, alle, stufe(f, e.id))),
+      ...wiederholungen,
+    ],
+    zufall,
   );
+
+  const paare: Eintrag[][] = [];
+  for (let i = 0; i < neue.length; i += 2) paare.push(neue.slice(i, i + 2));
+  const abfrage = (paar: Eintrag[]) => mische(paar, zufall).map((e) => ersteAbfrage(e, vorrat, zufall));
+
+  const schritte: Schritt[] = [];
+  paare.forEach((paar, i) => {
+    for (const eintrag of paar) schritte.push({ typ: 'karte', eintrag, neu: true });
+    if (i > 0) schritte.push(...abfrage(paare[i - 1]));
+  });
+  if (paare.length) {
+    // Auch das letzte Päckchen nicht direkt nach dem Kennenlernen abfragen:
+    // Vorher kommen zwei andere Aufgaben aus der zweiten Runde.
+    const letztes = new Set(paare.at(-1)!.map((e) => e.id));
+    for (let n = 0; n < 2; n++) {
+      const i = zweite.findIndex((s) => !letztes.has(s.eintrag.id));
+      if (i >= 0) schritte.push(...zweite.splice(i, 1));
+    }
+    schritte.push(...abfrage(paare.at(-1)!));
+  }
+  schritte.push(...zweite);
 
   if (optionen.sprechen) {
     const e = zumNachsprechen(neue.length ? neue : alle, zufall);
@@ -179,6 +195,13 @@ export function baueEinheit(einheit: Einheit, f: Fortschritt, optionen: EinheitO
 }
 
 /** Wiederholungsrunde über alle Lektionen: die fälligen Einträge, schwächste zuerst. */
-export function baueWiederholung(faellig: readonly Eintrag[], vorratFuer: VorratFuer, zufall: Zufall = Math.random): Schritt[] {
-  return mische(faellig.slice(0, WIEDERHOLUNGEN_PRO_RUNDE), zufall).map((e) => irgendeine(e, vorratFuer(e), zufall));
+export function baueWiederholung(
+  faellig: readonly Eintrag[],
+  f: Fortschritt,
+  vorratFuer: VorratFuer,
+  zufall: Zufall = Math.random,
+): Schritt[] {
+  return mische(faellig.slice(0, WIEDERHOLUNGEN_PRO_RUNDE), zufall).map((e) =>
+    irgendeine(e, vorratFuer(e), zufall, [], stufe(f, e.id)),
+  );
 }

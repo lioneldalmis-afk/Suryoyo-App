@@ -3,6 +3,7 @@ import { verfuegbar } from '../data';
 import { alleAbzeichen, erreichteAbzeichen } from './abzeichen';
 import {
   familientischSaetze,
+  gutschreiben,
   hakeFamilientischAb,
   motivation,
   nachRunde,
@@ -86,24 +87,31 @@ describe('XP', () => {
     expect(xpFuer(runde({ aufgaben: 2, richtige: 2 })).fehlerfrei).toBe(false);
   });
 
-  it('bucht XP auf den Tag und zählt Runden', () => {
+  it('bucht am Rundenende die Boni auf den Tag und zählt Runden', () => {
+    // Die XP für die Antworten sind da schon gutgeschrieben (siehe `gutschreiben`).
     const m = nachRunde(leer, runde({ art: 'wiederholung', nachgesprochen: 1 }), MITTAG);
-    expect(m.xp).toBe(20);
-    expect(m.tage).toEqual({ '2026-11-16': 20 });
+    expect(m.xp).toBe(XP.abschluss + XP.fehlerfrei);
+    expect(m.tage).toEqual({ '2026-11-16': 10 });
     expect(m.zaehler).toEqual({ runden: 1, fehlerfrei: 1, wiederholungen: 1, rollenspiele: 0, nachgesprochen: 1 });
     const m2 = nachRunde(m, runde({ art: 'rollenspiel', fehler: 1, richtige: 4 }), MITTAG + TAG);
-    expect(m2.tage).toEqual({ '2026-11-16': 20, '2026-11-17': 9 });
+    expect(m2.tage).toEqual({ '2026-11-16': 10, '2026-11-17': XP.abschluss });
     expect(m2.zaehler.rollenspiele).toBe(1);
   });
 });
 
 describe('Rundenende', () => {
-  it('meldet XP, Tagesziel, Serie und neue Abzeichen genau einmal', () => {
-    const b1 = schliesseRundeAb(runde({ richtige: 6 }), alleLektionen, MITTAG);
+  it('meldet XP der ganzen Runde, Tagesziel, Serie und neue Abzeichen genau einmal', () => {
+    // Während der Runde: 6 richtige Antworten, je gleich gutgeschrieben.
+    const start1 = motivation();
+    for (let i = 0; i < 6; i++) gutschreiben(1, MITTAG);
+    expect(motivation().xp).toBe(6);
+    const b1 = schliesseRundeAb(runde({ richtige: 6 }), alleLektionen, start1, MITTAG);
     expect(b1).toMatchObject({ xp: 16, xpHeute: 16, ziel: 20, zielGeradeErreicht: false, serie: 1, serieGewachsen: true });
     expect(b1.neueAbzeichen.map((a) => a.id)).toEqual(['erste-runde', 'fehlerfrei']);
 
-    const b2 = schliesseRundeAb(runde({ richtige: 3, fehler: 1 }), alleLektionen, MITTAG + 1000);
+    const start2 = motivation();
+    gutschreiben(3, MITTAG + 500);
+    const b2 = schliesseRundeAb(runde({ richtige: 3, fehler: 1 }), alleLektionen, start2, MITTAG + 1000);
     expect(b2).toMatchObject({ xp: 8, xpHeute: 24, zielGeradeErreicht: true, serie: 1, serieGewachsen: false });
     expect(b2.neueAbzeichen).toEqual([]);
     expect(Object.keys(motivation().abzeichen)).toEqual(['erste-runde', 'fehlerfrei']);
@@ -124,7 +132,7 @@ describe('Rundenende', () => {
       lernreihenfolge(l1).map((e) => ({ id: e.id, fehlerfrei: true })),
       MITTAG,
     );
-    const b = schliesseRundeAb(runde({}), alleLektionen, MITTAG);
+    const b = schliesseRundeAb(runde({}), alleLektionen, motivation(), MITTAG);
     expect(b.neueAbzeichen.map((a) => a.id)).toContain('lektion-1');
   });
 });

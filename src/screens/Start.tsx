@@ -8,7 +8,7 @@ import { Surayt } from '../components/Surayt';
 import { APP_NAME, QUELLE } from '../config';
 import { alleLektionen, kurs, verfuegbar } from '../data';
 import { entsperren } from '../lib/audio';
-import { einheiten, faellige, naechsteEinheit } from '../lib/einheiten';
+import { einheitGeuebt, einheiten, faellige, naechsteEinheit } from '../lib/einheiten';
 import { useMotivation } from '../lib/motivation';
 import { useFortschritt } from '../lib/progress';
 import { href, type Route } from '../lib/router';
@@ -76,7 +76,8 @@ export function StartScreen() {
         </a>
         <p className="start__stand">
           {naechste
-            ? `Lektion ${aktuelle.nr} · Einheit ${naechste.nr} von ${einheiten(aktuelle).length}`
+            ? `Lektion ${aktuelle.nr} · Einheit ${naechste.nr} von ${einheiten(aktuelle).length}` +
+              (einheitGeuebt(naechste, f) > 0 ? ` · ${einheitGeuebt(naechste, f)} von ${naechste.eintraege.length} geübt` : '')
             : `Lektion ${aktuelle.nr} ist geschafft`}
         </p>
       </header>

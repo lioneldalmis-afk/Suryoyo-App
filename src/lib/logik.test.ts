@@ -3,6 +3,7 @@ import pruefliste from '../../inhalte/familientisch-vorschlag.md?raw';
 import glossar from '../data/glossar-a.json';
 import { istDialog, kurs, LAUTE, LOB, NUR_MIT_BILD, verfuegbar } from '../data';
 import type { Eintrag, Lektion } from '../types';
+import { aehnlichkeit, form } from './ablenker';
 import { nachRunde, MAX_STUFE, type Fortschritt } from './progress';
 import { href, parse, type Route } from './router';
 import {
@@ -231,6 +232,42 @@ describe('Antwortmöglichkeiten', () => {
         expect(new Set(optionen.map((o) => fold(o.latein))).size).toBe(optionen.length);
       }
     }
+  });
+
+  it('sind verwechselbarer als zufällig gewählte', () => {
+    let gewaehlt = 0;
+    let zufaellig = 0;
+    let n = 0;
+    for (const ziel of vorrat.filter((e) => e.art === 'wort')) {
+      const falsche = optionenFuer(ziel, vorrat, zufall(n), { seite: 'surayt' }).filter((o) => o !== ziel);
+      const andere = vorrat.filter((e) => e.art === 'wort' && e !== ziel);
+      gewaehlt += falsche.reduce((s, o) => s + aehnlichkeit(fold(ziel.latein), fold(o.latein)), 0) / falsche.length;
+      zufaellig += andere.reduce((s, o) => s + aehnlichkeit(fold(ziel.latein), fold(o.latein)), 0) / andere.length;
+      n++;
+    }
+    expect(gewaehlt / n).toBeGreaterThan((zufaellig / n) * 1.5);
+  });
+
+  it('bringen bei schweren Aufgaben auch Formen mit gleicher Bedeutung zusammen', () => {
+    const ziel = wort('ṭawwe'); // gut (pl.)
+    let zusammen = 0;
+    for (let i = 0; i < 100; i++) {
+      const leicht = optionenFuer(ziel, vorrat, zufall(i), { seite: 'surayt' });
+      expect(leicht).not.toContain(wort('ṭawwo'));
+      const schwer = optionenFuer(ziel, vorrat, zufall(i), { seite: 'surayt', schwer: true });
+      if (schwer.includes(wort('ṭawwo'))) zusammen++;
+      // Doppeldeutig wird es nie: Jede deutsche Bedeutung samt Zusatz kommt nur einmal vor.
+      expect(new Set(schwer.map((o) => o.deutsch)).size).toBe(schwer.length);
+    }
+    expect(zusammen).toBeGreaterThan(80);
+  });
+
+  it('ordnen deutsche Bedeutungen nach ihrer Art', () => {
+    expect(form('wie geht es euch?')).toBe('frage');
+    expect(form('ich (m.) erkannte')).toBe('verb');
+    expect(form('Frau')).toBe('nomen');
+    expect(form('meine Frau')).toBe('nomen');
+    expect(form('Danke!')).toBe('ausruf');
   });
 
   it('reichen in jeder Lektion für jeden Eintrag', () => {

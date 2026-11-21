@@ -36,7 +36,8 @@ Prototyp mit allen 16 Lektionen aus Level A des Lehrbuchs *Šlomo Surayt*:
 - Zusammen gut 1.300 Wörter, jedes mit Aufnahme
 - Lernpfad wie bei Sprach-Apps: Jede Lektion ist in kleine Einheiten aufgeteilt (318 insgesamt), die nacheinander freigeschaltet werden
 - Acht Übungstypen: Karteikarte, Multiple Choice, Hören & Auswählen, Hörpaar, Satz bauen, Lückentext, Nachsprechen (eigene Aufnahme mit dem Original vergleichen) und Dialog-Rollenspiel
-- Karteikasten: Falsches kommt gleich wieder, Richtiges nach 1, 3, 7, 14 und 30 Tagen
+- Karteikasten: Falsches kommt gleich wieder, Richtiges nach 1, 3, 7, 14 und 30 Tagen – und je sicherer ein Wort sitzt, desto kniffliger werden die Aufgaben dazu
+- Der Fortschritt wird nach jeder Antwort gespeichert; eine abgebrochene Einheit geht beim nächsten Mal an derselben Stelle weiter
 - XP, Tagesziel, Tagesserie und Abzeichen – bewusst ohne „Leben“, Fehler kosten nichts
 - Satz der Woche für den Familientisch (sobald die Familientisch-Liste geprüft ist)
 - Lernstand wird auf dem Gerät gespeichert, ohne Konto

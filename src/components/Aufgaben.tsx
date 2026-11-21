@@ -53,45 +53,80 @@ export function Urteil(props: { antwort: Antwort | null; eintrag: Eintrag; onWei
   );
 }
 
-/** Karteikarte: erst nur hören, dann aufdecken. */
+/**
+ * Karteikarte. Vorne Surayt in Schrift und Ton, hinten Deutsch – so lässt sie
+ * sich auch ohne Ton lernen. `umgekehrt` (für Einträge, die schon sitzen): vorne
+ * Deutsch, hinten Surayt. Neue Einträge zeigen gleich beide Seiten.
+ */
 export function Karte({ schritt, onFertig }: { schritt: KarteSchritt; onFertig: (gewusst: boolean | null) => void }) {
   const e = schritt.eintrag;
-  // Ohne Aufnahme gibt es nichts zu hören – dann steht das Wort gleich da.
-  const [offen, setOffen] = useState(!e.audio);
+  const umgekehrt = !!schritt.umgekehrt && !schritt.neu;
+  const [offen, setOffen] = useState(schritt.neu);
 
+  // Ist Surayt vorne, gleich vorspielen; bei der umgedrehten Karte erst beim Aufdecken.
   useEffect(() => {
-    if (e.audio) void spiele(e.audio);
-  }, [e]);
+    if (!umgekehrt && e.audio) void spiele(e.audio);
+  }, [e, umgekehrt]);
+
+  const aufdecken = () => {
+    setOffen(true);
+    if (umgekehrt && e.audio) void spiele(e.audio);
+  };
+
+  const surayt = (
+    <>
+      <AudioButton gross url={e.audio} label={e.latein} />
+      <p className="karte__sur">
+        <Surayt>{e.latein}</Surayt>
+        {e.hinweis && (
+          <span className="karte__hinweis">
+            {vorHinweis(e.hinweis)}
+            {e.hinweis}
+          </span>
+        )}
+      </p>
+    </>
+  );
 
   return (
     <div className="aufgabe">
       <div className="aufgabe__inhalt">
-        <p className="aufgabe__art">{schritt.neu ? (e.art === 'satz' ? 'Neuer Satz' : 'Neues Wort') : 'Karteikarte'}</p>
-        <h1 className="aufgabe__frage">{offen ? 'Das heißt:' : 'Hör zu. Was könnte das heißen?'}</h1>
+        <p className="aufgabe__art">
+          {schritt.neu ? (e.art === 'satz' ? 'Neuer Satz' : 'Neues Wort') : umgekehrt ? 'Karteikarte · umgedreht' : 'Karteikarte'}
+        </p>
+        <h1 className="aufgabe__frage">
+          {schritt.neu
+            ? 'Hör zu und merk es dir'
+            : umgekehrt
+              ? offen
+                ? 'Auf Surayt heißt das:'
+                : 'Wie heißt das auf Surayt?'
+              : offen
+                ? 'Das heißt:'
+                : 'Was heißt das?'}
+        </h1>
         <div className={`karte${offen ? ' karte--offen' : ''}`}>
-          <AudioButton gross url={e.audio} label={offen ? e.latein : 'das gesuchte Wort'} />
-          {offen ? (
+          {umgekehrt ? (
             <>
-              <p className="karte__sur">
-                <Surayt>{e.latein}</Surayt>
-                {e.hinweis && (
-                  <span className="karte__hinweis">
-                    {vorHinweis(e.hinweis)}
-                    {e.hinweis}
-                  </span>
-                )}
-              </p>
-              <p className="karte__de">{e.deutsch}</p>
+              <p className="karte__de karte__de--vorne">{e.deutsch}</p>
+              {offen ? surayt : <p className="karte__verdeckt">Sag es laut, dann deck auf.</p>}
             </>
           ) : (
-            <p className="karte__verdeckt">Tippe auf den Lautsprecher, um es nochmal zu hören.</p>
+            <>
+              {surayt}
+              {offen ? (
+                <p className="karte__de">{e.deutsch}</p>
+              ) : (
+                <p className="karte__verdeckt">Überleg, was es heißt – dann deck auf.</p>
+              )}
+            </>
           )}
         </div>
       </div>
 
       <footer className="aufgabe__fuss">
         {!offen ? (
-          <button type="button" className="knopf" onClick={() => setOffen(true)}>
+          <button type="button" className="knopf" onClick={aufdecken}>
             Aufdecken
           </button>
         ) : schritt.neu ? (
@@ -125,6 +160,8 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
   const e = schritt.eintrag;
   const paar = schritt.typ === 'paar';
   const nurHoeren = schritt.typ === 'hoeren' || paar;
+  // Genau hinhören: die richtige Schreibweise unter ähnlichen Wörtern finden.
+  const schreibweise = schritt.typ === 'hoeren' && !!schritt.schreibweise;
   // Gefragt wird auf Surayt (gelesen oder gehört), geantwortet auf Deutsch – oder umgekehrt.
   const frageAufSurayt = nurHoeren || schritt.richtung === 'sur-de';
 
@@ -155,6 +192,8 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
             <>
               Hörpaar <Surayt>{schritt.laute}</Surayt>
             </>
+          ) : schreibweise ? (
+            'Genau hinhören'
           ) : nurHoeren ? (
             'Hören & Auswählen'
           ) : (
@@ -162,8 +201,10 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
           )}
         </p>
         <h1 className="aufgabe__frage">
-          {paar
-            ? 'Welches Wort hörst du?'
+          {paar || schreibweise
+            ? e.art === 'satz'
+              ? 'Welchen Satz hörst du?'
+              : 'Welches Wort hörst du?'
             : nurHoeren
               ? 'Was hörst du?'
               : frageAufSurayt
@@ -175,7 +216,13 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
           {nurHoeren ? (
             <>
               <AudioButton gross url={e.audio} label="die Aufnahme" />
-              {(antwort || tonFehlt) && <Surayt className="frage__sur">{e.latein}</Surayt>}
+              {/* Ohne Ton: beim Hinhören die Bedeutung zeigen – das Wort selbst wäre die Lösung. */}
+              {(antwort || tonFehlt) &&
+                (schreibweise && !antwort ? (
+                  <span className="frage__de">{e.deutsch}</span>
+                ) : (
+                  <Surayt className="frage__sur">{e.latein}</Surayt>
+                ))}
             </>
           ) : frageAufSurayt ? (
             <>
@@ -210,7 +257,7 @@ export function Auswahl({ schritt, antwort, onAntwort, onWeiter }: AuswahlProps)
                       <Surayt className="option__sur">{option.latein}</Surayt>
                       <span className="option__de">{option.deutsch}</span>
                     </span>
-                  ) : frageAufSurayt ? (
+                  ) : frageAufSurayt && !schreibweise ? (
                     option.deutsch
                   ) : (
                     <Surayt>{option.latein}</Surayt>

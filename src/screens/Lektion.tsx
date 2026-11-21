@@ -20,7 +20,7 @@ import { ProgressRing } from '../components/ProgressRing';
 import { Surayt } from '../components/Surayt';
 import { istDialog, verfuegbar } from '../data';
 import { entsperren, spiele, stopp, useAudioStatus } from '../lib/audio';
-import { einheiten, einheitenZustand, naechsteEinheit, type Einheit } from '../lib/einheiten';
+import { einheitGeuebt, einheiten, einheitenZustand, naechsteEinheit, type Einheit } from '../lib/einheiten';
 import { lage, useFortschritt, type Lage } from '../lib/progress';
 import { rollen } from '../lib/rollenspiel';
 import { ersetze, href, type LektionTab, type Route } from '../lib/router';
@@ -315,6 +315,7 @@ function Ueben({ lektion }: { lektion: Lektion }) {
   const stand = lektionsstand(lektion, f);
   const liste = einheiten(lektion);
   const naechste = naechsteEinheit(lektion, f);
+  const angefangen = naechste ? einheitGeuebt(naechste, f) : 0;
   const zu = (art: Uebungsart) => href({ name: 'runde', nr: lektion.nr, art });
   const reihe = lernreihenfolge(lektion);
   const mitSaetzen = lektion.text.some((z) => satzUebbar(z, reihe));
@@ -329,9 +330,11 @@ function Ueben({ lektion }: { lektion: Lektion }) {
         <span className="lernkarte__text">
           <strong>{naechste ? (stand.geuebt > 0 ? 'Weiter lernen' : 'Lektion starten') : 'Lektion geschafft!'}</strong>
           <span>
-            {naechste
-              ? `Einheit ${naechste.nr} von ${liste.length}: neue Wörter kennenlernen und gleich üben. Dauert etwa 3 Minuten.`
-              : 'Alle Einheiten geschafft. Wiederhole sie oder übe frei.'}
+            {!naechste
+              ? 'Alle Einheiten geschafft. Wiederhole sie oder übe frei.'
+              : angefangen > 0
+                ? `Einheit ${naechste.nr} von ${liste.length}: Hier hast du aufgehört – ${angefangen} von ${naechste.eintraege.length} sind schon geübt.`
+                : `Einheit ${naechste.nr} von ${liste.length}: neue Wörter kennenlernen und üben. Dauert etwa 3 Minuten.`}
           </span>
           <span className="lernkarte__stand">
             {stand.geuebt} von {stand.gesamt} geübt
@@ -361,7 +364,7 @@ function Ueben({ lektion }: { lektion: Lektion }) {
           Aufnehmen und mit dem Original vergleichen
         </Art>
         <Art href={zu('karten')} icon={<IconKarten size={28} />} name="Karteikarten">
-          Hören, überlegen, aufdecken
+          Lesen und hören, überlegen, aufdecken
         </Art>
         <Art href={zu('wahl')} icon={<IconWahl size={28} />} name="Multiple Choice">
           Surayt ↔ Deutsch
