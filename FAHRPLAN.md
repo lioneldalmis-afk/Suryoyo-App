@@ -155,6 +155,55 @@
 - [x] Grundsatz: **keine KI-Übersetzung**, nur geprüfte Einträge. Sonst drohen Fehler und eine Vermischung mit klassischem Syrisch. *Ein Test prüft, dass jeder Eintrag wörtlich aus Lektion oder Glossar stammt.*
 - [ ] Test mit 2–3 Jugendlichen: Was suchen sie am Tisch, und was fehlt? (Die Wortanfragen zeigen es.)
 
+### Phase 4b – Vom Wörterbuch zum Übersetzer (Plan vom 21.11.2026, noch nicht begonnen)
+
+**Idee:** Der Bereich „Wörterbuch“ heißt künftig **„Übersetzer“**. Er zeigt weiterhin zuerst, was wörtlich im Lehrbuch steht. Steht ein Satz dort nicht, kann er einfache Sätze **nach den Regeln des Lehrbuchs zusammensetzen** – immer deutlich als ungeprüft gekennzeichnet und ohne Aufnahme. Ein Muttersprachler kann solche Sätze bestätigen oder verbessern, dann gelten sie als geprüft. Der Rest der App (Lernpfad, Übungen, Karteikasten, Satz der Woche) bleibt bei geprüften Inhalten.
+
+**Was dafür da ist (geprüft am 21.11.2026):** In der App stecken Wortschatz, Texte und Glossar A, aber **noch keine Grammatik**. Auf der Website gibt es:
+- die Grammatik-Abschnitte der Lektionen 3–16: Erklärungen, 165 Tabellen und knapp 1.500 Audio-Links, also gut 700 Beispiele mit Aufnahme (z. B. Grammatik 4b „Die Kopula“: „gawire na – wir sind verheiratet“),
+- die Verbtabellen „Surcofo“ (Kapitel 1.17, 41 Tabellen: Präsens, Präteritum, Imperativ, Infinitiv, getrennt nach Person, männlich/weiblich, Einzahl/Mehrzahl; ohne Aufnahmen),
+- die Formentabellen in Teil 4 (Artikel, Pronomen, Hilfsverben, regelmäßige und unregelmäßige Verben, Zeitformen, Zahlen, Wochentage),
+- das große Glossar in Teil 5 (Surayt > Deutsch und Deutsch > Surayt) und die Lektionen von Level B.
+
+**Drei Schilder** an jeder Übersetzung:
+
+| Schild | Bedeutet | Aufnahme |
+|---|---|---|
+| **Lehrbuch** (grün) | steht wörtlich in *Šlomo Surayt*: Wortschatz, Text, Glossar, Grammatik-Beispiel oder Verbtabelle | meist ja |
+| **Muttersprachler** (grün-blau) | von einem Muttersprachler eingereicht oder bestätigt und vor der Aufnahme in die App geprüft, mit Datum und Ort/Dialekt, ohne Namen. Das bisherige Schild „Community“ geht darin auf. | nein (später „Oma-Stimme“, Phase 6) |
+| **Zusammengesetzt – nicht geprüft** (orange) | nach Regeln aus dem Lehrbuch gebaut; kann falsch sein oder so von niemandem gesagt werden | nein |
+
+**So arbeitet der Übersetzer**
+- **Keine KI in der App.** Sprachmodelle wie ChatGPT oder Claude kennen Surayt kaum, vermischen es mit klassischem Syrisch, bräuchten einen Server und Geld, und die Eingaben (oft von Minderjährigen) gingen an fremde Dienste. Stattdessen ein **fester Baukasten**, der offline auf dem Handy läuft, immer gleich arbeitet und jedes Ergebnis erklären kann.
+- **Bausteine** sind nur Einträge aus den Daten: Wörter mit ihren Merkmalen (männlich/weiblich, Einzahl/Mehrzahl – nur, wenn das Lehrbuch sie angibt) und Formen aus den Verb- und Formentabellen.
+- **Satzbaupläne** kommen nur aus dem Lehrbuch, auf zwei Wegen:
+  1. *Ein Wort tauschen:* Ein echter Lehrbuch-Satz ist die Vorlage, ein Wort darin wird durch ein gleichartiges ersetzt (gleiches Geschlecht, gleiche Zahl). Als Vorlage taugt ein Satzbau nur, wenn das Lehrbuch ihn mindestens zweimal mit verschiedenen Wörtern zeigt.
+  2. *Regeln aus der Grammatik:* z. B. Kopula, „mein/dein …“, Verb mit Person aus den Verbtabellen, Zahl mit Nomen, Verneinung, Fragewörter. Jede Regel nennt ihren Abschnitt („Grammatik 4b“) und hat Lehrbuch-Sätze als Beleg.
+- **Anzeige:** Oranges Schild und der Satz „Nach Regeln aus dem Lehrbuch zusammengesetzt. Kann falsch sein oder ungewöhnlich klingen – frag nach, bevor du es benutzt.“ Darunter der **Bauplan**: jedes Wort mit Herkunft und eigener Aufnahme, die Regel und „Gleich gebaut wie:“ mit einem Lehrbuch-Satz samt Aufnahme. Kein großer Lautsprecher, kein Zusammenschneiden von Aufnahmen.
+- **Wer spricht mit wem?** Surayt unterscheidet bei „ich“ und „du“ oft männlich und weiblich (Verbtabelle „ziehen“: gorašno / guršono). Der Übersetzer fragt einmal „Ich bin: Junge / Mädchen“ und zeigt bei „du“ beide Formen, wenn nicht klar ist, wer gemeint ist.
+- **Geprüftes zuerst:** Zusammengesetzt wird nur, wenn kein Eintrag mit grünem Schild passt. Zusammengesetztes kommt nie in Übungen, Karteikasten oder Satz der Woche – erst nach der Bestätigung.
+- **Surayt → Deutsch:** Was jemand gesagt hat, wird erst als Ganzes gesucht, sonst **Wort für Wort erklärt**, auch gebeugte Formen aus den Tabellen (z. B. „dëmxono – schlafen, Präsens, 1. Person f. Sg.“, wörtlich die Bezeichnung der Tabelle). Einen flüssigen deutschen Satz baut die App daraus nicht.
+
+**Sicherheitsnetz**
+- **Gegenprobe:** Der Baukasten übersetzt die deutschen Sätze des Lehrbuchs, ohne den jeweiligen Satz selbst zu kennen, und das Ergebnis wird mit dem echten Surayt verglichen. Eine Regel wird erst eingeschaltet, wenn sie alle ihre Belege genau trifft und in der Gegenprobe nicht danebenliegt. Die Trefferquote steht hier im Fahrplan – sie ist der ehrliche Maßstab, wie gut der Baukasten ist.
+- **Lieber nichts als Unsinn:** Fehlt ein Merkmal (z. B. das Geschlecht eines Wortes) oder passt kein Bauplan genau, wird nichts zusammengesetzt. Dann zeigt die App wie heute die Wörter einzeln und bietet „Satz anfragen“ an.
+- **Verbesserungen fließen zurück:** Sagt ein Muttersprachler „sagt man anders“, wird seine Fassung der geprüfte Eintrag. Der falsche Satz kommt auf eine Sperrliste, und ein Test schlägt Alarm, solange der Baukasten ihn noch so baut – dann wird die Regel verbessert oder abgeschaltet.
+- **Claude formuliert weiterhin kein Surayt.** Claude programmiert den Baukasten nach dem Lehrbuch, die Sätze setzt das Programm aus den Daten zusammen, bestätigen kann nur ein Mensch.
+
+**Schritte**
+- [ ] 1. Umbenennen in „Übersetzer“ (Leiste, Überschrift, Kurzbefehl auf Android; die alte Adresse `#/woerterbuch` führt weiter, gespeicherte Suchen und Anfragen bleiben) und die drei Schilder einführen.
+- [ ] 2. Grammatik einlesen: Grammatik-Abschnitte 3–16 (Erklärungen wörtlich, Beispiele mit Aufnahme), Verbtabellen „Surcofo“ und die Formentabellen aus Teil 4. Beispiele und Formen werden im Übersetzer findbar, mit Schild „Lehrbuch“. *Das allein bringt schon viele neue, sichere Treffer, besonders gebeugte Verbformen.*
+- [ ] 3. Wort für Wort: Surayt-Sätze erklären, auch mit gebeugten Formen.
+- [ ] 4. Baukasten, Teil 1: „Ein Wort tauschen“ mit Gegenprobe, Bauplan und orangem Schild.
+- [ ] 5. Baukasten, Teil 2: Regeln aus der Grammatik, eine nach der anderen, jede mit Gegenprobe.
+- [ ] 6. Prüfen lassen: an jedem zusammengesetzten Satz „Von einem Muttersprachler prüfen lassen“ (bleibt bis Phase 5 auf dem Gerät, wie die Wortanfragen). Bis dahin eine Prüfliste `inhalte/pruefliste.md` wie beim Familientisch: Claude schlägt typische Alltagssätze auf Deutsch vor, der Baukasten setzt sie zusammen, ein Muttersprachler hakt ab oder schreibt die richtige Fassung daneben, ein Befehl überträgt sie in die Daten (Schild „Muttersprachler“).
+- [ ] 7. Später: das große Glossar aus Teil 5 und Level B als weitere Bausteine.
+- [ ] 8. Test mit 2–3 Jugendlichen: Werden die Schilder verstanden? Wird Oranges trotzdem ungeprüft benutzt?
+
+**Grenzen:** Anfangs klappen nur kurze, einfache Sätze (Das ist …, Ich habe …, Wo ist …, mein/dein …, Zahlen). Nebensätze, Redewendungen und Umgangssprache nicht. Das Lehrbuch zeigt eine Form des Surayt; in manchen Orten sagt man manches anders, deshalb notiert die Prüfung Ort/Dialekt. Ohne Prüfer bleibt alles Zusammengesetzte orange.
+
+**Aufwand:** etwa 5–7 Sitzungen. Schritt 1–3 lohnen sich auch dann, wenn der Baukasten später kleiner ausfällt als erhofft.
+
 ### Phase 5 – Community-Einreichungen + wöchentliches Update (2 Sitzungen + Einrichtung)
 - [ ] Supabase-Projekt anlegen (kostenlos) und den Supabase-Connector in Claude verbinden
 - [ ] Formular in der App: Satz oder Wort in Umschrift, deutsche Bedeutung, Situation (z. B. „beim Essen"), Herkunftsort/Dialekt (z. B. Midyat, Midin, Iwardo …), Name optional
@@ -192,10 +241,13 @@
 
 ## 7. Offene Entscheidungen
 - [x] GitHub-Repository: `lioneldalmis-afk/Suryoyo-App`
-- [ ] Wer prüft die Einreichungen sprachlich? *Dieselbe Person könnte auch die Familientisch-Liste (`inhalte/familientisch-vorschlag.md`) abhaken.*
+- [ ] Wer prüft die Einreichungen sprachlich? *Dieselbe Person könnte auch die Familientisch-Liste (`inhalte/familientisch-vorschlag.md`) abhaken und die zusammengesetzten Sätze des Übersetzers bestätigen (Phase 4b).*
 - [ ] App-Name. *Die App läuft vorerst unter dem Arbeitstitel „Mamlo" (änderbar in `src/config.ts`, `index.html`, `vite.config.ts`).*
 - [ ] **„aramäisch/assyrisch" in Lehrbuchsätzen:** In 11 Sätzen der Lektionen 4, 5, 10, 13, 15 und 16 steht im Deutschen die Doppelform des Lehrbuchs (z. B. „Das ist eine aramäische/assyrische Familie."). Die Regel „keine Bezeichnungen für die Volksgruppe in der Oberfläche" gilt bisher für die eigenen Texte der App. Sollen diese Lehrbuchsätze wörtlich bleiben (Stand jetzt) oder ausgeblendet werden?
 - [ ] Antwort des Šlomo-Surayt-Teams zu Nutzungsrechten und Audio
+- [ ] **Übersetzer (Phase 4b): Grundsatz ändern?** Bisher gilt „keine zusammengesetzten Übersetzungen, nur geprüfte Einträge“ (Phase 4, `CLAUDE.md`). Vorschlag: Die App darf im Übersetzer Sätze aus Lehrbuch-Bausteinen zusammensetzen, wenn sie als „nicht geprüft“ gekennzeichnet sind und nirgends sonst in der App auftauchen; Claude formuliert weiterhin kein Surayt. Erst nach deinem Ja werden `CLAUDE.md` und der Grundsatz in Phase 4 angepasst.
+- [ ] **Übersetzer: Zusammengesetztes gleich zeigen oder erst auf Tippen** („Trotzdem zusammensetzen?“)? Vorschlag: gleich zeigen, aber nur, wenn nichts Geprüftes passt.
+- [ ] **Übersetzer: Reicht eine Bestätigung?** Vorschlag: eine Bestätigung durch einen eingetragenen Prüfer reicht; abweichende Fassungen aus anderen Orten werden mit Ort zusätzlich gespeichert.
 
 ## 8. Getroffene Entscheidungen
 
