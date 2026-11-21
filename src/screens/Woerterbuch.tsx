@@ -5,6 +5,7 @@
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type MouseEvent } from 'react';
 import { AudioButton } from '../components/AudioButton';
+import { abschnittUm, GrammatikAbsatz, GrammatikBloecke, GrammatikTabelle } from '../components/Grammatik';
 import { IconFrage, IconHaken, IconLupe, IconPfeil, IconSchliessen, IconZurueck } from '../components/Icons';
 import { Leiste } from '../components/Leiste';
 import { SCHILDER, Schild } from '../components/Schild';
@@ -25,6 +26,9 @@ import { fold, vorHinweis } from '../lib/text';
 import {
   beispielsatz,
   einzelneWoerter,
+  hauptStelle,
+  istGrundform,
+  person,
   stufeVon,
   suche,
   useWoerterbuch,
@@ -33,6 +37,7 @@ import {
   type Stufe,
   type Woerterbuch,
 } from '../lib/woerterbuch';
+import type { GrammatikTeil } from '../types';
 
 /** Höchstens so viele Treffer stehen in der Liste. */
 const TREFFER = 40;
@@ -212,8 +217,9 @@ function Ohne({ wb }: { wb: Woerterbuch }) {
           <li>Nichts wird von einer KI übersetzt. Der Übersetzer geht auch ohne Internet.</li>
         </ul>
         <p className="tipps__zahl">
-          {wb.funde.length.toLocaleString('de-DE')} Wörter und Sätze aus den Lektionen
-          {wb.mitGlossar ? ' und dem Glossar' : ''} von <a href={QUELLE.url}>{QUELLE.name}</a>
+          {wb.funde.length.toLocaleString('de-DE')} Wörter, Formen und Sätze aus den Lektionen
+          {wb.mitGlossar && wb.mitGrammatik ? ', dem Glossar und der Grammatik' : wb.mitGlossar ? ' und dem Glossar' : ''} von{' '}
+          <a href={QUELLE.url}>{QUELLE.name}</a>
         </p>
       </section>
 
@@ -260,6 +266,7 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
                 )}
               </span>
               <span className="wort__de">{f.deutsch}</span>
+              {ausTabelle(f) && f.merkmal && <span className="fund__merkmal">{merkmalText(f)}</span>}
               <span className="fund__wo">
                 <Schild stufe={stufeVon(f)} klein />
                 {herkunftKurz(f)}
@@ -273,11 +280,24 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
   );
 }
 
-/** „Lektion 3“, „Satz · Lektion 4“, „Glossar“ … (das Schild davor sagt, ob Lehrbuch oder Muttersprachler) */
+/** Steht der Fund (vor allem) in einer Tabelle der Grammatik, Verb- oder Formentabellen? */
+const ausTabelle = (f: Fund) => f.herkunft === 'grammatik' || f.herkunft === 'formen';
+
+/** „Präsens, Sg., 1. f. · ich, weiblich“: die Beschriftung der Tabelle, bei Verbformen mit der Person in Worten. */
+function merkmalText(f: Fund): string {
+  const wer = f.verb ? person(f.merkmal) : undefined;
+  return [f.merkmal, wer?.klar].filter(Boolean).join(' · ');
+}
+
+/** „Lektion 3“, „Satz · Lektion 4“, „Glossar“, „Grammatik 4“, „Verbtabelle“ … (das Schild davor sagt, ob Lehrbuch oder Muttersprachler) */
 function herkunftKurz(f: Fund): string {
   const teile: string[] = [];
   if (f.art === 'satz') teile.push('Satz');
   if (f.herkunft === 'glossar') teile.push('Glossar');
+  if (ausTabelle(f) && f.tabelle) {
+    teile.push(f.tabelle);
+    return teile.join(' · ');
+  }
   if (f.lektionen.length) {
     const nr = f.lektionen.slice(0, 3);
     teile.push(`Lektion ${nr.join(', ')}${f.lektionen.length > 3 ? ' …' : ''}`);
@@ -410,7 +430,7 @@ export function EintragScreen({ id }: { id: string }) {
       </a>
       <div className="kopf__titel">
         <h1>Übersetzer</h1>
-        {fund && <span>{fund.art === 'satz' ? 'Satz' : 'Wort'}</span>}
+        {fund && <span>{fund.art === 'satz' ? 'Satz' : fund.verb && ausTabelle(fund) ? 'Verbform' : 'Wort'}</span>}
       </div>
     </header>
   );
@@ -450,6 +470,7 @@ export function EintragScreen({ id }: { id: string }) {
             </p>
           )}
           <p className="eintrag__de">{fund.deutsch}</p>
+          {ausTabelle(fund) && fund.merkmal && <p className="eintrag__merkmal">{merkmalText(fund)}</p>}
           {fund.audio ? (
             <>
               <AudioButton url={fund.audio} label={fund.latein} gross />
@@ -460,7 +481,9 @@ export function EintragScreen({ id }: { id: string }) {
           )}
         </section>
 
-        <Herkunft fund={fund} />
+        <Herkunft fund={fund} wb={wb} />
+
+        {fund.stellen && <ImLehrbuch fund={fund} wb={wb} />}
 
         {beispiel && (
           <section>
@@ -500,9 +523,11 @@ const WO: Record<Fund['herkunft'], string> = {
   text: 'Text',
   einleitung: 'Einleitung',
   glossar: 'Glossar',
+  grammatik: 'Grammatik',
+  formen: 'Formentabellen',
 };
 
-function Herkunft({ fund }: { fund: Fund }) {
+function Herkunft({ fund, wb }: { fund: Fund; wb: Woerterbuch }) {
   if (stufeVon(fund) === 'muttersprachler') {
     return (
       <section className="herkunft">
@@ -513,27 +538,115 @@ function Herkunft({ fund }: { fund: Fund }) {
   const nr = fund.lektion;
   const lektion = nr !== undefined ? verfuegbar.get(nr) : undefined;
   const titel = kurs.find((k) => k.nr === nr);
-  const wo = fund.herkunft === 'text' && lektion && istDialog(lektion) ? 'Dialog' : WO[fund.herkunft];
+  const stelle = ausTabelle(fund) ? hauptStelle(fund, wb.seiten) : undefined;
+  const seite = stelle && wb.seiten.get(stelle.seite);
+  const wo =
+    fund.herkunft === 'text' && lektion && istDialog(lektion)
+      ? 'Dialog'
+      : seite?.art === 'verben'
+        ? 'Verbkonjugation'
+        : seite?.art === 'formen'
+          ? `Formentabellen: ${seite.titel}`
+          : WO[fund.herkunft];
   const weitere = fund.lektionen.filter((x) => x !== nr);
+  // Weitere Seiten der Grammatik, auf denen dieselbe Form steht („Auch in: Grammatik 7, Regelmäßige Verben“).
+  const auchIn = stelle
+    ? [...new Set((fund.stellen ?? []).filter((st) => st.seite !== stelle.seite).map((st) => wb.seiten.get(st.seite)))]
+        .filter((x) => !!x)
+        .map((x) => (x.art === 'verben' ? 'Verbkonjugation' : x.titel))
+    : [];
+  const mitLektion = !seite || seite.art === 'grammatik';
   // Sätze stehen im Text der Lektion, Wörter im Wortschatz; die Beispiele aus Lektion 1–2 bei den Lauten.
-  const tab: LektionTab = fund.herkunft === 'text' || fund.herkunft === 'einleitung' || fund.herkunft === 'aussprache' ? 'text' : 'woerter';
+  const tab: LektionTab =
+    fund.herkunft === 'text' || fund.herkunft === 'einleitung' || fund.herkunft === 'aussprache' || fund.herkunft === 'grammatik' ? 'text' : 'woerter';
 
   return (
     <section className="herkunft">
       <p>
         Aus <em>{QUELLE.name}</em> · {wo}
-        {titel && (
+        {titel && mitLektion && (
           <>
             , Lektion {titel.nr} <Surayt>{titel.latein}</Surayt> ({titel.deutsch})
           </>
         )}
       </p>
-      {weitere.length > 0 && <p className="herkunft__klein">Auch in Lektion {weitere.join(', ')}</p>}
+      {auchIn.length > 0 && <p className="herkunft__klein">Auch in: {[...new Set(auchIn)].join(', ')}</p>}
+      {!stelle && weitere.length > 0 && <p className="herkunft__klein">Auch in Lektion {weitere.join(', ')}</p>}
       {lektion && (
         <a className="knopf knopf--zweit knopf--klein" href={href({ name: 'lektion', nr: lektion.nr, tab })}>
-          Zur Lektion <IconPfeil size={16} />
+          {mitLektion ? 'Zur Lektion' : `Zur Lektion ${lektion.nr}`} <IconPfeil size={16} />
         </a>
       )}
+    </section>
+  );
+}
+
+/**
+ * Wo der Eintrag in Grammatik, Verb- oder Formentabellen steht: die Tabelle
+ * (der Eintrag hervorgehoben), bei Grammatik-Seiten die Erklärung dazu und bei
+ * Verben Imperativ und Infinitiv.
+ */
+function ImLehrbuch({ fund, wb }: { fund: Fund; wb: Woerterbuch }) {
+  const stelle = hauptStelle(fund, wb.seiten);
+  const seite = stelle && wb.seiten.get(stelle.seite);
+  if (!stelle || !seite) return null;
+  const block = seite.bloecke[stelle.block];
+  const markiert = (t: GrammatikTeil) => t.text === fund.latein || (!!fund.audio && t.audio === fund.audio);
+
+  // Steht die Form nur im Text unter der Tabelle (Imperativ, Infinitiv), zeigt die Tabelle des Verbs alle übrigen Formen.
+  const formen = fund.verb ? (wb.gruppen.get(fund.verb) ?? []) : [];
+  let tabelle = block?.art === 'tabelle' ? { seite, block: stelle.block } : undefined;
+  if (!tabelle && formen.length) {
+    for (const f of formen) {
+      const st = hauptStelle(f, wb.seiten);
+      const s = st && wb.seiten.get(st.seite);
+      if (s && st && s.bloecke[st.block]?.art === 'tabelle') {
+        tabelle = { seite: s, block: st.block };
+        break;
+      }
+    }
+  }
+  const imText = block?.art === 'absatz' ? block : undefined;
+  const { titel, von, bis } = abschnittUm(seite, stelle.block);
+  const nebenformen = formen.filter((f) => f !== fund && /^(Imperativ|Infinitiv)/.test(f.merkmal ?? ''));
+  const grundform = formen.find(istGrundform);
+  const ueberschrift = ausTabelle(fund) ? 'So steht es im Lehrbuch' : 'Auch in der Grammatik';
+  const tab = tabelle && tabelle.seite.bloecke[tabelle.block];
+
+  return (
+    <section className="im-lehrbuch">
+      <h2 className="zwischentitel">
+        {fund.verb ? (
+          <>
+            Alle Formen von <Surayt>{fund.verb}</Surayt>
+          </>
+        ) : (
+          ueberschrift
+        )}
+      </h2>
+      <p className="im-lehrbuch__wo">{[seite.titel, ...titel.filter((t) => !/^[A-L]\s*[:–-]\s/.test(t))].join(' · ')}</p>
+      {imText && <GrammatikAbsatz teile={imText.teile} markiert />}
+      {tab?.art === 'tabelle' && <GrammatikTabelle zeilen={tab.zeilen} markiert={markiert} />}
+      {grundform && grundform !== fund && (
+        <p className="im-lehrbuch__klein">
+          Grundform: <a href={href({ name: 'uebersetzer', id: grundform.id })} onClick={oeffnet}><Surayt>{grundform.latein}</Surayt></a> – {grundform.deutsch}
+        </p>
+      )}
+      {nebenformen.length > 0 && (
+        <>
+          <h3 className="zwischentitel zwischentitel--klein">Imperativ und Infinitiv</h3>
+          <Fundliste funde={nebenformen} inDerSuche={false} />
+        </>
+      )}
+      {seite.art === 'grammatik' && bis - von > 1 && (
+        <details className="erklaerung">
+          <summary>Erklärung aus dem Lehrbuch lesen</summary>
+          <GrammatikBloecke bloecke={seite.bloecke.slice(von, bis)} markiert={markiert} ohneErsteUeberschrift />
+        </details>
+      )}
+      <a className="im-lehrbuch__link" href={seite.url} target="_blank" rel="noopener noreferrer">
+        Diese Seite im Lehrbuch öffnen
+      </a>
     </section>
   );
 }

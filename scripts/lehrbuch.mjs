@@ -46,12 +46,16 @@ export async function load(path) {
 
 /** Whitespace vereinheitlichen, unsichtbare Zeichen entfernen, kyrillisches ё → ë. */
 export function clean(s) {
+  return glatt(s).trim();
+}
+
+/** Wie `clean`, aber ohne Leerzeichen am Rand abzuschneiden – für Textstücke, die noch zusammengesetzt werden. */
+export function glatt(s) {
   return s
     .replace(UNSICHTBAR, '')
     .replace(/ё/g, 'ë')
     .replace(/Ё/g, 'Ë')
     .replace(/[\u{A0}\s]+/gu, ' ')
-    .trim()
     .normalize('NFC');
 }
 

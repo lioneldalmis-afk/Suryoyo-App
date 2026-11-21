@@ -6,17 +6,19 @@ interface Props {
   /** Was vorgelesen wird – für Screenreader. */
   label: string;
   gross?: boolean;
+  /** Kleiner Knopf, z. B. in Tabellen der Grammatik. */
+  klein?: boolean;
 }
 
 /** Lautsprecher-Knopf: tippen spielt die Aufnahme, nochmal tippen stoppt sie. */
-export function AudioButton({ url, label, gross = false }: Props) {
+export function AudioButton({ url, label, gross = false, klein = false }: Props) {
   const status = useAudioStatus();
   if (!url) return null;
   const aktiv = status.url === url && (status.zustand === 'spielt' || status.zustand === 'laedt');
   return (
     <button
       type="button"
-      className={`ton${gross ? ' ton--gross' : ''}${aktiv ? ' ton--aktiv' : ''}`}
+      className={`ton${gross ? ' ton--gross' : ''}${klein ? ' ton--klein' : ''}${aktiv ? ' ton--aktiv' : ''}`}
       aria-label={aktiv ? 'Stopp' : `Anhören: ${label}`}
       onClick={(ereignis) => {
         ereignis.stopPropagation();
@@ -24,7 +26,7 @@ export function AudioButton({ url, label, gross = false }: Props) {
         else void spiele(url);
       }}
     >
-      <IconTon size={gross ? 44 : 22} />
+      <IconTon size={gross ? 44 : klein ? 17 : 22} />
     </button>
   );
 }

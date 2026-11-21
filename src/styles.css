@@ -3422,3 +3422,160 @@ button.art {
     inset 0 0 0 2px var(--linie),
     0 3px 0 var(--linie);
 }
+
+/* Grammatik, Verb- und Formentabellen im Übersetzer (Phase 4b, Schritt 2) */
+
+.ton--klein {
+  width: 32px;
+  height: 32px;
+}
+
+.fund__merkmal {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--marke-dunkel);
+}
+
+.eintrag__merkmal {
+  margin: -12px 0 20px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--marke-hell);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--marke-dunkel);
+}
+
+.zwischentitel--klein {
+  margin-top: 20px;
+}
+
+.im-lehrbuch__wo {
+  margin: -6px 4px 10px;
+  font-size: 0.85rem;
+  color: var(--tinte-leise);
+}
+
+.im-lehrbuch__klein {
+  margin: 10px 4px 0;
+  font-size: 0.9rem;
+  color: #3c4157;
+}
+
+.im-lehrbuch__link {
+  display: inline-block;
+  margin: 14px 4px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--marke);
+}
+
+/* Breite Tabellen scrollen in sich, nicht die ganze Seite. */
+.gr-tabelle {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 10px 0;
+  border-radius: 14px;
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+}
+
+.gr-tabelle table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 0.9rem;
+}
+
+.gr-tabelle td,
+.gr-tabelle th {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--linie);
+  text-align: left;
+  vertical-align: middle;
+  color: #3c4157;
+}
+
+.gr-tabelle tr:last-child > td {
+  border-bottom: none;
+}
+
+.gr-tabelle th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tinte-leise);
+}
+
+.gr-tabelle [lang='tru'] {
+  font-weight: 600;
+  color: var(--tinte);
+}
+
+.gr-teil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Kurze Formen bleiben zusammen, deutsche Erklärungen dürfen umbrechen. */
+.gr-teil [lang='tru'] {
+  min-width: 3.5em;
+}
+
+.gr-markiert {
+  background: var(--sonne-hell);
+}
+
+.gr-teil--markiert [lang='tru'] {
+  color: var(--tinte);
+  text-decoration: underline;
+  text-decoration-color: var(--sonne-dunkel);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+
+.gr-absatz {
+  margin: 8px 4px;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: #3c4157;
+}
+
+.gr-absatz--markiert {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--sonne-hell);
+}
+
+.gr-sur {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--tinte);
+}
+
+.gr-titel {
+  margin: 18px 4px 6px;
+  font-size: 1rem;
+}
+
+.gr-titel--klein {
+  font-size: 0.93rem;
+  color: #3c4157;
+}
+
+.erklaerung {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--rund);
+  background: #f3eee5;
+}
+
+.erklaerung > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--marke-dunkel);
+}
+
+.erklaerung[open] > summary {
+  margin-bottom: 6px;
+}
