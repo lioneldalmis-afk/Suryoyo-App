@@ -5,6 +5,7 @@
 //   node scripts/extract-lesson.mjs 4          eine Lektion → lektion-04.json
 //   node scripts/extract-lesson.mjs 1-16       mehrere Lektionen
 //   node scripts/extract-lesson.mjs glossar    Glossar A → glossar-a.json
+//   node scripts/extract-lesson.mjs grammatik  Grammatik 3–16, Verb- und Formentabellen → grammatik.json
 //
 // Lektion 1 und 2 (Alphabet und Laute) sind anders aufgebaut als die übrigen
 // und werden von scripts/alphabet.mjs gelesen, Lektion 3–16 von scripts/lektion.mjs.
@@ -16,22 +17,24 @@
 
 import { extrahiereAlphabet } from './alphabet.mjs';
 import { extrahiereGlossar } from './glossar.mjs';
+import { extrahiereGrammatik } from './grammatik.mjs';
 import { inhaltsverzeichnis } from './lehrbuch.mjs';
 import { extrahiereLektion } from './lektion.mjs';
 
 const auftraege = process.argv.slice(2).flatMap((arg) => {
-  if (arg === 'glossar') return ['glossar'];
+  if (arg === 'glossar' || arg === 'grammatik') return [arg];
   const [von, bis = von] = arg.split('-').map(Number);
   return Array.from({ length: bis - von + 1 }, (_, i) => von + i);
 });
-if (!auftraege.length || auftraege.some((a) => a !== 'glossar' && (!Number.isInteger(a) || a < 1))) {
-  console.error('Aufruf: node scripts/extract-lesson.mjs <Nr> [<Nr> …] | <von>-<bis> | glossar');
+if (!auftraege.length || auftraege.some((a) => typeof a !== 'string' && (!Number.isInteger(a) || a < 1))) {
+  console.error('Aufruf: node scripts/extract-lesson.mjs <Nr> [<Nr> …] | <von>-<bis> | glossar | grammatik');
   process.exit(1);
 }
 
 const kapitel = await inhaltsverzeichnis();
 for (const a of auftraege) {
   if (a === 'glossar') await extrahiereGlossar();
+  else if (a === 'grammatik') await extrahiereGrammatik(kapitel);
   else if (a <= 2) await extrahiereAlphabet(kapitel, a);
   else await extrahiereLektion(kapitel, a);
 }

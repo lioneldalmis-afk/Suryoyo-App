@@ -1,14 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import glossarJson from '../data/glossar-a.json';
+import grammatikJson from '../data/grammatik.json';
 import { alleLektionen, NUR_MIT_BILD } from '../data';
-import type { Eintrag, Glossar } from '../types';
+import type { Eintrag, Glossar, Grammatik } from '../types';
 import { ANFRAGE_LAENGE, aufbereiten, sauber } from './nachschlagen';
 import { href, parse, type Route } from './router';
 import { fold, kern, woerter, zerlege } from './text';
-import { abstand, baueWoerterbuch, beispielsatz, einzelneWoerter, stichwort, suche, woerterImSatz, type Fund } from './woerterbuch';
+import {
+  abstand,
+  baueWoerterbuch,
+  beispielsatz,
+  einzelneWoerter,
+  istGrundform,
+  merkmaleZusammen,
+  person,
+  stichwort,
+  stufeVon,
+  suche,
+  woerterImSatz,
+  type Fund,
+} from './woerterbuch';
 
 const glossar = glossarJson as Glossar;
-const wb = baueWoerterbuch(alleLektionen, glossar);
+const grammatik = grammatikJson as unknown as Grammatik;
+const wb = baueWoerterbuch(alleLektionen, glossar, grammatik);
 const ohneGlossar = baueWoerterbuch(alleLektionen);
 
 const eintrag = (id: string): Eintrag => {
@@ -33,7 +48,11 @@ describe('Wörterbuch: Inhalt', () => {
     expect(anzahl('wortschatz')).toBeGreaterThan(1000);
     expect(anzahl('text') + anzahl('einleitung')).toBeGreaterThan(250);
     expect(anzahl('glossar')).toBeGreaterThan(300);
+    expect(anzahl('grammatik')).toBeGreaterThan(400);
+    expect(anzahl('formen')).toBeGreaterThan(1200);
     expect(wb.mitGlossar).toBe(true);
+    expect(wb.mitGrammatik).toBe(true);
+    expect(ohneGlossar.mitGrammatik).toBe(false);
     expect(ohneGlossar.mitGlossar).toBe(false);
     expect(ohneGlossar.funde.some((f) => f.herkunft === 'glossar')).toBe(false);
   });
@@ -53,8 +72,16 @@ describe('Wörterbuch: Inhalt', () => {
       for (const e of alle) quellen.add(`${e.latein}|${e.hinweis ?? ''}|${e.deutsch}|${e.audio ?? ''}`);
     }
     const ausGlossar = new Set(glossar.eintraege.flatMap((z) => z.teile.map((t) => `${t.latein}|${t.deutsch}`)));
+    const ausGrammatik = new Set(
+      grammatik.seiten.flatMap((s) => s.eintraege.map((e) => `${e.latein}|${e.hinweis ?? ''}|${e.deutsch}|${e.audio ?? ''}`)),
+    );
     for (const f of wb.funde) {
       if (f.herkunft === 'glossar') expect(ausGlossar.has(`${f.latein}|${f.deutsch}`), f.id).toBe(true);
+      else if (f.herkunft === 'grammatik' || f.herkunft === 'formen') {
+        // Formen ohne eigene Aufnahme bekommen die einer gleichen Form von einer anderen Seite.
+        const ohneTon = `${f.latein}|${f.hinweis ?? ''}|${f.deutsch}|`;
+        expect(ausGrammatik.has(`${ohneTon}${f.audio ?? ''}`) || ausGrammatik.has(ohneTon), f.id).toBe(true);
+      }
       else expect(quellen.has(`${f.latein}|${f.hinweis ?? ''}|${f.deutsch}|${f.audio ?? ''}`), f.id).toBe(true);
       expect(f.quelle).toBe('lehrbuch');
     }
@@ -197,7 +224,7 @@ describe('Wörterbuch: rund um einen Eintrag', () => {
       if (!b) continue;
       mitBeispiel++;
       expect(b.art).toBe('satz');
-      expect(['text', 'einleitung']).toContain(b.herkunft);
+      expect(['text', 'einleitung', 'grammatik']).toContain(b.herkunft);
       const gesucht = genau(stichwort(f.latein));
       const satz = genau(b.latein);
       expect(
@@ -224,6 +251,86 @@ describe('Wörterbuch: rund um einen Eintrag', () => {
   });
 });
 
+describe('Übersetzer: Grammatik, Verb- und Formentabellen', () => {
+  const nachLatein = (latein: string) => wb.funde.find((f) => f.latein === latein && f.stellen)!;
+
+  it('findet gebeugte Formen über die Umschrift, mit Beschriftung der Tabelle', () => {
+    const f = ersterTreffer('dëmxono');
+    expect(f).toMatchObject({ latein: 'dëmxono', deutsch: 'schlafen', verb: 'domax – damëx', merkmal: 'Präsens, Sg., 1. f.' });
+    expect(f.audio).toMatch(/\.mp3$/); // Aufnahme aus der Grammatik von Lektion 7
+    expect(ersterTreffer('dembono')?.latein).toBe('dëmxono'); // ein Tippfehler
+    expect(stufeVon(f)).toBe('lehrbuch');
+  });
+
+  it('fasst gleiche Formen derselben Tabelle zusammen', () => {
+    // „guršat“ steht in der Tabelle für du (m.) und du (f.)
+    expect(nachLatein('guršat').merkmal).toBe('Präsens, Sg., 2. m. / 2. f.');
+    expect(merkmaleZusammen(['Präsens, Sg., 2. m.', 'Präsens, Sg., 2. f.'])).toBe('Präsens, Sg., 2. m. / 2. f.');
+    expect(merkmaleZusammen(['Plural', 'Plural'])).toBe('Plural');
+    expect(merkmaleZusammen([])).toBeUndefined();
+  });
+
+  it('liest die Person aus der Beschriftung', () => {
+    expect(person('Präsens, Sg., 1. f.')).toEqual({ pronomen: 'ich', klar: 'ich, weiblich' });
+    expect(person('Singular, 3. Person (m.)')?.pronomen).toBe('er');
+    expect(person('Präteritum, Sg., 2. m. / 2. f.')).toEqual({ pronomen: 'du', klar: 'du' });
+    expect(person('Plural, 3. Person (m.) / 3. Person (f.)')?.pronomen).toBe('sie');
+    expect(person('Präsens, Pl., 1.')?.pronomen).toBe('wir');
+    expect(person('Subjekt 3. m. sg., Objekt 2. f. sg.')).toBeUndefined();
+    expect(person('Plural')).toBeUndefined();
+    expect(person(undefined)).toBeUndefined();
+  });
+
+  it('findet Verbformen auf Deutsch mit Person: „ich schlafe“, „du schläfst“', () => {
+    const ich = ergebnis('ich schlafe').funde;
+    expect(ich.slice(0, 2).map((f) => f.latein)).toEqual(['domaxno', 'dëmxono']);
+    for (const f of ich.filter((x) => x.verb)) expect(person(f.merkmal)?.pronomen, f.latein).toBe('ich');
+    expect(ergebnis('ich schlafe').nurAehnlich).toBe(false);
+    const du = ergebnis('du schläfst').funde.filter((f) => f.verb);
+    expect(du[0]).toMatchObject({ latein: 'dëmxat', deutsch: 'schlafen' });
+    expect(ergebnis('wir kommen').funde.some((f) => f.deutsch === 'kommen' && person(f.merkmal)?.pronomen === 'wir')).toBe(true);
+  });
+
+  it('zeigt bei der Suche nach einem Verb nur seine Grundform, nicht alle Formen', () => {
+    const treffer = ergebnis('schlafen').funde.filter((f) => f.verb === 'domax – damëx');
+    expect(treffer.map((f) => f.latein)).toEqual(['domax']);
+    expect(istGrundform(treffer[0])).toBe(true);
+    // Alle Formen stehen trotzdem bereit (für die Tabelle auf der Eintragsseite).
+    expect(wb.gruppen.get('domax – damëx')!.length).toBeGreaterThan(18);
+  });
+
+  it('findet Beispiele der Grammatik mit Aufnahme', () => {
+    const f = ersterTreffer('wir sind verheiratet');
+    expect(f).toMatchObject({ latein: 'gawire na', herkunft: 'grammatik', tabelle: 'Grammatik 4', lektion: 4 });
+    expect(f.audio).toMatch(/\.mp3$/);
+    expect(ersterTreffer('Winter').deutsch).toBe('Winter');
+  });
+
+  it('kennt zu jeder Stelle Seite und Block', () => {
+    for (const f of wb.funde) {
+      for (const st of f.stellen ?? []) {
+        const s = wb.seiten.get(st.seite);
+        expect(s, f.id).toBeDefined();
+        expect(s!.bloecke[st.block], f.id).toBeDefined();
+      }
+    }
+  });
+});
+
+describe('Übersetzer: Schilder', () => {
+  it('gibt jedem Eintrag aus den Daten ein geprüftes Schild', () => {
+    // Zusammengesetztes steht nie in den Daten – das baut erst der Baukasten (Phase 4b).
+    for (const f of wb.funde) expect(stufeVon(f)).not.toBe('zusammengesetzt');
+    expect(stufeVon(fundVon('L03-W-slomo'))).toBe('lehrbuch');
+    expect(stufeVon(wb.nachId.get('G-abro-pl-abne.2')!)).toBe('lehrbuch');
+  });
+
+  it('kennzeichnet Community-Einträge als Muttersprachler', () => {
+    expect(stufeVon({ quelle: 'community' })).toBe('muttersprachler');
+    expect(stufeVon({ quelle: 'lehrbuch' })).toBe('lehrbuch');
+  });
+});
+
 describe('Wörterbuch: auf dem Gerät', () => {
   it('lädt alten oder kaputten Stand', () => {
     expect(aufbereiten(undefined)).toEqual({ verlauf: [], anfragen: [] });
@@ -241,13 +348,20 @@ describe('Wörterbuch: auf dem Gerät', () => {
 
   it('hat eigene Adressen', () => {
     const routen: Route[] = [
-      { name: 'woerterbuch' },
-      { name: 'woerterbuch', id: 'L03-W-slomo' },
-      { name: 'woerterbuch', id: 'G-abro-pl-abne.2' },
+      { name: 'uebersetzer' },
+      { name: 'uebersetzer', id: 'L03-W-slomo' },
+      { name: 'uebersetzer', id: 'G-abro-pl-abne.2' },
     ];
     for (const r of routen) expect(parse(href(r))).toEqual(r);
+    expect(href({ name: 'uebersetzer' })).toBe('#/uebersetzer');
     expect(fundVon('L03-W-slomo')).toBeDefined();
     expect(wb.nachId.get('G-abro-pl-abne.2')?.herkunft).toBe('glossar');
+  });
+
+  it('führt alte Wörterbuch-Adressen in den Übersetzer', () => {
+    expect(parse('#/woerterbuch')).toEqual({ name: 'uebersetzer' });
+    expect(parse('#/woerterbuch/L03-W-slomo')).toEqual({ name: 'uebersetzer', id: 'L03-W-slomo' });
+    expect(parse('#/woerterbuch/G-abro-pl-abne.2')).toEqual({ name: 'uebersetzer', id: 'G-abro-pl-abne.2' });
   });
 });
 

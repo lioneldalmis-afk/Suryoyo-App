@@ -115,3 +115,81 @@ export interface Glossar {
   quelle: { name: string; url: string; abgerufen: string };
   eintraege: GlossarEintrag[];
 }
+
+// --- Grammatik, Verb- und Formentabellen (Fahrplan, Phase 4b, Schritt 2) ---------------
+
+/** Ein Teil einer Tabellenzelle: Text mit eigener Aufnahme (oder eine Zeile ohne). */
+export interface GrammatikTeil {
+  text: string;
+  audio?: string;
+  /** Kursiv gesetzt (Umschrift). */
+  sur?: true;
+  /** Fett hervorgehobene Stellen (Anfang, Ende), z. B. die Endung, um die es geht. */
+  fett?: [number, number][];
+  /** Beginnt eine neue Zeile in der Zelle. */
+  neueZeile?: true;
+}
+
+export interface GrammatikZelle {
+  teile: GrammatikTeil[];
+  /** Kopfzelle (th) */
+  kopf?: true;
+  /** colspan / rowspan */
+  breit?: number;
+  hoch?: number;
+}
+
+/** Ein Stück Fließtext: kursiv (Umschrift), syrische Schrift oder fett. */
+export interface GrammatikStueck {
+  text: string;
+  sur?: true;
+  syr?: true;
+  fett?: true;
+}
+
+export type GrammatikBlock =
+  /** Überschrift; `ebene` 0 („A: …“) bis 3 („1. …“). */
+  | { art: 'titel'; text: string; ebene: number }
+  | { art: 'absatz'; teile: GrammatikStueck[] }
+  | { art: 'tabelle'; zeilen: GrammatikZelle[][] };
+
+/** Eine Form oder ein Beispiel aus einer Grammatik- oder Formentabelle, wörtlich aus dem Lehrbuch. */
+export interface GrammatikEintrag {
+  id: string;
+  latein: string;
+  syrisch: string;
+  deutsch: string;
+  audio?: string;
+  audio2?: string;
+  /** Zusatz in der Zelle, z. B. „(f.)“. */
+  hinweis?: string;
+  /** Beschriftung aus der Tabelle, z. B. „Präsens, Sg., 1. f.“ oder „Plural“. */
+  merkmal?: string;
+  /** Bei Verbformen: das Verb, wie es das Lehrbuch vorstellt („goraš – grëšle“). */
+  verb?: string;
+  fett?: [number, number][];
+  /** Lektion der Grammatik-Seite (fehlt bei Verb- und Formentabellen). */
+  lektion?: number;
+  art: Art;
+  quelle: Quelle;
+  /** Index des Blocks (Tabelle oder Absatz) auf der Seite, in dem der Eintrag steht. */
+  block: number;
+  tags: string[];
+}
+
+export interface GrammatikSeite {
+  /** Kapitelnummer im Lehrbuch, z. B. „1.4.3“, „1.17“, „4.2“. */
+  id: string;
+  titel: string;
+  /** Grammatik einer Lektion, Verbkonjugation (Surcofo) oder Formentabelle (Teil 4). */
+  art: 'grammatik' | 'verben' | 'formen';
+  lektion?: number;
+  url: string;
+  bloecke: GrammatikBlock[];
+  eintraege: GrammatikEintrag[];
+}
+
+export interface Grammatik {
+  quelle: { name: string; url: string; abgerufen: string };
+  seiten: GrammatikSeite[];
+}

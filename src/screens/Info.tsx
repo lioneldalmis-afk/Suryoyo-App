@@ -49,7 +49,7 @@ export function InfoScreen() {
           Die Aufnahme bleibt auf dem Handy, wird nirgends hochgeladen und ist weg, sobald die Aufgabe vorbei ist.
         </p>
         <p>
-          Was du im Wörterbuch nachschlägst und welche Wörter du anfragst, bleibt ebenfalls auf dem Handy. Anfragen
+          Was du im Übersetzer nachschlägst und welche Wörter du anfragst, bleibt ebenfalls auf dem Handy. Anfragen
           werden erst verschickt, wenn die App Einreichungen annehmen kann – dann nur das Wort und die Situation, ohne
           Namen.
         </p>

@@ -21,10 +21,10 @@ Neue Versionen kommen von selbst: Einfach die App schließen und neu öffnen. Di
 2. Beim Nachsprechen am Ende einer Einheit das Mikrofon erlauben, sich aufnehmen und mit dem Original vergleichen.
 3. In Lektion 3 unter „Üben“ das **Rollenspiel** starten, z. B. als Afrem.
 4. Oben auf der Startseite die Flamme antippen: „Deine Erfolge“ mit Serie, Tagesziel und Abzeichen.
-5. Unten auf **Wörterbuch** tippen und etwas nachschlagen – auf Deutsch („Danke“, „Wie geht es dir?“) oder auf Surayt, auch ohne Sonderzeichen („slomo“). Einen Treffer antippen: großer Lautsprecher zum Vorspielen, Herkunft und Beispielsatz. Etwas suchen, das fehlt, und „Wort anfragen“ ausprobieren.
+5. Unten auf **Übersetzer** tippen und etwas nachschlagen – auf Deutsch („Danke“, „Wie geht es dir?“) oder auf Surayt, auch ohne Sonderzeichen („slomo“). Einen Treffer antippen: großer Lautsprecher zum Vorspielen, Schild und Herkunft, Beispielsatz. Etwas suchen, das fehlt, und „Wort anfragen“ ausprobieren.
 6. Am nächsten Tag wiederkommen: Unten unter **Karteikasten** steht, wie viele Karten dran sind. Erst überlegen, dann aufdecken und ehrlich bewerten: „Nicht gewusst“, „Knapp“ oder „Gewusst“.
 
-**Fragen fürs Feedback:** Sind die Einheiten zu lang oder zu kurz? Klappen Audio und Mikrofon? Ist irgendwo unklar, was man tun soll? Klingt beim Nachsprechen etwas komisch? Findet das Wörterbuch, was man sucht – und welche Wörter fehlen?
+**Fragen fürs Feedback:** Sind die Einheiten zu lang oder zu kurz? Klappen Audio und Mikrofon? Ist irgendwo unklar, was man tun soll? Klingt beim Nachsprechen etwas komisch? Findet der Übersetzer, was man sucht – und welche Wörter fehlen? Versteht man die Schilder?
 
 Der Lernstand bleibt nur auf dem jeweiligen Handy. Zum Neuanfangen: „Über die App“ → „Lernstand zurücksetzen“.
 
@@ -41,9 +41,9 @@ Prototyp mit allen 16 Lektionen aus Level A des Lehrbuchs *Šlomo Surayt*:
 - Der Fortschritt wird nach jeder Antwort gespeichert; eine abgebrochene Einheit geht beim nächsten Mal an derselben Stelle weiter
 - XP, Tagesziel, Tagesserie und Abzeichen – bewusst ohne „Leben“, Fehler kosten nichts
 - Satz der Woche für den Familientisch (sobald die Familientisch-Liste geprüft ist)
-- Wörterbuch Deutsch ↔ Surayt mit gut 2.100 Wörtern und Sätzen aus den Lektionen und dem Glossar des Lehrbuchs: findet auch ohne Sonderzeichen („slomo“ → „šlomo“), mit „sch“/„sh“, Wortteilen und Tippfehlern; großer Lautsprecher zum Vorspielen, Herkunft und Beispielsatz; geht offline. Keine KI-Übersetzung – was fehlt, lässt sich anfragen (die Anfragen werden bis zu Phase 5 auf dem Gerät gesammelt)
+- Übersetzer Deutsch ↔ Surayt mit gut 4.300 Wörtern, Formen und Sätzen aus den Lektionen, dem Glossar und der Grammatik des Lehrbuchs (samt Verbtabellen: „ich schlafe“ findet die passende Form, die Eintragsseite zeigt die Tabelle aus dem Lehrbuch), jeder Treffer mit Schild (Lehrbuch / Muttersprachler / Zusammengesetzt – nicht geprüft): findet auch ohne Sonderzeichen („slomo“ → „šlomo“), mit „sch“/„sh“, Wortteilen und Tippfehlern; großer Lautsprecher zum Vorspielen, Herkunft und Beispielsatz; geht offline. Keine KI-Übersetzung – was fehlt, lässt sich anfragen (die Anfragen werden bis zu Phase 5 auf dem Gerät gesammelt)
 - Lernstand wird auf dem Gerät gespeichert, ohne Konto
-- Läuft offline, auch das Wörterbuch (bis auf das Audio, das von der Lehrbuch-Website kommt)
+- Läuft offline, auch der Übersetzer (bis auf das Audio, das von der Lehrbuch-Website kommt)
 
 ## Woher die Inhalte kommen
 
@@ -77,13 +77,13 @@ npm run build
 
 | Ort | Inhalt |
 |---|---|
-| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-01.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext bzw. Aussprache, Wortschatz, Audio-Links), `glossar-a.json` (Glossar A, fürs Wörterbuch) |
+| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-01.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext bzw. Aussprache, Wortschatz, Audio-Links), `glossar-a.json` (Glossar A) und `grammatik.json` (Grammatik, Verb- und Formentabellen), beide für den Übersetzer |
 | `inhalte/` | Listen zum Prüfen durch Menschen, z. B. die Familientisch-Sätze |
-| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Einheiten und Karteikasten-Runden (`einheiten.ts`), falsche Antwortmöglichkeiten (`ablenker.ts`), Lernstand und Karteikasten (`progress.ts`), XP, Serie und Satz der Woche (`motivation.ts`), Abzeichen (`abzeichen.ts`), Wörterbuch-Suche (`woerterbuch.ts`), zuletzt Nachgeschlagenes und Wortanfragen (`nachschlagen.ts`), Rollenspiel (`rollenspiel.ts`), eigene Aufnahme (`aufnahme.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
-| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Karteikasten, Wörterbuch, Rollenspiel, Erfolge, Über die App |
+| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Einheiten und Karteikasten-Runden (`einheiten.ts`), falsche Antwortmöglichkeiten (`ablenker.ts`), Lernstand und Karteikasten (`progress.ts`), XP, Serie und Satz der Woche (`motivation.ts`), Abzeichen (`abzeichen.ts`), Suche im Übersetzer und Schilder (`woerterbuch.ts`), zuletzt Nachgeschlagenes und Wortanfragen (`nachschlagen.ts`), Rollenspiel (`rollenspiel.ts`), eigene Aufnahme (`aufnahme.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
+| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Karteikasten, Übersetzer (`Woerterbuch.tsx`), Rollenspiel, Erfolge, Über die App |
 | `src/components/` | Bausteine wie Lautsprecher-Knopf, Leiste am unteren Rand und die Übungsaufgaben |
 | `src/styles.css` | Die gesamte Gestaltung; Farben stehen oben als Variablen |
-| `scripts/` | Einlesen der Lehrbuch-Website (`extract-lesson.mjs` mit den Modulen `lektion.mjs`, `alphabet.mjs`, `glossar.mjs`) und Übernahme der Familientisch-Häkchen |
+| `scripts/` | Einlesen der Lehrbuch-Website (`extract-lesson.mjs` mit den Modulen `lektion.mjs`, `alphabet.mjs`, `glossar.mjs`, `grammatik.mjs`) und Übernahme der Familientisch-Häkchen |
 
 ## Eine Lektion hinzufügen
 
@@ -91,7 +91,7 @@ npm run build
 npm run extract -- 4
 ```
 
-Das Skript liest Text und Wortschatz der Lektion von der Website und schreibt `src/data/lektion-04.json`. Mehrere Lektionen auf einmal gehen mit `npm run extract -- 1-16`, das Glossar mit `npm run extract -- glossar`. Die App lädt jede `lektion-NN.json` automatisch, und die Übungen entstehen aus den Daten.
+Das Skript liest Text und Wortschatz der Lektion von der Website und schreibt `src/data/lektion-04.json`. Mehrere Lektionen auf einmal gehen mit `npm run extract -- 1-16`, das Glossar mit `npm run extract -- glossar`, Grammatik, Verb- und Formentabellen mit `npm run extract -- grammatik`. Die App lädt jede `lektion-NN.json` automatisch, und die Übungen entstehen aus den Daten.
 
 Erneutes Einlesen überschreibt die Datei, behält aber von Hand gesetzte Markierungen (`tags`). Zwei Markierungen haben eine Bedeutung:
 

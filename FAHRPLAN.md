@@ -66,6 +66,11 @@
 - **Lektion 1 und 2** haben keinen Dialog. Lektion 1 erklärt die beiden Schriften, Lektion 2 die Laute: 18 besondere Konsonanten mit Beschreibung und je drei Beispielwörtern, 7 Vokale und 16 **Hörpaare** („talyo – ṭalyo“), alles mit Audio.
 - Das **Glossar A** (Kapitel 1.19) hat 821 Einträge mit Verweis auf die Lektion, aber keine Aufnahmen.
 
+**Nachtrag 21.11.2026 (beim Einlesen der Grammatik festgestellt):**
+- Die Verbkonjugation „Surcofo“ und die Formentabellen in Teil 4 haben **keine Aufnahmen**, die Grammatik-Seiten der Lektionen schon.
+- Teil 4 enthält fast alle Verben aus „Surcofo“ (bis auf zwei) und viel mehr (Pronomina, Hilfsverben, Objektsuffixe, Zeitformen, Zahlen). Die Verben werden mit Wurzel, Stamm und „Bedeutung“ vorgestellt, die Tabellen selbst haben keine deutsche Spalte.
+- Für die Liste an das Lehrbuch-Team: „sie zigen“ statt „sie zogen“ und „er wird nach Arbeit sucht“ (Grammatik 7/8), „Regelm&fauml;ßige Verben“ und „Presens – Preteritum“ (Surcofo), in Grammatik 12 sind beim Plusquampräteritum die Zeilen „2. Person“ bis „1. Person (f.)“ gegenüber den Formen verrutscht (grëšwaylax steht bei „1. Person (m.)“), ähnlich bei Grammatik 16 (mtalfanlan).
+
 ---
 
 ## 3. Architektur (bewusst einfach)
@@ -152,8 +157,57 @@
 - [x] Großer Audio-Knopf für den Moment am Tisch, dazu Herkunft (Lehrbuch/Community) und ein Beispielsatz. *Bei Sätzen stehen statt des Beispielsatzes die Wörter des Satzes darunter. Außerdem „Zuletzt nachgeschlagen“.*
 - [x] Offline nutzbar (bei Oma gibt es vielleicht kein WLAN). *Suche und Glossar gehen offline, nur die Aufnahmen brauchen Internet (siehe Phase 0: eigene Kopien).*
 - [x] Nicht gefunden → **„Wort anfragen"**. *Die Anfragen werden vorerst auf dem Gerät gesammelt; verschickt werden sie mit Phase 5.*
-- [x] Grundsatz: **keine KI-Übersetzung**, nur geprüfte Einträge. Sonst drohen Fehler und eine Vermischung mit klassischem Syrisch. *Ein Test prüft, dass jeder Eintrag wörtlich aus Lektion oder Glossar stammt.*
+- [x] Grundsatz: **keine KI-Übersetzung**, nur geprüfte Einträge. Sonst drohen Fehler und eine Vermischung mit klassischem Syrisch. *Ein Test prüft, dass jeder Eintrag wörtlich aus Lektion oder Glossar stammt. Seit 21.11.2026 erweitert (Phase 4b): Der Baukasten darf Sätze aus Lehrbuch-Bausteinen zusammensetzen, wenn sie als „nicht geprüft“ gekennzeichnet sind; eine KI übersetzt weiterhin nichts.*
 - [ ] Test mit 2–3 Jugendlichen: Was suchen sie am Tisch, und was fehlt? (Die Wortanfragen zeigen es.)
+
+### Phase 4b – Vom Wörterbuch zum Übersetzer (Plan vom 21.11.2026, freigegeben am selben Tag)
+
+**Idee:** Der Bereich „Wörterbuch“ heißt künftig **„Übersetzer“**. Er zeigt weiterhin zuerst, was wörtlich im Lehrbuch steht. Steht ein Satz dort nicht, kann er einfache Sätze **nach den Regeln des Lehrbuchs zusammensetzen** – immer deutlich als ungeprüft gekennzeichnet und ohne Aufnahme. Ein Muttersprachler kann solche Sätze bestätigen oder verbessern, dann gelten sie als geprüft. Der Rest der App (Lernpfad, Übungen, Karteikasten, Satz der Woche) bleibt bei geprüften Inhalten.
+
+**Was dafür da ist (geprüft am 21.11.2026):** In der App stecken Wortschatz, Texte und Glossar A, aber **noch keine Grammatik**. Auf der Website gibt es:
+- die Grammatik-Abschnitte der Lektionen 3–16: Erklärungen, 165 Tabellen und knapp 1.500 Audio-Links, also gut 700 Beispiele mit Aufnahme (z. B. Grammatik 4b „Die Kopula“: „gawire na – wir sind verheiratet“),
+- die Verbtabellen „Surcofo“ (Kapitel 1.17, 41 Tabellen: Präsens, Präteritum, Imperativ, Infinitiv, getrennt nach Person, männlich/weiblich, Einzahl/Mehrzahl; ohne Aufnahmen),
+- die Formentabellen in Teil 4 (Artikel, Pronomen, Hilfsverben, regelmäßige und unregelmäßige Verben, Zeitformen, Zahlen, Wochentage),
+- das große Glossar in Teil 5 (Surayt > Deutsch und Deutsch > Surayt) und die Lektionen von Level B.
+
+**Drei Schilder** an jeder Übersetzung:
+
+| Schild | Bedeutet | Aufnahme |
+|---|---|---|
+| **Lehrbuch** (grün) | steht wörtlich in *Šlomo Surayt*: Wortschatz, Text, Glossar, Grammatik-Beispiel oder Verbtabelle | meist ja |
+| **Muttersprachler** (grün-blau) | von einem Muttersprachler eingereicht oder bestätigt und vor der Aufnahme in die App geprüft, mit Datum und Ort/Dialekt, ohne Namen. Das bisherige Schild „Community“ geht darin auf. | nein (später „Oma-Stimme“, Phase 6) |
+| **Zusammengesetzt – nicht geprüft** (orange) | nach Regeln aus dem Lehrbuch gebaut; kann falsch sein oder so von niemandem gesagt werden | nein |
+
+**So arbeitet der Übersetzer**
+- **Keine KI in der App.** Sprachmodelle wie ChatGPT oder Claude kennen Surayt kaum, vermischen es mit klassischem Syrisch, bräuchten einen Server und Geld, und die Eingaben (oft von Minderjährigen) gingen an fremde Dienste. Stattdessen ein **fester Baukasten**, der offline auf dem Handy läuft, immer gleich arbeitet und jedes Ergebnis erklären kann.
+- **Bausteine** sind nur Einträge aus den Daten: Wörter mit ihren Merkmalen (männlich/weiblich, Einzahl/Mehrzahl – nur, wenn das Lehrbuch sie angibt) und Formen aus den Verb- und Formentabellen.
+- **Satzbaupläne** kommen nur aus dem Lehrbuch, auf zwei Wegen:
+  1. *Ein Wort tauschen:* Ein echter Lehrbuch-Satz ist die Vorlage, ein Wort darin wird durch ein gleichartiges ersetzt (gleiches Geschlecht, gleiche Zahl). Als Vorlage taugt ein Satzbau nur, wenn das Lehrbuch ihn mindestens zweimal mit verschiedenen Wörtern zeigt.
+  2. *Regeln aus der Grammatik:* z. B. Kopula, „mein/dein …“, Verb mit Person aus den Verbtabellen, Zahl mit Nomen, Verneinung, Fragewörter. Jede Regel nennt ihren Abschnitt („Grammatik 4b“) und hat Lehrbuch-Sätze als Beleg.
+- **Anzeige:** Oranges Schild und der Satz „Nach Regeln aus dem Lehrbuch zusammengesetzt. Kann falsch sein oder ungewöhnlich klingen – frag nach, bevor du es benutzt.“ Darunter der **Bauplan**: jedes Wort mit Herkunft und eigener Aufnahme, die Regel und „Gleich gebaut wie:“ mit einem Lehrbuch-Satz samt Aufnahme. Kein großer Lautsprecher, kein Zusammenschneiden von Aufnahmen.
+- **Wer spricht mit wem?** Surayt unterscheidet bei „ich“ und „du“ oft männlich und weiblich (Verbtabelle „ziehen“: gorašno / guršono). Der Übersetzer fragt einmal „Ich bin: Junge / Mädchen“ und zeigt bei „du“ beide Formen, wenn nicht klar ist, wer gemeint ist.
+- **Geprüftes zuerst:** Zusammengesetzt wird nur, wenn kein Eintrag mit grünem Schild passt. Zusammengesetztes kommt nie in Übungen, Karteikasten oder Satz der Woche – erst nach der Bestätigung.
+- **Surayt → Deutsch:** Was jemand gesagt hat, wird erst als Ganzes gesucht, sonst **Wort für Wort erklärt**, auch gebeugte Formen aus den Tabellen (z. B. „dëmxono – schlafen, Präsens, 1. Person f. Sg.“, wörtlich die Bezeichnung der Tabelle). Einen flüssigen deutschen Satz baut die App daraus nicht.
+
+**Sicherheitsnetz**
+- **Gegenprobe:** Der Baukasten übersetzt die deutschen Sätze des Lehrbuchs, ohne den jeweiligen Satz selbst zu kennen, und das Ergebnis wird mit dem echten Surayt verglichen. Eine Regel wird erst eingeschaltet, wenn sie alle ihre Belege genau trifft und in der Gegenprobe nicht danebenliegt. Die Trefferquote steht hier im Fahrplan – sie ist der ehrliche Maßstab, wie gut der Baukasten ist.
+- **Lieber nichts als Unsinn:** Fehlt ein Merkmal (z. B. das Geschlecht eines Wortes) oder passt kein Bauplan genau, wird nichts zusammengesetzt. Dann zeigt die App wie heute die Wörter einzeln und bietet „Satz anfragen“ an.
+- **Verbesserungen fließen zurück:** Sagt ein Muttersprachler „sagt man anders“, wird seine Fassung der geprüfte Eintrag. Der falsche Satz kommt auf eine Sperrliste, und ein Test schlägt Alarm, solange der Baukasten ihn noch so baut – dann wird die Regel verbessert oder abgeschaltet.
+- **Claude formuliert weiterhin kein Surayt.** Claude programmiert den Baukasten nach dem Lehrbuch, die Sätze setzt das Programm aus den Daten zusammen, bestätigen kann nur ein Mensch.
+
+**Schritte**
+- [x] 1. Umbenennen in „Übersetzer“ (Leiste, Überschrift, Kurzbefehl auf Android; die alte Adresse `#/woerterbuch` führt weiter, gespeicherte Suchen und Anfragen bleiben) und die drei Schilder einführen. *Jeder Treffer trägt sein Schild in der Liste und oben auf der Eintragsseite; auf der Startseite des Übersetzers erklärt „Was die Schilder bedeuten“ alle drei. Vorerst kommt nur „Lehrbuch“ vor: Community-Einträge gibt es noch keine, Zusammengesetztes erst mit Schritt 4. Ort und Datum der Bestätigung kommen mit Schritt 6 in die Daten.*
+- [x] 2. Grammatik einlesen: Grammatik-Abschnitte 3–16 (Erklärungen wörtlich, Beispiele mit Aufnahme), Verbtabellen „Surcofo“ und die Formentabellen aus Teil 4. Beispiele und Formen werden im Übersetzer findbar, mit Schild „Lehrbuch“. *27 Seiten mit 280 Tabellen in `src/data/grammatik.json` (`npm run extract -- grammatik`): 3.386 Beispiele und Formen, davon 572 mit Aufnahme, 52 Verben mit allen Personen, Imperativ und Infinitiv. Der Übersetzer hat damit 4.317 statt 2.145 Einträge. „ich schlafe“, „du gehst“, „wir haben“, „mein/dein“, „zwei Frauen“ finden jetzt die passende Form; die Eintragsseite zeigt die Tabelle aus dem Lehrbuch mit der Form hervorgehoben, bei Grammatik-Beispielen die Erklärung dazu. Geht offline.*
+- [ ] 3. Wort für Wort: Surayt-Sätze erklären, auch mit gebeugten Formen.
+- [ ] 4. Baukasten, Teil 1: „Ein Wort tauschen“ mit Gegenprobe, Bauplan und orangem Schild.
+- [ ] 5. Baukasten, Teil 2: Regeln aus der Grammatik, eine nach der anderen, jede mit Gegenprobe.
+- [ ] 6. Prüfen lassen: an jedem zusammengesetzten Satz „Von einem Muttersprachler prüfen lassen“ (bleibt bis Phase 5 auf dem Gerät, wie die Wortanfragen). Bis dahin eine Prüfliste `inhalte/pruefliste.md` wie beim Familientisch: Claude schlägt typische Alltagssätze auf Deutsch vor, der Baukasten setzt sie zusammen, ein Muttersprachler hakt ab oder schreibt die richtige Fassung daneben, ein Befehl überträgt sie in die Daten (Schild „Muttersprachler“).
+- [ ] 7. Später: das große Glossar aus Teil 5 und Level B als weitere Bausteine.
+- [ ] 8. Test mit 2–3 Jugendlichen: Werden die Schilder verstanden? Wird Oranges trotzdem ungeprüft benutzt?
+
+**Grenzen:** Anfangs klappen nur kurze, einfache Sätze (Das ist …, Ich habe …, Wo ist …, mein/dein …, Zahlen). Nebensätze, Redewendungen und Umgangssprache nicht. Das Lehrbuch zeigt eine Form des Surayt; in manchen Orten sagt man manches anders, deshalb notiert die Prüfung Ort/Dialekt. Ohne Prüfer bleibt alles Zusammengesetzte orange.
+
+**Aufwand:** etwa 5–7 Sitzungen. Schritt 1–3 lohnen sich auch dann, wenn der Baukasten später kleiner ausfällt als erhofft.
 
 ### Phase 5 – Community-Einreichungen + wöchentliches Update (2 Sitzungen + Einrichtung)
 - [ ] Supabase-Projekt anlegen (kostenlos) und den Supabase-Connector in Claude verbinden
@@ -192,10 +246,13 @@
 
 ## 7. Offene Entscheidungen
 - [x] GitHub-Repository: `lioneldalmis-afk/Suryoyo-App`
-- [ ] Wer prüft die Einreichungen sprachlich? *Dieselbe Person könnte auch die Familientisch-Liste (`inhalte/familientisch-vorschlag.md`) abhaken.*
+- [ ] Wer prüft die Einreichungen sprachlich? *Dieselbe Person könnte auch die Familientisch-Liste (`inhalte/familientisch-vorschlag.md`) abhaken und die zusammengesetzten Sätze des Übersetzers bestätigen (Phase 4b).*
 - [ ] App-Name. *Die App läuft vorerst unter dem Arbeitstitel „Mamlo" (änderbar in `src/config.ts`, `index.html`, `vite.config.ts`).*
-- [ ] **„aramäisch/assyrisch" in Lehrbuchsätzen:** In 11 Sätzen der Lektionen 4, 5, 10, 13, 15 und 16 steht im Deutschen die Doppelform des Lehrbuchs (z. B. „Das ist eine aramäische/assyrische Familie."). Die Regel „keine Bezeichnungen für die Volksgruppe in der Oberfläche" gilt bisher für die eigenen Texte der App. Sollen diese Lehrbuchsätze wörtlich bleiben (Stand jetzt) oder ausgeblendet werden?
+- [ ] **„aramäisch/assyrisch" in Lehrbuchsätzen:** In 11 Sätzen der Lektionen 4, 5, 10, 13, 15 und 16 steht im Deutschen die Doppelform des Lehrbuchs (z. B. „Das ist eine aramäische/assyrische Familie."). Die Regel „keine Bezeichnungen für die Volksgruppe in der Oberfläche" gilt bisher für die eigenen Texte der App. Sollen diese Lehrbuchsätze wörtlich bleiben (Stand jetzt) oder ausgeblendet werden? *Seit Phase 4b kommen 5 Beispielsätze der Grammatik dazu (Lektion 5, 9 und 12, z. B. „diese sind Aramäer/Assyrer“); sie stehen nur im Übersetzer. Aus den Erklärtexten der Grammatik sind 4 Sätze mit „aramäisch“ nicht übernommen.*
 - [ ] Antwort des Šlomo-Surayt-Teams zu Nutzungsrechten und Audio
+- [x] **Übersetzer (Phase 4b): Grundsatz ändern?** *Ja (21.11.2026), siehe Abschnitt 8.* Bisher gilt „keine zusammengesetzten Übersetzungen, nur geprüfte Einträge“ (Phase 4, `CLAUDE.md`). Vorschlag: Die App darf im Übersetzer Sätze aus Lehrbuch-Bausteinen zusammensetzen, wenn sie als „nicht geprüft“ gekennzeichnet sind und nirgends sonst in der App auftauchen; Claude formuliert weiterhin kein Surayt. Erst nach deinem Ja werden `CLAUDE.md` und der Grundsatz in Phase 4 angepasst.
+- [x] **Übersetzer: Zusammengesetztes gleich zeigen oder erst auf Tippen** *Gleich zeigen (21.11.2026).* („Trotzdem zusammensetzen?“)? Vorschlag: gleich zeigen, aber nur, wenn nichts Geprüftes passt.
+- [x] **Übersetzer: Reicht eine Bestätigung?** *Ja (21.11.2026).* Vorschlag: eine Bestätigung durch einen eingetragenen Prüfer reicht; abweichende Fassungen aus anderen Orten werden mit Ort zusätzlich gespeichert.
 
 ## 8. Getroffene Entscheidungen
 
@@ -273,3 +330,23 @@ Rückmeldung: Die Einheiten waren zu einfach (ein Wort wird vorgestellt und sofo
 - **Eintragsseite:** großer Lautsprecher, Umschrift, Zusatz, Deutsch, Herkunft („Aus Šlomo Surayt · Wortschatz, Lektion 3 …“, Link zur Lektion; Community-Einträge bekommen ein eigenes Schild „Community“) und ein Beispielsatz aus den Lektionen, in dem das Wort genau so vorkommt (bevorzugt aus derselben Lektion, möglichst kurz). Bei Sätzen stehen stattdessen die Wörter des Satzes aus dem Wortschatz da. Die syrische Schrift bleibt wie überall bis Phase 6 ausgeblendet.
 - **Wort anfragen:** unter jeder Suche; mit Wort (vorausgefüllt) und freiwilliger Situation, Hinweis „keine Namen“. Bis zu 30 Anfragen bleiben auf dem Gerät und stehen im Wörterbuch unter „Deine Anfragen“ (löschbar). Verschickt werden sie mit Phase 5. „Zuletzt nachgeschlagen“ merkt sich 8 Einträge. Beides liegt in `surayt.woerterbuch.v1` und wird von „Lernstand zurücksetzen“ nicht gelöscht.
 - **Offline:** Die Lektionen stecken ohnehin in der App. Das Glossar ist ein eigener Teil (etwa 60 KB komprimiert), der erst beim Öffnen des Wörterbuchs geladen wird, damit der Start schnell bleibt; der Service Worker legt ihn trotzdem beim Installieren ab. Geprüft: App einmal laden, Internet aus, neu laden – Suche samt Glossar geht.
+
+**21.11.2026 – Phase 4b (Übersetzer), Schritt 2: Grammatik, Verb- und Formentabellen**
+- **Eingelesen** werden die Grammatik-Seiten der Lektionen 3–16, die Verbkonjugation „Surcofo“ (Kapitel 1.17) und die 12 Formentabellen aus Teil 4 (Artikel, Pronomina, Hilfsverben, regelmäßige und unregelmäßige Verben, Passiv, L-Suffixe, Objektsuffixe, Zeitformen, Zahlen, Wochentage/Monate/Jahreszeiten): `npm run extract -- grammatik` → `src/data/grammatik.json`. Jede Seite steht dort als Folge von Überschriften, Absätzen und Tabellen, wörtlich, damit die App sie zeigen kann.
+- **Einträge aus den Tabellen:** Jede Umschrift mit ihrer syrischen Schrift wird ein Eintrag, mit Aufnahme, wenn die Website eine hat. Die deutsche Bedeutung kommt aus derselben Tabellenzeile; bei Verbtabellen ohne deutsche Spalte aus der Zeile darüber, die das Verb vorstellt („grš ܓܪܫ I: goraš – grëšle “ziehen”“, bzw. der Überschrift „“sagen”“). Anführungszeichen um eine ganze Bedeutung fallen weg („„ziehen““ → „ziehen“). Tabellen ohne beides (z. B. die Zeitformen von goraš) erben die Bedeutung eines Verbs, wenn mindestens zwei ihrer Formen genau mit dessen Formen übereinstimmen. Formen, für die es so keine Bedeutung gibt (258, vor allem Endungen und Präpositionen mit Suffixen), stehen nur in den Tabellen.
+- **Die Beschriftung** (`merkmal`) setzt sich wörtlich aus den Kopf- und Zeilenbeschriftungen der Tabelle zusammen: „Präsens, Sg., 1. f.“, „Singular, 2. Person (f.)“, „Plural“, „Subjekt 3. m. sg., Objekt 2. f. sg.“. Stehen in einer Zelle zwei Formen untereinander („diḏux / diḏax“), werden sie zwei Einträge mit je ihrer Zeile der Beschriftung. Die App ergänzt bei Verbformen die Person in Worten („ich, weiblich“) – das ist deutsche Oberfläche, kein Surayt.
+- **„er kaufte“ ist keine Verbbedeutung:** Übersetzt eine Zeile nur eine einzelne Form („šql ܫܩܠ I, Präteritum: šqile „er kaufte““), wird das nicht auf die ganze Tabelle übertragen; die Tabelle erbt dann die Bedeutung des Verbs („nehmen, kaufen“) von einer anderen Seite. Ein Test wacht darüber.
+- **Nicht übernommen:** 4 Sätze der Erklärtexte, die „aramäisch“ enthalten (Vergleiche mit dem älteren Aramäischen, z. B. „Die aktiven Verbalstämme des Surayt setzen die älteren aramäischen Stämme Pʿal … fort.“) – wie bei Lektion 1–2, solange die Entscheidung zu den Bezeichnungen offen ist. Beispielsätze in den Tabellen bleiben wörtlich wie die Sätze der Lektionen (5 davon mit „Aramäer/Assyrer“, siehe Abschnitt 7).
+- **Im Übersetzer** sind Beispiele und Formen ganz normale Einträge mit Schild „Lehrbuch“. Gleiche Formen (gleiche Umschrift, gleiche Bedeutung) stehen einmal da und kennen alle ihre Stellen; so bekommen viele Formen der Verbtabellen (die keine Aufnahmen haben) die Aufnahme derselben Form aus der Grammatik einer Lektion. Die Grammatik kommt vor dem Glossar: Glossar-Wendungen, die eine Form nur wiederholen, fallen weg.
+- **Suche nach Verbformen:** „ich schlafe“, „du schläfst“, „wir kommen“ finden die Formen für diese Person; dafür zählen deutsche Wortstämme („schlafe“, „schläfst“ → „schlaf“). Unregelmäßige deutsche Formen („isst“, „gibst“) klappen nicht. Wer nur „schlafen“ sucht, bekommt von jedem Verb nur die Grundform (die erste Form, mit der das Lehrbuch das Verb vorstellt) – die übrigen stehen auf deren Eintragsseite.
+- **Eintragsseite:** unter dem Deutschen die Beschriftung („Präsens, Sg., 1. f. · ich, weiblich“), darunter „So steht es im Lehrbuch“ bzw. „Alle Formen von domax – damëx“ mit der ganzen Tabelle, die Form gelb hervorgehoben, Aufnahmen zum Antippen. Bei Grammatik-Beispielen lässt sich die Erklärung des Abschnitts aufklappen, bei Verben stehen Imperativ und Infinitiv darunter, und es gibt einen Link „Diese Seite im Lehrbuch öffnen“. Verbformen zeigen die Verb- oder Formentabelle (alle Personen einheitlich beschriftet), alles andere die Grammatik der Lektion (mit Aufnahmen). Spalten mit syrischer Schrift sind bis Phase 6 ausgeblendet; breite Tabellen scrollen in sich.
+- **Größe:** Die Grammatik ist ein eigener Teil der App (etwa 145 KB komprimiert), der wie das Glossar erst beim Öffnen des Übersetzers geladen und vom Service Worker für offline abgelegt wird. Geprüft: Internet aus, neu laden – „du gehst“ findet die Formen.
+- Grammatik und Formen erscheinen nur im Übersetzer, nicht in Lernpfad, Übungen oder Karteikasten.
+
+**21.11.2026 – Phase 4b (Übersetzer), Schritt 1**
+- **Grundsatz geändert:** Der Übersetzer darf Sätze aus Lehrbuch-Bausteinen nach Lehrbuch-Regeln zusammensetzen. Sie tragen immer das orange Schild „Zusammengesetzt – nicht geprüft“, haben keine Aufnahme und erscheinen nur im Übersetzer, nie in Übungen, Karteikasten oder Satz der Woche. Eine KI übersetzt weiterhin nichts, und Claude schreibt keine Surayt-Sätze von Hand. `CLAUDE.md` ist angepasst.
+- **Zusammengesetztes wird gleich gezeigt**, aber nur, wenn kein geprüfter Eintrag passt.
+- **Eine Bestätigung reicht:** Bestätigt ein eingetragener Prüfer einen Satz, bekommt er das Schild „Muttersprachler“. Abweichende Fassungen aus anderen Orten werden zusätzlich mit Ort gespeichert.
+- Der Bereich heißt jetzt **„Übersetzer“** (Leiste, Überschrift, Kurzbefehl auf Android), die Adresse `#/uebersetzer`. Alte Links auf `#/woerterbuch` führen weiter. Im Code heißen Dateien und der Speicher `surayt.woerterbuch.v1` weiter wie bisher, damit nichts verloren geht.
+- **Drei Schilder** mit Symbol, Farbe und Text, damit sie auch ohne Farbsehen zu unterscheiden sind: „Lehrbuch“ (grün, Haken), „Muttersprachler“ (blaugrün, Haken), „Zusammengesetzt – nicht geprüft“ (orange, Warndreieck; in Listen kurz „Nicht geprüft“). Das bisherige Schild „Community“ geht in „Muttersprachler“ auf; Einträge mit `quelle: 'community'` bekommen dieses Schild. Orange bedeutet in der App jetzt immer „nicht geprüft“.
+- Wo die Schilder stehen: in jeder Trefferzeile vor „Satz · Lektion 3“, oben auf der Karte der Eintragsseite (darunter wie bisher die genaue Herkunft) und erklärt auf der Startseite des Übersetzers unter „Was die Schilder bedeuten“.

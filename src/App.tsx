@@ -35,7 +35,7 @@ export function App() {
       {route.name === 'karteikasten' && <KarteikastenScreen />}
       {route.name === 'kartenrunde' && <KartenrundeScreen key={hash} />}
       {route.name === 'rollenspiel' && <RollenspielScreen key={hash} nr={route.nr} />}
-      {route.name === 'woerterbuch' &&
+      {route.name === 'uebersetzer' &&
         (route.id ? <EintragScreen key={route.id} id={route.id} /> : <WoerterbuchScreen />)}
       <AudioHinweis />
     </>

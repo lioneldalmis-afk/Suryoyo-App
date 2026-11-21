@@ -1,19 +1,34 @@
-// Übersetzer / Schnell-Wörterbuch (Fahrplan, Phase 4): durchsucht den
-// Wortschatz, die Sätze aus Dialogen und Lesetexten und das Glossar aller
-// Lektionen – auf Deutsch und auf Surayt.
+// Übersetzer (Fahrplan, Phase 4 und 4b; bis November 2026 „Wörterbuch“):
+// durchsucht den Wortschatz, die Sätze aus Dialogen und Lesetexten, das
+// Glossar aller Lektionen und die Beispiele und Formen aus Grammatik,
+// Verb- und Formentabellen – auf Deutsch und auf Surayt.
 //
 // Die Suche ist tolerant: Sonderzeichen sind egal („slomo“ findet „šlomo“),
 // „sch“ oder „sh“ gehen für „š“, Wortteile und kleine Tippfehler werden
-// erkannt. Gefunden wird aber nur, was in den Daten steht – nichts wird
-// zusammengesetzt, übersetzt oder geraten.
+// erkannt. Gefunden wird aber nur, was in den Daten steht – hier wird nichts
+// zusammengesetzt, übersetzt oder geraten. Zusammensetzen darf nur der
+// Baukasten (Phase 4b), und was er baut, trägt immer das Schild
+// „Zusammengesetzt – nicht geprüft“.
 
 import { useEffect, useState } from 'react';
 import { alleLektionen, NUR_MIT_BILD } from '../data';
-import type { Eintrag, Glossar, Lektion, Quelle } from '../types';
+import type { Eintrag, Glossar, Grammatik, GrammatikEintrag, GrammatikSeite, Lektion, Quelle } from '../types';
 import { fold, kern, woerter, zerlege } from './text';
 
-/** Woher ein Fund in den Daten stammt. */
-export type Herkunft = 'wortschatz' | 'aussprache' | 'text' | 'einleitung' | 'glossar';
+/** Woher ein Fund in den Daten stammt; `formen` sind Verbkonjugation (Surcofo) und Formentabellen. */
+export type Herkunft = 'wortschatz' | 'aussprache' | 'text' | 'einleitung' | 'glossar' | 'grammatik' | 'formen';
+
+/** Wo ein Eintrag in Grammatik, Verb- oder Formentabellen steht. */
+export interface Stelle {
+  /** Kennung des Grammatik-Eintrags */
+  id: string;
+  /** Kapitelnummer der Seite, z. B. „1.4.3“ */
+  seite: string;
+  /** Block (Tabelle oder Absatz) auf der Seite */
+  block: number;
+  merkmal?: string;
+  verb?: string;
+}
 
 /** Ein Wort oder Satz im Wörterbuch. */
 export interface Fund {
@@ -31,7 +46,26 @@ export interface Fund {
   /** Alle Lektionen, in denen derselbe Eintrag (gleiche Schreibweise, gleiche Bedeutung) vorkommt. */
   lektionen: number[];
   sprecher?: string;
+  /** Wo derselbe Eintrag in Grammatik, Verb- oder Formentabellen steht. */
+  stellen?: Stelle[];
+  /** Beschriftung aus der Tabelle, z. B. „Präsens, Sg., 1. f.“ */
+  merkmal?: string;
+  /** Bei Verbformen das Verb, wie es das Lehrbuch vorstellt („goraš – grëšle“). */
+  verb?: string;
+  /** Kurz, woher aus der Grammatik: „Grammatik 4“, „Verbtabelle“, „Pronomina“. */
+  tabelle?: string;
 }
+
+/**
+ * Wie sicher eine Übersetzung ist – das Schild an jedem Treffer (Fahrplan, Phase 4b):
+ * `lehrbuch` steht wörtlich in Šlomo Surayt, `muttersprachler` hat ein Muttersprachler
+ * eingereicht oder bestätigt (und ein Mensch vor der Aufnahme geprüft),
+ * `zusammengesetzt` hat der Baukasten nach Lehrbuch-Regeln gebaut und niemand geprüft.
+ */
+export type Stufe = 'lehrbuch' | 'muttersprachler' | 'zusammengesetzt';
+
+/** Einträge aus den Daten sind immer geprüft; Zusammengesetztes steht nie in den Daten. */
+export const stufeVon = (f: Pick<Fund, 'quelle'>): Stufe => (f.quelle === 'community' ? 'muttersprachler' : 'lehrbuch');
 
 /** Ein durchsuchbarer Teil eines Fundes, schon zerlegt. */
 interface Feld {
@@ -40,6 +74,8 @@ interface Feld {
   sprache: 'sur' | 'de';
   /** Zusätze (Pluralformen, Klammern) zählen weniger als das Stichwort selbst. */
   gewicht: number;
+  /** Deutsche Verbform mit Person („ich schlafen“): Wortstämme zählen („schlafe“, „schläfst“ → „schlaf“). */
+  verb?: true;
 }
 
 export interface Woerterbuch {
@@ -50,6 +86,12 @@ export interface Woerterbuch {
   saetze: readonly Fund[];
   /** Ist das Glossar schon dabei? */
   mitGlossar: boolean;
+  /** Sind Grammatik, Verb- und Formentabellen schon dabei? */
+  mitGrammatik: boolean;
+  /** Die Seiten der Grammatik nach Kapitelnummer – für die Anzeige der Tabellen. */
+  seiten: ReadonlyMap<string, GrammatikSeite>;
+  /** Alle Formen eines Verbs („goraš – grëšle“ → Funde), in der Reihenfolge der Tabellen. */
+  gruppen: ReadonlyMap<string, Fund[]>;
   /**
    * Glossar-Wendungen, die ein Wort aus dem Wortschatz nur ausführlicher
    * beschreiben („aṯro, Pl. aṯrawoṯe – Heimat, Ort, Dorf, Land“ zu „aṯro – Heimat,
@@ -97,18 +139,127 @@ function feld(text: string, sprache: Feld['sprache'], gewicht: number): Feld[] {
 function felderVon(f: Fund): Feld[] {
   const kopf = f.herkunft === 'glossar' ? stichwort(f.latein) : f.latein;
   const rest = f.herkunft === 'glossar' ? f.latein.slice(kopf.length) : (f.hinweis ?? '');
-  return [
-    ...feld(kopf, 'sur', 1),
+  // Wortteile aus der Grammatik („goraš-“, „-ayḏi“) sind keine ganzen Wörter und zählen etwas weniger.
+  const teil = /(^-|-$|-,)/.test(f.latein);
+  const felder = [
+    ...feld(kopf, 'sur', teil ? 0.85 : 1),
     ...feld(rest, 'sur', 0.7),
-    ...feld(f.deutsch.replace(/\([^)]*\)/g, ' '), 'de', 1),
+    ...feld(f.deutsch.replace(/\([^)]*\)/g, ' '), 'de', teil ? 0.6 : 1),
     ...feld(klammern(f.deutsch), 'de', 0.6),
   ];
+  // Verbformen: „ich schlafe“ findet die Form für „ich“ (Person aus der Beschriftung der Tabelle).
+  const wer = f.verb ? person(f.merkmal) : undefined;
+  if (wer) for (const x of feld(`${wer.pronomen} ${f.deutsch.replace(/\([^)]*\)/g, ' ')}`, 'de', 1)) felder.push({ ...x, verb: true });
+  return felder;
+}
+
+// --- Person einer Verbform -------------------------------------------------------
+
+/**
+ * Welche Person eine Verbform hat, gelesen aus der Beschriftung der Tabelle
+ * („Präsens, Sg., 1. f.“ → ich, weiblich). Fehlt die Zahl oder sind es zwei
+ * Personen (Subjekt und Objekt), bleibt es offen.
+ */
+export function person(merkmal: string | undefined): { pronomen: string; klar: string } | undefined {
+  if (!merkmal || /Subjekt|Objekt/.test(merkmal)) return undefined;
+  const personen = [...new Set([...merkmal.matchAll(/(?:^|[\s,/])([123])\.(?=\s|,|$)/g)].map((m) => m[1]))];
+  const sg = /\b(?:Sg|sg)\.|Singular/.test(merkmal);
+  const pl = /\b(?:Pl|pl)\.|Plural/.test(merkmal);
+  if (personen.length !== 1 || sg === pl) return undefined;
+  const geschlechter = new Set([...merkmal.matchAll(/(?:\(|\b)([mf])\.(?:\))?(?!\s?(?:Sg|Pl))/g)].map((m) => m[1]));
+  const g = geschlechter.size === 1 ? [...geschlechter][0] : undefined;
+  const mw = g === 'm' ? ', männlich' : g === 'f' ? ', weiblich' : '';
+  switch (`${personen[0]}${sg ? 's' : 'p'}`) {
+    case '1s':
+      return { pronomen: 'ich', klar: `ich${mw}` };
+    case '2s':
+      return { pronomen: 'du', klar: `du${mw}` };
+    case '3s':
+      return g === 'm'
+        ? { pronomen: 'er', klar: 'er' }
+        : g === 'f'
+          ? { pronomen: 'sie', klar: 'sie (eine Person)' }
+          : { pronomen: 'er sie es', klar: 'er, sie, es' };
+    case '1p':
+      return { pronomen: 'wir', klar: 'wir' };
+    case '2p':
+      return { pronomen: 'ihr', klar: 'ihr' };
+    default:
+      return { pronomen: 'sie', klar: 'sie (mehrere)' };
+  }
+}
+
+/**
+ * Die Beschriftungen gleicher Formen zusammenfassen: „Präsens, Sg., 2. m.“ und
+ * „Präsens, Sg., 2. f.“ → „Präsens, Sg., 2. m. / 2. f.“
+ */
+export function merkmaleZusammen(merkmale: readonly string[]): string | undefined {
+  const liste = [...new Set(merkmale.filter(Boolean))];
+  if (liste.length <= 1) return liste[0];
+  const teile = liste.map((m) => m.split(', '));
+  let gleich = 0;
+  while (teile.every((t) => t.length > gleich + 1 && t[gleich] === teile[0][gleich])) gleich++;
+  const vorne = teile[0].slice(0, gleich);
+  return [...vorne, teile.map((t) => t.slice(gleich).join(', ')).join(' / ')].join(', ');
 }
 
 // --- Wörterbuch aufbauen -------------------------------------------------------
 
-/** Welcher von zwei gleichen Einträgen gezeigt wird: Wortschatz vor Beispielen, Sätzen und Glossar. */
-const RANG: Record<Herkunft, number> = { wortschatz: 0, aussprache: 1, text: 2, einleitung: 2, glossar: 3 };
+/** Welcher von zwei gleichen Einträgen gezeigt wird: Wortschatz vor Beispielen, Sätzen, Grammatik, Glossar und Formentabellen. */
+const RANG: Record<Herkunft, number> = { wortschatz: 0, aussprache: 1, text: 2, einleitung: 2, grammatik: 3, glossar: 4, formen: 5 };
+
+/**
+ * Die Stelle, nach der ein Fund beschriftet und gezeigt wird: Verbformen nach
+ * der Verb- oder Formentabelle (dort stehen alle Personen und Zeitformen
+ * einheitlich beschriftet), alles andere nach der Grammatik der Lektion (dort
+ * mit Aufnahmen und Erklärung).
+ */
+export function hauptStelle(f: Pick<Fund, 'stellen'>, seiten: ReadonlyMap<string, GrammatikSeite>): Stelle | undefined {
+  const stellen = f.stellen ?? [];
+  const verb = stellen.some((st) => st.verb);
+  const reihe: GrammatikSeite['art'][] = verb ? ['verben', 'formen', 'grammatik'] : ['grammatik', 'verben', 'formen'];
+  const rang = (st: Stelle) => reihe.indexOf(seiten.get(st.seite)?.art ?? 'grammatik');
+  return [...stellen].sort((a, b) => rang(a) - rang(b))[0];
+}
+
+/** Beschriftung und Verb eines Fundes aus seinen Stellen (siehe `hauptStelle`). */
+function ausStellen(f: Fund, seiten: ReadonlyMap<string, GrammatikSeite>): Fund {
+  const stellen = f.stellen ?? [];
+  const beste = hauptStelle(f, seiten);
+  if (!beste) return f;
+  const dort = stellen.filter((st) => st.seite === beste.seite && st.block === beste.block);
+  const merkmal = merkmaleZusammen(dort.map((st) => st.merkmal ?? ''));
+  const verb = stellen.find((st) => st.verb)?.verb;
+  const neu: Fund = { ...f };
+  const seite = seiten.get(beste.seite);
+  if (seite) neu.tabelle = seite.art === 'verben' ? 'Verbtabelle' : seite.titel;
+  if (merkmal) neu.merkmal = merkmal;
+  else delete neu.merkmal;
+  if (verb) neu.verb = verb;
+  return neu;
+}
+
+function ausGrammatik(e: GrammatikEintrag, seite: GrammatikSeite, seiten: ReadonlyMap<string, GrammatikSeite>): Fund {
+  const stelle: Stelle = { id: e.id, seite: seite.id, block: e.block };
+  if (e.merkmal) stelle.merkmal = e.merkmal;
+  if (e.verb) stelle.verb = e.verb;
+  return ausStellen(
+    {
+      id: e.id,
+      latein: e.latein,
+      ...(e.hinweis ? { hinweis: e.hinweis } : {}),
+      deutsch: e.deutsch,
+      ...(e.audio ? { audio: e.audio } : {}),
+      art: e.art,
+      quelle: e.quelle,
+      herkunft: seite.art === 'grammatik' ? 'grammatik' : 'formen',
+      ...(e.lektion ? { lektion: e.lektion } : {}),
+      lektionen: e.lektion ? [e.lektion] : [],
+      stellen: [stelle],
+    },
+    seiten,
+  );
+}
 
 const ausEintrag = (e: Eintrag, herkunft: Herkunft): Fund => ({
   id: e.id,
@@ -134,7 +285,8 @@ function abgedeckt(a: string, b: string): boolean {
   return wa.length > 0 && wa.every((w) => wb.has(w));
 }
 
-export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar): Woerterbuch {
+export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar, grammatik?: Grammatik): Woerterbuch {
+  const seiten = new Map((grammatik?.seiten ?? []).map((s) => [s.id, s]));
   const funde: Fund[] = [];
   const nachId = new Map<string, Fund>();
   const nachSchluessel = new Map<string, Fund>();
@@ -155,8 +307,10 @@ export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar
       (RANG[f.herkunft] === RANG[da.herkunft] && !!f.hinweis && !da.hinweis) ||
       (!!f.audio && !da.audio);
     const sieger = besser ? f : da;
-    const zusammen: Fund = { ...sieger, audio: sieger.audio ?? da.audio ?? f.audio, lektionen: lektionenZusammen };
+    let zusammen: Fund = { ...sieger, audio: sieger.audio ?? da.audio ?? f.audio, lektionen: lektionenZusammen };
     if (!zusammen.audio) delete zusammen.audio;
+    const stellen = [...(da.stellen ?? []), ...(f.stellen ?? [])];
+    if (stellen.length) zusammen = ausStellen({ ...zusammen, stellen }, seiten);
     funde[funde.indexOf(da)] = zusammen;
     nachSchluessel.set(k, zusammen);
     for (const [id, x] of nachId) if (x === da) nachId.set(id, zusammen);
@@ -173,6 +327,12 @@ export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar
   for (const l of lektionen) {
     for (const e of l.einleitung) if (!e.tags.includes(NUR_MIT_BILD)) aufnehmen(ausEintrag(e, 'einleitung'));
     for (const e of l.text) if (!e.tags.includes(NUR_MIT_BILD)) aufnehmen(ausEintrag(e, 'text'));
+  }
+
+  // Grammatik vor dem Glossar: Glossar-Wendungen, die eine Grammatik-Form nur wiederholen,
+  // fallen dann weg, und das Glossar findet dort weitere Aufnahmen.
+  for (const seite of grammatik?.seiten ?? []) {
+    for (const e of seite.eintraege) aufnehmen(ausGrammatik(e, seite, seiten));
   }
 
   if (glossar) {
@@ -232,11 +392,21 @@ export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar
     imGlossar.set(w, [...(imGlossar.get(w) ?? []), g]);
   }
 
+  // Alle Formen eines Verbs, damit die Trefferliste nicht von 18 gleichbedeutenden Formen überläuft.
+  const gruppen = new Map<string, Fund[]>();
+  for (const f of funde) {
+    if (f.verb) gruppen.set(f.verb, [...(gruppen.get(f.verb) ?? []), f]);
+  }
+
   return {
     funde,
     nachId,
-    saetze: funde.filter((f) => f.herkunft === 'text' || f.herkunft === 'einleitung'),
+    // Beispielsätze: aus den Texten der Lektionen und die Beispiele der Grammatik
+    saetze: funde.filter((f) => f.herkunft === 'text' || f.herkunft === 'einleitung' || (f.herkunft === 'grammatik' && f.art === 'satz')),
     mitGlossar: !!glossar,
+    mitGrammatik: !!grammatik,
+    seiten,
+    gruppen,
     zwilling,
     imGlossar,
     felder: new Map(funde.map((f) => [f, felderVon(f)])),
@@ -312,6 +482,19 @@ function passt(gesucht: string, wort: string): number {
   return 0;
 }
 
+/** Deutsche Verbendungen: „schlafe“, „schläfst“, „schläft“, „schlafen“ haben denselben Stamm „schlaf“. */
+const stamm = (w: string) => (w.length >= 4 ? w.replace(/(?:est|en|st|et|e|n|t)$/, '') : w);
+const gleicherStamm = (a: string, b: string) => {
+  const x = stamm(a);
+  return x.length >= 3 && x === stamm(b);
+};
+
+/** Fragt die Suche nach einer Person („ich schlafe“)? Dann zählen die Formen für diese Person. */
+const PRONOMEN = /(?:^|[^a-z])(ich|du|er|sie|es|wir|ihr)(?:$|[^a-z])/;
+
+/** Die Grundform eines Verbs ist die erste Form, mit der es das Lehrbuch vorstellt („goraš“ in „goraš – grëšle“). */
+export const istGrundform = (f: Fund) => !!f.verb && f.verb.split(/\s+[–-]\s+/)[0] === f.latein;
+
 /** Wie `passt`, aber mit Tippfehlern: „tawdy“ → „tawdi“. Solche Treffer sind nur ähnlich geschrieben. */
 function passtUngefaehr(gesucht: string, wort: string): number {
   const erlaubt = gesucht.length >= 7 ? 2 : gesucht.length >= 4 ? 1 : 0;
@@ -360,7 +543,7 @@ function feldWert(s: Suchwort, f: Feld, mitTippfehlern: boolean): Bewertung {
     let wo = -1;
     let tippfehler = false;
     f.woerter.forEach((wort, i) => {
-      const p = passt(gesucht, wort);
+      const p = Math.max(passt(gesucht, wort), f.verb && gleicherStamm(gesucht, wort) ? 0.9 : 0);
       if (p > best) [best, wo, tippfehler] = [p, i, false];
     });
     if (mitTippfehlern && best < 1) {
@@ -421,11 +604,16 @@ function durchsuche(wb: Woerterbuch, anfrage: string, mitTippfehlern: boolean): 
         if (b.wert > best.wert) best = b;
       }
     }
-    if (best.wert >= MINDESTENS) treffer.push({ fund, wert: best.wert + (fund.audio ? 0.02 : 0), ungefaehr: best.ungefaehr });
+    if (best.wert >= MINDESTENS) {
+      // Die Grundform eines Verbs steht vor seinen übrigen Formen.
+      const bonus = (fund.audio ? 0.02 : 0) + (istGrundform(fund) ? 0.005 : 0);
+      treffer.push({ fund, wert: best.wert + bonus, ungefaehr: best.ungefaehr });
+    }
   }
   const bester = Math.max(0, ...treffer.map((t) => t.wert));
   const gefunden = new Set(treffer.map((t) => t.fund));
-  return treffer
+  const ausTabelle = (f: Fund) => f.herkunft === 'grammatik' || f.herkunft === 'formen';
+  const sortiert = treffer
     .filter((t) => t.wert >= bester * ABSTAND_ZUM_BESTEN)
     // Steht das Wort selbst schon da, braucht es seinen Glossar-Zwilling nicht auch noch.
     .filter((t) => !gefunden.has(wb.zwilling.get(t.fund)!))
@@ -434,9 +622,20 @@ function durchsuche(wb: Woerterbuch, anfrage: string, mitTippfehlern: boolean): 
         b.wert - a.wert ||
         Number(a.fund.art === 'satz') - Number(b.fund.art === 'satz') ||
         RANG[a.fund.herkunft] - RANG[b.fund.herkunft] ||
-        a.fund.latein.length - b.fund.latein.length ||
+        // Formen aus Tabellen bleiben in der Reihenfolge der Tabelle.
+        (ausTabelle(a.fund) && ausTabelle(b.fund) ? 0 : a.fund.latein.length - b.fund.latein.length) ||
         (a.fund.lektion ?? 99) - (b.fund.lektion ?? 99),
     );
+  // Von einem Verb nur die Grundform – außer die Suche nennt eine Person, dann deren Formen.
+  const mitPerson = PRONOMEN.test(roh);
+  const proVerb = new Map<string, number>();
+  return sortiert.filter((t) => {
+    if (!t.fund.verb) return true;
+    const n = proVerb.get(t.fund.verb) ?? 0;
+    if (n >= (mitPerson ? 6 : 1)) return false;
+    proVerb.set(t.fund.verb, n + 1);
+    return true;
+  });
 }
 
 export interface Suchergebnis {
@@ -515,18 +714,18 @@ export function woerterImSatz(wb: Woerterbuch, satz: Fund, hoechstens = 8): Fund
 
 // --- Laden ---------------------------------------------------------------------
 
-// Das Glossar ist groß und wird erst geladen, wenn man das Wörterbuch öffnet.
-// Es steckt trotzdem in der App und ist offline da (der Service Worker legt
-// alle Teile der App beim Installieren ab).
-let ohneGlossar: Woerterbuch | null = null;
-let mitGlossar: Woerterbuch | null = null;
+// Glossar und Grammatik sind groß und werden erst geladen, wenn man den
+// Übersetzer öffnet. Sie stecken trotzdem in der App und sind offline da (der
+// Service Worker legt alle Teile der App beim Installieren ab).
+let ohneZusatz: Woerterbuch | null = null;
+let mitZusatz: Woerterbuch | null = null;
 let laden: Promise<Woerterbuch> | null = null;
 
-const grundbestand = () => (ohneGlossar ??= baueWoerterbuch(alleLektionen));
+const grundbestand = () => (ohneZusatz ??= baueWoerterbuch(alleLektionen));
 
-function ladeGlossar(): Promise<Woerterbuch> {
-  laden ??= import('../data/glossar-a.json')
-    .then((m) => (mitGlossar = baueWoerterbuch(alleLektionen, m.default as Glossar)))
+function ladeZusatz(): Promise<Woerterbuch> {
+  laden ??= Promise.all([import('../data/glossar-a.json'), import('../data/grammatik.json')])
+    .then(([g, gr]) => (mitZusatz = baueWoerterbuch(alleLektionen, g.default as Glossar, gr.default as unknown as Grammatik)))
     .catch(() => {
       laden = null; // beim nächsten Öffnen nochmal versuchen
       return grundbestand();
@@ -534,13 +733,13 @@ function ladeGlossar(): Promise<Woerterbuch> {
   return laden;
 }
 
-/** Das Wörterbuch für die Oberfläche: sofort mit den Lektionen, kurz danach auch mit dem Glossar. */
+/** Das Wörterbuch für die Oberfläche: sofort mit den Lektionen, kurz danach auch mit Glossar und Grammatik. */
 export function useWoerterbuch(): Woerterbuch {
-  const [wb, setWb] = useState(() => mitGlossar ?? grundbestand());
+  const [wb, setWb] = useState(() => mitZusatz ?? grundbestand());
   useEffect(() => {
-    if (mitGlossar) return;
+    if (mitZusatz) return;
     let aktiv = true;
-    void ladeGlossar().then((neu) => {
+    void ladeZusatz().then((neu) => {
       if (aktiv) setWb(neu);
     });
     return () => {
