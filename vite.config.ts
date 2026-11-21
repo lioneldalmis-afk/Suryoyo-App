@@ -7,7 +7,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   base: './',
   // Alle Lektionen stecken bewusst mit im App-Code, damit sie offline da sind
-  // (etwa 160 KB komprimiert). Die Standardwarnung ab 500 KB ist deshalb höher gesetzt.
+  // (etwa 190 KB komprimiert). Die Standardwarnung ab 500 KB ist deshalb höher gesetzt.
+  // Das Glossar fürs Wörterbuch ist ein eigener Teil (etwa 60 KB), der erst beim
+  // Öffnen des Wörterbuchs geladen wird; der Service Worker legt ihn trotzdem ab.
   build: { chunkSizeWarningLimit: 1200 },
   plugins: [
     react(),
@@ -29,6 +31,16 @@ export default defineConfig({
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        // Langes Drücken auf das App-Symbol (Android): direkt ins Wörterbuch.
+        shortcuts: [
+          {
+            name: 'Wörterbuch',
+            short_name: 'Wörterbuch',
+            description: 'Wort oder Satz nachschlagen',
+            url: './#/woerterbuch',
+            icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+          },
         ],
       },
       workbox: {

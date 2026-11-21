@@ -2916,3 +2916,444 @@ button.art {
   font-weight: 800;
   color: var(--marke);
 }
+
+/* --- Leiste mit den Hauptbereichen ----------------------------------------- */
+
+.seite--leiste {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+.leiste {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  max-width: 560px;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--linie);
+  background: var(--flaeche);
+  transform: translateX(-50%);
+}
+
+.leiste a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px 4px;
+  border-radius: 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tinte-leise);
+  text-decoration: none;
+}
+
+.leiste a:active {
+  background: #f4efe6;
+}
+
+.leiste .leiste__aktiv {
+  color: var(--marke);
+}
+
+.leiste__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 32px;
+  border-radius: 99px;
+}
+
+.leiste__aktiv .leiste__icon {
+  background: var(--marke-hell);
+}
+
+.leiste__zahl {
+  position: absolute;
+  top: -4px;
+  right: 2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--sonne);
+  color: var(--tinte);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* Beim Tippen braucht die Tastatur den Platz. */
+.woerterbuch:has(input:focus) .leiste {
+  display: none;
+}
+
+/* Kopfzeile eines Hauptbereichs: kein Zurück-Pfeil */
+.kopf--bereich {
+  padding-left: 22px;
+}
+
+/* --- Wörterbuch ------------------------------------------------------------ */
+
+.suche {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  padding: 6px 16px 10px;
+  background: var(--papier);
+}
+
+.suche > svg {
+  position: absolute;
+  left: 32px;
+  color: var(--tinte-leise);
+  pointer-events: none;
+}
+
+.suche input {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  padding: 0 48px 0 50px;
+  border: 2px solid var(--linie);
+  border-radius: 18px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  font-size: 1.1rem;
+  appearance: none;
+}
+
+.suche input:focus {
+  outline: none;
+  border-color: var(--marke);
+}
+
+.suche input::placeholder {
+  color: #8d91a3;
+}
+
+.suche input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.suche__weg {
+  position: absolute;
+  right: 22px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--tinte-leise);
+}
+
+.woerterbuch__inhalt {
+  padding: 8px 16px 0;
+}
+
+.woerterbuch__inhalt > .zwischentitel:first-child,
+.woerterbuch__inhalt > section:first-child > .zwischentitel,
+.woerterbuch__inhalt > section:first-child > .zwischenzeile .zwischentitel {
+  margin-top: 10px;
+}
+
+.offline {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--sonne-hell);
+  font-size: 0.88rem;
+}
+
+.zwischenzeile {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.leise {
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tinte-leise);
+}
+
+.fund {
+  padding: 8px 0 8px 12px;
+}
+
+.fund__still {
+  flex: none;
+  width: 46px;
+}
+
+.fund__link {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  padding: 3px 14px 3px 0;
+  color: var(--tinte);
+  text-decoration: none;
+}
+
+.fund__link > svg {
+  flex: none;
+  color: #b3ad9f;
+}
+
+.fund__link:active .wort__text {
+  opacity: 0.6;
+}
+
+.fund__wo {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8d91a3;
+}
+
+.nichts {
+  margin-bottom: 16px;
+  padding: 18px;
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  color: #3c4157;
+}
+
+.nichts__titel {
+  margin-bottom: 4px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--tinte);
+}
+
+.einzeln + .einzeln {
+  margin-top: 14px;
+}
+
+.einzeln__wort {
+  margin: 0 4px 6px;
+  font-weight: 700;
+}
+
+.tipps ul {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px 16px 34px;
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  list-style: disc;
+  font-size: 0.93rem;
+  color: #3c4157;
+}
+
+.tipps li::marker {
+  color: var(--marke);
+}
+
+.tipps__zahl {
+  margin: 12px 4px 0;
+  font-size: 0.82rem;
+  color: var(--tinte-leise);
+}
+
+.tipps__zahl a {
+  color: inherit;
+}
+
+/* Wort anfragen */
+
+.anfrage {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: var(--rund);
+  background: var(--marke-hell);
+  color: #33307a;
+}
+
+.anfrage--fertig {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  background: var(--richtig-hell);
+  color: #0d5b3c;
+}
+
+.anfrage__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--richtig);
+  color: #fff;
+}
+
+.anfrage__link {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  color: var(--tinte-leise);
+  font-size: 0.93rem;
+  text-align: center;
+}
+
+.anfrage__link strong {
+  color: var(--marke);
+}
+
+.feld {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.93rem;
+  color: var(--tinte);
+}
+
+.feld em {
+  font-weight: 400;
+  font-style: normal;
+  color: var(--tinte-leise);
+}
+
+.feld input {
+  height: 50px;
+  padding: 0 14px;
+  border: 2px solid #d6d2fb;
+  border-radius: 14px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.feld input:focus {
+  outline: none;
+  border-color: var(--marke);
+}
+
+.anfrage__klein {
+  font-size: 0.82rem;
+}
+
+.anfragen .wort {
+  padding-left: 16px;
+}
+
+.anfragen__weg {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--tinte-leise);
+}
+
+/* Ein Eintrag */
+
+.eintrag__inhalt {
+  padding: 6px 16px 0;
+}
+
+.eintrag__karte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 20px 22px;
+  border-radius: 26px;
+  background: var(--flaeche);
+  box-shadow: var(--schatten);
+  text-align: center;
+}
+
+.eintrag__wer {
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--tinte-leise);
+}
+
+.eintrag__sur {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.eintrag--satz .eintrag__sur {
+  font-size: 1.5rem;
+}
+
+.eintrag__hinweis {
+  margin-top: 4px;
+  color: var(--tinte-leise);
+}
+
+.eintrag__de {
+  margin: 12px 0 22px;
+  font-size: 1.2rem;
+  color: #3c4157;
+}
+
+.eintrag__tipp {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--tinte-leise);
+}
+
+.herkunft {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--rund);
+  background: #f3eee5;
+  font-size: 0.9rem;
+  color: #3c4157;
+}
+
+.herkunft__marke {
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: var(--see);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.herkunft--community .herkunft__marke {
+  background: var(--sonne-dunkel);
+}
+
+.herkunft__klein {
+  font-size: 0.82rem;
+  color: var(--tinte-leise);
+}
+
+.herkunft .knopf {
+  margin-top: 4px;
+  box-shadow:
+    inset 0 0 0 2px var(--linie),
+    0 3px 0 var(--linie);
+}

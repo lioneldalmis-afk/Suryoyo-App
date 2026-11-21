@@ -158,7 +158,8 @@ describe('Übungsrunde einer Einheit', () => {
         expect(runde.length, `Lektion ${l.nr}, Einheit ${einheit.nr}`).toBeLessThanOrEqual(30);
       }
     }
-  });
+    // Baut alle gut 300 Einheiten: braucht auf dem GitHub-Rechner länger als die üblichen 5 Sekunden.
+  }, 30_000);
 });
 
 describe('Satz bauen', () => {

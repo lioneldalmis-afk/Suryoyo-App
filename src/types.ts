@@ -92,3 +92,26 @@ export interface KursLektion {
   deutsch: string;
   syrisch: string;
 }
+
+/** Eine Wendung aus dem Glossar A (Kunoš mele), wörtlich aus dem Lehrbuch. */
+export interface GlossarTeil {
+  latein: string;
+  deutsch: string;
+  syrisch: string;
+  /** Lektionen, auf die das Glossar verweist (kann leer sein). */
+  lektionen: number[];
+}
+
+/** Eine Zeile des Glossars; sie kann mehrere Wendungen bündeln (`teile`). */
+export interface GlossarEintrag {
+  id: string;
+  /** Die ganze Zeile, wie sie im Lehrbuch steht. */
+  voll: { latein: string; deutsch: string; syrisch: string };
+  lektionen: number[];
+  teile: GlossarTeil[];
+}
+
+export interface Glossar {
+  quelle: { name: string; url: string; abgerufen: string };
+  eintraege: GlossarEintrag[];
+}

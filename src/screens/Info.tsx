@@ -48,6 +48,11 @@ export function InfoScreen() {
           Beim Nachsprechen nimmt die App deine Stimme nur auf, damit du sie mit dem Original vergleichen kannst.
           Die Aufnahme bleibt auf dem Handy, wird nirgends hochgeladen und ist weg, sobald die Aufgabe vorbei ist.
         </p>
+        <p>
+          Was du im Wörterbuch nachschlägst und welche Wörter du anfragst, bleibt ebenfalls auf dem Handy. Anfragen
+          werden erst verschickt, wenn die App Einreichungen annehmen kann – dann nur das Wort und die Situation, ohne
+          Namen.
+        </p>
 
         <h2>Einstellungen</h2>
         <label className="schalter schalter--zeile">

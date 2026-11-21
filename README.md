@@ -21,9 +21,10 @@ Neue Versionen kommen von selbst: Einfach die App schließen und neu öffnen. Di
 2. Beim Nachsprechen am Ende einer Einheit das Mikrofon erlauben, sich aufnehmen und mit dem Original vergleichen.
 3. In Lektion 3 unter „Üben“ das **Rollenspiel** starten, z. B. als Afrem.
 4. Oben auf der Startseite die Flamme antippen: „Deine Erfolge“ mit Serie, Tagesziel und Abzeichen.
-5. Am nächsten Tag wiederkommen: Auf der Startseite zeigt der **Karteikasten**, wie viele Karten dran sind. Erst überlegen, dann aufdecken und ehrlich bewerten: „Nicht gewusst“, „Knapp“ oder „Gewusst“.
+5. Unten auf **Wörterbuch** tippen und etwas nachschlagen – auf Deutsch („Danke“, „Wie geht es dir?“) oder auf Surayt, auch ohne Sonderzeichen („slomo“). Einen Treffer antippen: großer Lautsprecher zum Vorspielen, Herkunft und Beispielsatz. Etwas suchen, das fehlt, und „Wort anfragen“ ausprobieren.
+6. Am nächsten Tag wiederkommen: Unten unter **Karteikasten** steht, wie viele Karten dran sind. Erst überlegen, dann aufdecken und ehrlich bewerten: „Nicht gewusst“, „Knapp“ oder „Gewusst“.
 
-**Fragen fürs Feedback:** Sind die Einheiten zu lang oder zu kurz? Klappen Audio und Mikrofon? Ist irgendwo unklar, was man tun soll? Klingt beim Nachsprechen etwas komisch?
+**Fragen fürs Feedback:** Sind die Einheiten zu lang oder zu kurz? Klappen Audio und Mikrofon? Ist irgendwo unklar, was man tun soll? Klingt beim Nachsprechen etwas komisch? Findet das Wörterbuch, was man sucht – und welche Wörter fehlen?
 
 Der Lernstand bleibt nur auf dem jeweiligen Handy. Zum Neuanfangen: „Über die App“ → „Lernstand zurücksetzen“.
 
@@ -40,8 +41,9 @@ Prototyp mit allen 16 Lektionen aus Level A des Lehrbuchs *Šlomo Surayt*:
 - Der Fortschritt wird nach jeder Antwort gespeichert; eine abgebrochene Einheit geht beim nächsten Mal an derselben Stelle weiter
 - XP, Tagesziel, Tagesserie und Abzeichen – bewusst ohne „Leben“, Fehler kosten nichts
 - Satz der Woche für den Familientisch (sobald die Familientisch-Liste geprüft ist)
+- Wörterbuch Deutsch ↔ Surayt mit gut 2.100 Wörtern und Sätzen aus den Lektionen und dem Glossar des Lehrbuchs: findet auch ohne Sonderzeichen („slomo“ → „šlomo“), mit „sch“/„sh“, Wortteilen und Tippfehlern; großer Lautsprecher zum Vorspielen, Herkunft und Beispielsatz; geht offline. Keine KI-Übersetzung – was fehlt, lässt sich anfragen (die Anfragen werden bis zu Phase 5 auf dem Gerät gesammelt)
 - Lernstand wird auf dem Gerät gespeichert, ohne Konto
-- Läuft offline (bis auf das Audio, das von der Lehrbuch-Website kommt)
+- Läuft offline, auch das Wörterbuch (bis auf das Audio, das von der Lehrbuch-Website kommt)
 
 ## Woher die Inhalte kommen
 
@@ -75,11 +77,11 @@ npm run build
 
 | Ort | Inhalt |
 |---|---|
-| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-01.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext bzw. Aussprache, Wortschatz, Audio-Links), `glossar-a.json` (Glossar für den späteren Übersetzer) |
+| `src/data/` | Die Inhalte als JSON: `kurs.json` (Lernpfad), `lektion-01.json` bis `lektion-16.json` (Einleitung, Dialog oder Lesetext bzw. Aussprache, Wortschatz, Audio-Links), `glossar-a.json` (Glossar A, fürs Wörterbuch) |
 | `inhalte/` | Listen zum Prüfen durch Menschen, z. B. die Familientisch-Sätze |
-| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Einheiten und Karteikasten-Runden (`einheiten.ts`), falsche Antwortmöglichkeiten (`ablenker.ts`), Lernstand und Karteikasten (`progress.ts`), XP, Serie und Satz der Woche (`motivation.ts`), Abzeichen (`abzeichen.ts`), Rollenspiel (`rollenspiel.ts`), eigene Aufnahme (`aufnahme.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
-| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Karteikasten, Rollenspiel, Erfolge, Über die App |
-| `src/components/` | Bausteine wie Lautsprecher-Knopf und die Übungsaufgaben |
+| `src/lib/` | Logik ohne Oberfläche: Übungen erzeugen (`session.ts`), Einheiten und Karteikasten-Runden (`einheiten.ts`), falsche Antwortmöglichkeiten (`ablenker.ts`), Lernstand und Karteikasten (`progress.ts`), XP, Serie und Satz der Woche (`motivation.ts`), Abzeichen (`abzeichen.ts`), Wörterbuch-Suche (`woerterbuch.ts`), zuletzt Nachgeschlagenes und Wortanfragen (`nachschlagen.ts`), Rollenspiel (`rollenspiel.ts`), eigene Aufnahme (`aufnahme.ts`), Audio (`audio.ts`), Adressen (`router.ts`) |
+| `src/screens/` | Die Bildschirme: Start, Lektion, Übungsrunde, Karteikasten, Wörterbuch, Rollenspiel, Erfolge, Über die App |
+| `src/components/` | Bausteine wie Lautsprecher-Knopf, Leiste am unteren Rand und die Übungsaufgaben |
 | `src/styles.css` | Die gesamte Gestaltung; Farben stehen oben als Variablen |
 | `scripts/` | Einlesen der Lehrbuch-Website (`extract-lesson.mjs` mit den Modulen `lektion.mjs`, `alphabet.mjs`, `glossar.mjs`) und Übernahme der Familientisch-Häkchen |
 

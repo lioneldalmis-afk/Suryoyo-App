@@ -165,3 +165,18 @@ export const IconZiel = ({ size }: P) => (
     <circle cx="12" cy="12" r="1" fill="currentColor" />
   </Icon>
 );
+
+export const IconLupe = ({ size }: P) => (
+  <Icon size={size}>
+    <circle cx="10.5" cy="10.5" r="6" />
+    <path d="m15 15 5 5" />
+  </Icon>
+);
+
+export const IconFrage = ({ size }: P) => (
+  <Icon size={size}>
+    <path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4 3.5v-3.5h-.5a2 2 0 0 1-2-2v-8z" />
+    <path d="M10 8.8a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.3" />
+    <circle cx="12" cy="14" r="0.6" fill="currentColor" />
+  </Icon>
+);

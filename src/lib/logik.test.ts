@@ -277,7 +277,8 @@ describe('Antwortmöglichkeiten', () => {
         expect(optionenFuer(ziel, reihe, zufall(7)), ziel.id).toHaveLength(ziel.art === 'satz' ? 3 : 4);
       }
     }
-  });
+    // Prüft jeden Eintrag aller Lektionen: braucht auf dem GitHub-Rechner länger als die üblichen 5 Sekunden.
+  }, 30_000);
 });
 
 describe('Freies Üben', () => {
