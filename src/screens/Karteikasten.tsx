@@ -2,7 +2,8 @@
 // Hier sieht man, was heute dran ist, wie voll die Fächer sind und wie das
 // Lernen mit dem Kasten funktioniert.
 
-import { IconKarten, IconZurueck } from '../components/Icons';
+import { IconKarten } from '../components/Icons';
+import { Leiste } from '../components/Leiste';
 import { alleLektionen } from '../data';
 import { entsperren } from '../lib/audio';
 import { karteikasten } from '../lib/einheiten';
@@ -27,11 +28,8 @@ export function KarteikastenScreen() {
   const sitzen = k.faecher.slice(SITZT).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="seite kasten">
-      <header className="kopf">
-        <a className="kopf__zurueck" href={href({ name: 'start' })} aria-label="Zurück zum Lernpfad">
-          <IconZurueck />
-        </a>
+    <div className="seite seite--leiste kasten">
+      <header className="kopf kopf--bereich">
         <div className="kopf__titel">
           <h1>Karteikasten</h1>
           <span>
@@ -122,6 +120,8 @@ export function KarteikastenScreen() {
           </ol>
         </section>
       </main>
+
+      <Leiste aktiv="karteikasten" />
     </div>
   );
 }

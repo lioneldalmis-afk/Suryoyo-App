@@ -1,6 +1,6 @@
 # Fahrplan: Surayt-Lern-App
 
-*Stand: 16.11.2026 · Dieses Dokument ist unser gemeinsamer Fahrplan. In jedem neuen Chat dieses Projekts reicht: „Weiter mit Phase X, Schritt Y". Erledigtes wird hier abgehakt.*
+*Stand: 21.11.2026 · Dieses Dokument ist unser gemeinsamer Fahrplan. In jedem neuen Chat dieses Projekts reicht: „Weiter mit Phase X, Schritt Y". Erledigtes wird hier abgehakt.*
 
 ---
 
@@ -133,7 +133,7 @@
 - [x] Extraktions-Skript: Dialoge, Wortschatz und Audio-Links jeder Lektion → JSON im einheitlichen Format. *Kommt mit allen Lektionsformaten zurecht (Dialog oder Lesetext, Bildtafeln) und liest mehrere Lektionen in einem Lauf: `npm run extract -- 3-16`.*
 - [x] Lektionen 4–16 einpflegen. *Alle 14 Lektionen (3–16) sind in der App: 1.288 Wörter, 260 Text- und Dialogzeilen und 58 Einleitungssätze, alle mit Audio und syrischer Schrift.*
 - [x] Lektionen 1–2 als kurzer **Aussprache-Guide**: Was bedeuten š, ṭ, ḥ, c, ë? Jeweils mit Audio. *Lektion 1 „Alphabet“: die 37 Buchstaben der Umschrift (antippen führt zur Erklärung), die 22 syrischen Buchstaben mit Namen zum Anhören und die neuen Buchstaben č, j, ž. Lektion 2 „Laute“: 18 Konsonanten und 7 Vokale mit Beschreibung und Beispielwörtern (der Laut ist im Wort hervorgehoben), die Betonungsregel und 16 Hörpaare, dazu die neue Übung „Hörst du den Unterschied?“. Beide Lektionen haben außerdem ihren Wortschatz (17 und 31 Wörter) mit den normalen Übungen.*
-- [x] Glossar A (Kunoš mele) als Grundlage für den Übersetzer. *821 Einträge mit 1.089 Wendungen in `src/data/glossar-a.json`. Wird erst mit dem Übersetzer (Phase 4) in die App eingebunden.*
+- [x] Glossar A (Kunoš mele) als Grundlage für den Übersetzer. *821 Einträge mit 1.089 Wendungen in `src/data/glossar-a.json`. Seit 21.11. Teil des Wörterbuchs (Phase 4).*
 - [x] Qualitätskontrolle, automatisch: Jeder Audio-Link der Website ist genau einem Eintrag zugeordnet, Stichproben der Audio-Adressen liefern MP3s, die Tests prüfen alle Lektionen (Vollständigkeit, Sprecher, keine Doppelgänger-Zeichen).
 - [ ] Qualitätskontrolle durch einen Menschen: in jeder Lektion ein paar Wörter und Sätze anhören und mit dem Text vergleichen
 - [ ] In jeder Lektion „Familientisch-Sätze" markieren (Sätze, die man zu Hause direkt verwenden kann). *Vorschlag mit 56 Sätzen und Wendungen liegt in `inhalte/familientisch-vorschlag.md`, nach Situationen sortiert (Begrüßen, Essen, zu Besuch …). Jemand, der Surayt spricht, hakt dort ab, was passt; `npm run familientisch` überträgt die Häkchen in die Daten.*
@@ -147,18 +147,20 @@
 - [ ] Test mit 2–3 Jugendlichen: Sind die Einheiten zu lang oder zu kurz? Wird das Nachsprechen genutzt?
 
 ### Phase 4 – Übersetzer / Schnell-Wörterbuch (1–2 Sitzungen)
-- [ ] Eigener Tab mit Suchfeld, Deutsch ↔ Surayt; durchsucht Wörter **und** ganze Sätze
-- [ ] Tolerante Suche: „slomo" findet „šlomo"; Tippfehler und Wortteile werden erkannt
-- [ ] Großer Audio-Knopf für den Moment am Tisch, dazu Herkunft (Lehrbuch/Community) und ein Beispielsatz
-- [ ] Offline nutzbar (bei Oma gibt es vielleicht kein WLAN)
-- [ ] Nicht gefunden → **„Wort anfragen"**; die Anfrage landet bei den Einreichungen
-- [ ] Grundsatz: **keine KI-Übersetzung**, nur geprüfte Einträge. Sonst drohen Fehler und eine Vermischung mit klassischem Syrisch
+- [x] Eigener Tab mit Suchfeld, Deutsch ↔ Surayt; durchsucht Wörter **und** ganze Sätze. *Neue Leiste am unteren Rand mit „Lernen“, „Wörterbuch“ und „Karteikasten“. Das Wörterbuch hat 2.145 Einträge: Wortschatz aller Lektionen (samt Beispielwörtern aus Lektion 1–2), alle Sätze aus Dialogen, Lesetexten und Einleitungen und knapp 600 zusätzliche Wendungen aus dem Glossar. Auf Android führt langes Drücken aufs App-Symbol direkt ins Wörterbuch.*
+- [x] Tolerante Suche: „slomo" findet „šlomo"; Tippfehler und Wortteile werden erkannt. *Auch „sch“/„sh“ für „š“, „ae“ für „ä“; Artikel („der Vater“) müssen nicht passen. Gefundenes, das nur ähnlich geschrieben ist („Brot“ → „rot“), wird als solches gekennzeichnet.*
+- [x] Großer Audio-Knopf für den Moment am Tisch, dazu Herkunft (Lehrbuch/Community) und ein Beispielsatz. *Bei Sätzen stehen statt des Beispielsatzes die Wörter des Satzes darunter. Außerdem „Zuletzt nachgeschlagen“.*
+- [x] Offline nutzbar (bei Oma gibt es vielleicht kein WLAN). *Suche und Glossar gehen offline, nur die Aufnahmen brauchen Internet (siehe Phase 0: eigene Kopien).*
+- [x] Nicht gefunden → **„Wort anfragen"**. *Die Anfragen werden vorerst auf dem Gerät gesammelt; verschickt werden sie mit Phase 5.*
+- [x] Grundsatz: **keine KI-Übersetzung**, nur geprüfte Einträge. Sonst drohen Fehler und eine Vermischung mit klassischem Syrisch. *Ein Test prüft, dass jeder Eintrag wörtlich aus Lektion oder Glossar stammt.*
+- [ ] Test mit 2–3 Jugendlichen: Was suchen sie am Tisch, und was fehlt? (Die Wortanfragen zeigen es.)
 
 ### Phase 5 – Community-Einreichungen + wöchentliches Update (2 Sitzungen + Einrichtung)
 - [ ] Supabase-Projekt anlegen (kostenlos) und den Supabase-Connector in Claude verbinden
 - [ ] Formular in der App: Satz oder Wort in Umschrift, deutsche Bedeutung, Situation (z. B. „beim Essen"), Herkunftsort/Dialekt (z. B. Midyat, Midin, Iwardo …), Name optional
 - [ ] Spam-Schutz: Begrenzung pro Gerät, einfache Bot-Falle
 - [ ] In der App: Community-Sätze bewerten („Stimmt so" / „Sagt man bei uns anders")
+- [ ] Wortanfragen aus dem Wörterbuch verschicken (liegen bis dahin auf dem Gerät, `surayt.woerterbuch.v1`): nur Wort und Situation, kein Name. Die Sonntags-Aufgabe listet sie im Bericht als „gewünscht“.
 - [ ] **Geplante Aufgabe jeden Sonntag** (richtet Claude ein):
   1. Neue Einreichungen über den Supabase-Connector lesen
   2. Duplikate und Spam aussortieren, Vollständigkeit prüfen, Schreibweise mit dem Lehrbuch abgleichen, Verdacht auf klassisches Syrisch markieren
@@ -261,3 +263,13 @@ Rückmeldung: Die Einheiten waren zu einfach (ein Wort wird vorgestellt und sofo
 - Bewertet wird mit drei Knöpfen: **Nicht gewusst** (zurück in Fach 1, kommt am Ende der Runde noch einmal), **Knapp** (bleibt im Fach, mindestens Fach 2), **Gewusst** (ein Fach weiter). Unter jedem Knopf steht, wann die Karte wiederkommt („morgen“, „in 1 Woche“ …). Dasselbe gilt für die Karteikarten beim freien Üben einer Lektion.
 - In der Kartenrunde wird nur selbst bewertet, nicht geprüft. Objektiv geprüft wird weiter in den Einheiten (je zwei fällige Wiederholungen pro Runde).
 - **„Hören & Auswählen“ als eigene Übungsart beim freien Üben entfällt** – es war im Grunde eine einfachere Karteikarte. Hör-Aufgaben gibt es weiter in den Einheiten (erste Abfrage nach Gehör, „Genau hinhören“). Alte Links führen zum Reiter „Üben“.
+
+**21.11.2026 – Phase 4 (Wörterbuch)**
+- **Navigation:** Unten gibt es jetzt eine Leiste mit den drei Hauptbereichen **Lernen**, **Wörterbuch** und **Karteikasten** (mit der Zahl der fälligen Karten). Sie steht nur auf diesen drei Seiten; Lektionen, Runden, Erfolge und „Über die App“ behalten ihren Zurück-Pfeil. Der Karteikasten hat deshalb keinen Zurück-Pfeil mehr. Beim Tippen ins Suchfeld verschwindet die Leiste, damit die Tastatur Platz hat.
+- **Was durchsucht wird:** Wortschatz aller Lektionen, die Beispielwörter und Hörpaare aus Lektion 1–2, alle Sätze aus Dialogen, Lesetexten und Einleitungen (ohne die mit `nur-mit-bild`) und das Glossar A. Gleiche Einträge (gleiche Schreibweise, gleiche Bedeutung ohne Klammerzusatz) stehen nur einmal da, mit allen Lektionen. Glossar-Wendungen, die schon im Wortschatz stehen, fallen weg; beschreiben sie ein Wort nur ausführlicher (mit Pluralform oder weiteren Bedeutungen), erscheinen sie als „Mehr dazu im Glossar“ auf der Seite des Wortes und in der Trefferliste nur, wenn das Wort selbst nicht dasteht.
+- **Aufnahmen fürs Glossar:** Das Glossar hat keine eigenen. Steht dasselbe Stichwort (gleiche Umschrift) im Wortschatz oder als Satz, wird dessen Aufnahme genutzt – die Umschrift ist ja dieselbe. Sonst steht da „Zu diesem Eintrag gibt es keine Aufnahme“ (betrifft gut 450 Glossar-Wendungen, vor allem Verbformen).
+- **Suche:** Deutsch und Surayt in einem Feld, ohne Umschalten; enthält die Suche Zeichen wie š oder ë, wird nur Surayt durchsucht. Sonderzeichen und Groß-/Kleinschreibung zählen nicht, „sch“/„sh“ gehen für „š“, „tsch“ für „č“, „ch“ für „x“, „ae/oe/ue“ für Umlaute. Wortanfänge und Wortteile werden gefunden, Tippfehler ab 4 Buchstaben (einer) bzw. 7 Buchstaben (zwei). Jedes gesuchte Wort muss vorkommen, nur Artikel nicht. Ganze, kurze Treffer stehen vor langen Sätzen.
+- **Ehrlich bleiben:** Passt nichts genau, sondern nur über Tippfehler, steht darüber „So nicht im Wörterbuch … nur ähnlich geschrieben“. Findet sich zu einer längeren Suche nichts, zeigt die App einzelne Wörter daraus, jedes für sich – sie setzt daraus nie einen Satz zusammen.
+- **Eintragsseite:** großer Lautsprecher, Umschrift, Zusatz, Deutsch, Herkunft („Aus Šlomo Surayt · Wortschatz, Lektion 3 …“, Link zur Lektion; Community-Einträge bekommen ein eigenes Schild „Community“) und ein Beispielsatz aus den Lektionen, in dem das Wort genau so vorkommt (bevorzugt aus derselben Lektion, möglichst kurz). Bei Sätzen stehen stattdessen die Wörter des Satzes aus dem Wortschatz da. Die syrische Schrift bleibt wie überall bis Phase 6 ausgeblendet.
+- **Wort anfragen:** unter jeder Suche; mit Wort (vorausgefüllt) und freiwilliger Situation, Hinweis „keine Namen“. Bis zu 30 Anfragen bleiben auf dem Gerät und stehen im Wörterbuch unter „Deine Anfragen“ (löschbar). Verschickt werden sie mit Phase 5. „Zuletzt nachgeschlagen“ merkt sich 8 Einträge. Beides liegt in `surayt.woerterbuch.v1` und wird von „Lernstand zurücksetzen“ nicht gelöscht.
+- **Offline:** Die Lektionen stecken ohnehin in der App. Das Glossar ist ein eigener Teil (etwa 60 KB komprimiert), der erst beim Öffnen des Wörterbuchs geladen wird, damit der Start schnell bleibt; der Service Worker legt ihn trotzdem beim Installieren ab. Geprüft: App einmal laden, Internet aus, neu laden – Suche samt Glossar geht.

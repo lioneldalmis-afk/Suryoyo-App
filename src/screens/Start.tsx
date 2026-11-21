@@ -1,6 +1,7 @@
 import { AudioButton } from '../components/AudioButton';
 import { IconFlamme, IconHaken, IconKarten, IconPfeil, IconSchloss } from '../components/Icons';
 import { InstallHint } from '../components/InstallHint';
+import { Leiste } from '../components/Leiste';
 import { Pfad } from '../components/Pfad';
 import { ProgressRing } from '../components/ProgressRing';
 import { SatzDerWoche } from '../components/SatzDerWoche';
@@ -38,7 +39,7 @@ export function StartScreen() {
       : { name: 'lektion', nr: aktuelle.nr, tab: 'ueben' };
 
   return (
-    <div className="seite start">
+    <div className="seite seite--leiste start">
       <header className="start__kopf">
         <div className="start__leiste">
           <span className="start__marke">{APP_NAME}</span>
@@ -165,6 +166,8 @@ export function StartScreen() {
       <footer className="start__fuss">
         Inhalte und Audio: <a href={QUELLE.url}>{QUELLE.name}</a>, {QUELLE.herausgeber}
       </footer>
+
+      <Leiste aktiv="lernen" />
     </div>
   );
 }

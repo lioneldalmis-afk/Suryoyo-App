@@ -14,6 +14,8 @@ export type Route =
   | { name: 'karteikasten' }
   /** Eine Runde mit den fälligen Karten aller Lektionen. */
   | { name: 'kartenrunde' }
+  /** Wörterbuch: Suche, mit `id` ein einzelner Eintrag. */
+  | { name: 'woerterbuch'; id?: string }
   /** `anker`: Sprungziel auf der Seite, z. B. der Laut „ḥ“ in Lektion 2. */
   | { name: 'lektion'; nr: number; tab: LektionTab; anker?: string }
   /** Freies Üben einer Übungsart. */
@@ -34,6 +36,7 @@ export function parse(hash: string): Route {
   if (a === 'karteikasten') return b === 'lernen' ? { name: 'kartenrunde' } : { name: 'karteikasten' };
   // Früher hieß die Runde mit den fälligen Einträgen „Wiederholen“.
   if (a === 'wiederholen') return { name: 'karteikasten' };
+  if (a === 'woerterbuch') return b ? { name: 'woerterbuch', id: entschluessle(b) } : { name: 'woerterbuch' };
   const nr = zahl(b);
   if (a === 'lektion' && nr !== null) {
     if (c === 'ueben' && ARTEN.includes(d)) return { name: 'runde', nr, art: d as Uebungsart };
@@ -60,6 +63,8 @@ export function href(route: Route): string {
       return `#/${route.name}`;
     case 'kartenrunde':
       return '#/karteikasten/lernen';
+    case 'woerterbuch':
+      return route.id ? `#/woerterbuch/${encodeURIComponent(route.id)}` : '#/woerterbuch';
     case 'lektion':
       return `#/lektion/${route.nr}/${route.tab}${route.anker ? '/' + encodeURIComponent(route.anker) : ''}`;
     case 'runde':

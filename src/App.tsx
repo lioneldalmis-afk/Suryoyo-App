@@ -9,6 +9,7 @@ import { RollenspielScreen } from './screens/Rollenspiel';
 import { KarteikastenScreen } from './screens/Karteikasten';
 import { EinheitScreen, KartenrundeScreen, RundeScreen } from './screens/Runde';
 import { StartScreen } from './screens/Start';
+import { EintragScreen, WoerterbuchScreen } from './screens/Woerterbuch';
 
 export function App() {
   const hash = useHash();
@@ -34,6 +35,8 @@ export function App() {
       {route.name === 'karteikasten' && <KarteikastenScreen />}
       {route.name === 'kartenrunde' && <KartenrundeScreen key={hash} />}
       {route.name === 'rollenspiel' && <RollenspielScreen key={hash} nr={route.nr} />}
+      {route.name === 'woerterbuch' &&
+        (route.id ? <EintragScreen key={route.id} id={route.id} /> : <WoerterbuchScreen />)}
       <AudioHinweis />
     </>
   );
