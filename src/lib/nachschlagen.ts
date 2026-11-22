@@ -1,5 +1,6 @@
 // Was beim Nachschlagen im Wörterbuch auf dem Gerät bleibt: die zuletzt
-// angesehenen Einträge und eigene Wortanfragen („Wort anfragen“).
+// angesehenen Einträge, eigene Wortanfragen („Wort anfragen“) und, ob ein Junge
+// oder ein Mädchen übersetzt (für die Formen von „ich“ im Baukasten).
 //
 // Die Anfragen werden vorerst nur hier gesammelt. Sobald es die Einreichungen
 // gibt (Fahrplan, Phase 5), werden sie dorthin verschickt; bis dahin verlässt
@@ -22,6 +23,8 @@ export interface Nachschlagen {
   /** Kennungen der zuletzt angesehenen Einträge, der neueste zuerst. */
   verlauf: string[];
   anfragen: Anfrage[];
+  /** „Ich bin: Junge / Mädchen“ – für die Formen von „ich“ (Phase 4b, Schritt 5). Ohne Angabe zeigt der Übersetzer beide. */
+  ich?: 'm' | 'f';
 }
 
 /** So viele Einträge merkt sich „Zuletzt nachgeschlagen“. */
@@ -41,7 +44,11 @@ export function aufbereiten(roh: unknown): Nachschlagen {
         .filter((a): a is Partial<Anfrage> & { text: string } => typeof a?.text === 'string')
         .map((a) => ({ ...a, situation: a.situation ?? '', zeit: a.zeit ?? 0, verschickt: a.verschickt ?? false }))
     : [];
-  return { ...leer(), ...(n as object), verlauf, anfragen };
+  const ich = (n as { ich?: unknown }).ich;
+  const aus: Nachschlagen = { ...leer(), ...(n as object), verlauf, anfragen };
+  if (ich === 'm' || ich === 'f') aus.ich = ich;
+  else delete aus.ich;
+  return aus;
 }
 
 const zustand = speicher<Nachschlagen>('surayt.woerterbuch.v1', leer, aufbereiten);
@@ -71,6 +78,14 @@ export function frageAn(text: string, situation: string, jetzt = Date.now()): bo
   const anfrage: Anfrage = { text: t, situation: sauber(situation), zeit: jetzt, verschickt: false };
   zustand.setze({ ...n, anfragen: [anfrage, ...ohne].slice(0, ANFRAGEN_HOECHSTENS) });
   return true;
+}
+
+/** „Ich bin ein Junge / ein Mädchen“ merken – oder wieder vergessen. */
+export function setzeIch(ich: 'm' | 'f' | undefined) {
+  const n = { ...zustand.lies() };
+  if (ich) n.ich = ich;
+  else delete n.ich;
+  zustand.setze(n);
 }
 
 export function zuruecknehmen(zeit: number) {

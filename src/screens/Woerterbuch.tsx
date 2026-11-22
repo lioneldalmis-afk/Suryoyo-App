@@ -13,13 +13,14 @@ import { Leiste } from '../components/Leiste';
 import { SCHILDER, Schild } from '../components/Schild';
 import { Surayt } from '../components/Surayt';
 import { WortFuerWort } from '../components/WortFuerWort';
-import { ZusammengesetztKarte } from '../components/Zusammengesetzt';
+import { RegelKarte, ZusammengesetztKarte } from '../components/Zusammengesetzt';
 import { QUELLE } from '../config';
 import { istDialog, kurs, verfuegbar } from '../data';
 import {
   ANFRAGE_LAENGE,
   frageAn,
   merke,
+  setzeIch,
   useNachschlagen,
   vergiss,
   zuruecknehmen,
@@ -42,7 +43,8 @@ import {
   type Stufe,
   type Woerterbuch,
 } from '../lib/woerterbuch';
-import { eingeschaltet, setzeZusammen } from '../lib/baukasten';
+import { eingeschaltet, gleicherText, setzeZusammen, stehtSchonDa } from '../lib/baukasten';
+import { eingeschalteteRegeln, nachRegeln } from '../lib/regeln';
 import { anzahlWoerter, erklaere, ganzGleich, siehtNachSuraytAus } from '../lib/wortfuerwort';
 import type { GrammatikTeil } from '../types';
 
@@ -80,23 +82,42 @@ export function WoerterbuchScreen() {
     if (funde[0] && ganzGleich(funde[0].latein, gesucht)) return null;
     return erklaere(wb, gesucht, { mitSaetzen: true, mitAehnlichen: true });
   }, [wb, gesucht, funde]);
-  // Ein deutscher Satz, der so nicht in den Daten steht: nach einem Lehrbuch-Satz zusammensetzen (Phase 4b, Schritt 4).
-  // Erst mit den Verbtabellen – ohne sie wären es andere Satzbaupläne.
+  // Ein deutscher Satz, der so nicht in den Daten steht: nach einem Lehrbuch-Satz zusammensetzen (Phase 4b, Schritt 4)
+  // oder nach Regeln aus der Grammatik (Schritt 5). Erst mit den Verb- und Formentabellen.
+  const { ich } = useNachschlagen();
   const bau = useMemo(
     () => (gesucht && !wortFuerWort && wb.mitGrammatik ? setzeZusammen(wb, gesucht) : []),
     [wb, gesucht, wortFuerWort],
   );
+  const nachRegel = useMemo(() => {
+    // Geprüftes geht vor: Steht der Satz als Bedeutung in den Daten, wird nichts zusammengesetzt.
+    if (!gesucht || wortFuerWort || !wb.mitGrammatik || stehtSchonDa(wb, gesucht)) return [];
+    // Steht der Satz schon getauscht da, braucht es ihn nicht noch einmal.
+    return nachRegeln(wb, gesucht, { ich }).filter((r) => !bau.some((z) => gleicherText(z.latein, r.latein)));
+  }, [wb, gesucht, wortFuerWort, funde, bau, ich]);
+  const gebaut = bau.length + nachRegel.length;
+  // Hängt eine Form davon ab, wer spricht? Dann einmal fragen: „Ich bin: Junge / Mädchen“.
+  const frageIch = !ich && nachRegel.some((r) => r.ich);
   const einzeln = useMemo(
-    () => (gesucht && !funde.length && !wortFuerWort && !bau.length ? einzelneWoerter(wb, gesucht) : []),
-    [wb, gesucht, funde, wortFuerWort, bau],
+    () => (gesucht && !funde.length && !wortFuerWort && !gebaut ? einzelneWoerter(wb, gesucht) : []),
+    [wb, gesucht, funde, wortFuerWort, gebaut],
   );
   const feld = useRef<HTMLInputElement>(null);
   const online = useOnline();
 
-  // Den Baukasten vorbereiten, solange man noch tippt (einmal, auf dem Handy ein paar Zehntelsekunden).
+  // Den Baukasten vorbereiten, solange man noch tippt – in kleinen Schritten, damit das Handy nicht hängt
+  // (Wort für Wort, Satzbaupläne mit Gegenprobe, Regeln mit Gegenprobe; jeder Schritt nur einmal).
   useEffect(() => {
     if (!wb.mitGrammatik) return;
-    const t = window.setTimeout(() => void eingeschaltet(wb), 400);
+    const schritte = [() => erklaere(wb, ''), () => eingeschaltet(wb), () => eingeschalteteRegeln(wb)];
+    let t = 0;
+    const weiter = () => {
+      const s = schritte.shift();
+      if (!s) return;
+      s();
+      t = window.setTimeout(weiter, 60);
+    };
+    t = window.setTimeout(weiter, 400);
     return () => window.clearTimeout(t);
   }, [wb]);
 
@@ -187,16 +208,31 @@ export function WoerterbuchScreen() {
             )}
             <AnfrageKasten key={gesucht} text={gesucht} satz />
           </>
-        ) : bau.length > 0 ? (
+        ) : gebaut > 0 ? (
           <>
             <section>
               <h2 className="zwischentitel">Zusammengesetzt</h2>
               <p className="bau__vorweg">
-                „{gesucht}“ steht so nicht im Lehrbuch. Der Übersetzer hat {bau.length === 1 ? 'den Satz' : 'diese Fassungen'} nach
-                einem Lehrbuch-Satz zusammengesetzt, der genauso gebaut ist.
+                „{gesucht}“ steht so nicht im Lehrbuch. Der Übersetzer hat {gebaut === 1 ? 'den Satz' : 'diese Fassungen'}{' '}
+                {bau.length && !nachRegel.length
+                  ? 'nach einem Lehrbuch-Satz zusammengesetzt, der genauso gebaut ist.'
+                  : 'nach Regeln aus dem Lehrbuch zusammengesetzt.'}
               </p>
-              {bau.map((z) => (
-                <ZusammengesetztKarte key={z.latein} z={z} wb={wb} oeffnen={oeffnetAusSuche} />
+              {frageIch && <IchBin />}
+              {ich && nachRegel.some((r) => r.ich) && (
+                <p className="ich-bin ich-bin--knapp">
+                  Formen für „ich“: {ich === 'm' ? 'als Junge' : 'als Mädchen'} ·{' '}
+                  <button type="button" className="leise" onClick={() => setzeIch(undefined)}>
+                    ändern
+                  </button>
+                </p>
+              )}
+              {/* Der Bauplan ist bei der ersten Karte offen, bei den übrigen zum Aufklappen. */}
+              {bau.map((z, i) => (
+                <ZusammengesetztKarte key={z.latein} z={z} wb={wb} offen={i === 0} oeffnen={oeffnetAusSuche} />
+              ))}
+              {nachRegel.map((r, i) => (
+                <RegelKarte key={r.latein} r={r} wb={wb} offen={!bau.length && i === 0} oeffnen={oeffnetAusSuche} />
               ))}
             </section>
             {/* Nur ähnlich geschriebene Einträge („gegessen werden“ zu „er wird essen“) lenken hier bloß ab. */}
@@ -255,6 +291,26 @@ export function WoerterbuchScreen() {
   );
 }
 
+/**
+ * „Ich bin: Junge / Mädchen“ – im Surayt hat „ich“ bei vielen Wörtern eine Form für
+ * Jungen und eine für Mädchen (Grammatik 7a). Die Antwort bleibt auf dem Handy.
+ */
+function IchBin() {
+  return (
+    <div className="ich-bin" role="group" aria-label="Ich bin">
+      <p>Für „ich“ gibt es im Surayt oft eine Form für Jungen und eine für Mädchen. Dann zeigt der Übersetzer nur deine.</p>
+      <div className="zwei">
+        <button type="button" className="knopf knopf--zweit" onClick={() => setzeIch('m')}>
+          Ich bin ein Junge
+        </button>
+        <button type="button" className="knopf knopf--zweit" onClick={() => setzeIch('f')}>
+          Ich bin ein Mädchen
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** Ohne Suchbegriff: zuletzt Nachgeschlagenes, Tipps und eigene Anfragen. */
 function Ohne({ wb }: { wb: Woerterbuch }) {
   const n = useNachschlagen();
@@ -291,8 +347,8 @@ function Ohne({ wb }: { wb: Woerterbuch }) {
           </li>
           <li>Wortteile und kleine Tippfehler klappen auch.</li>
           <li>
-            Steht ein einfacher Satz nicht im Lehrbuch, setzt der Übersetzer ihn manchmal nach einem Lehrbuch-Satz zusammen –
-            dann mit orangem Schild und ohne Aufnahme.
+            Steht ein einfacher Satz nicht im Lehrbuch („ich bin müde“, „mein Lehrer“, „im Haus“), setzt der Übersetzer ihn
+            nach Regeln aus dem Lehrbuch zusammen – dann mit orangem Schild und ohne Aufnahme.
           </li>
           <li>Tippe auf den Lautsprecher, um ein Wort zu hören – oder es am Tisch vorzuspielen.</li>
           <li>Nichts wird von einer KI übersetzt. Der Übersetzer geht auch ohne Internet.</li>

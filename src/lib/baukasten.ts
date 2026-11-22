@@ -41,11 +41,11 @@ import { alleSchreibweisen, artikelVor, type Schreibweise } from './wortfuerwort
 // --- Wörter vergleichen --------------------------------------------------------------
 
 /** Ein Surayt-Wort genau, wie es dasteht, nur klein und ohne Satzzeichen („Ëšmi,“ → „ëšmi“). */
-const genau = (w: string) => zerlege(w).kern.normalize('NFC').toLowerCase();
+export const genau = (w: string) => zerlege(w).kern.normalize('NFC').toLowerCase();
 /** Die Wörter eines Surayt-Textes, genau. */
-const surWoerter = (text: string) => woerter(text).map(genau).filter(Boolean);
+export const surWoerter = (text: string) => woerter(text).map(genau).filter(Boolean);
 /** Gleicher Surayt-Text (Satzzeichen und Großschreibung zählen nicht, Sonderzeichen schon). */
-const gleicherText = (a: string, b: string) => surWoerter(a).join(' ') === surWoerter(b).join(' ');
+export const gleicherText = (a: string, b: string) => surWoerter(a).join(' ') === surWoerter(b).join(' ');
 
 /** Deutsche Artikel. Vor dem getauschten Wort zählen sie (sie zeigen Zahl und Fall), sonst nicht („Glas Wein“ = „ein Glas Wein“). */
 const ARTIKEL = new Set(['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'einer', 'eines']);
@@ -80,7 +80,7 @@ function deWoerter(text: string): DeWort[] {
 const nurWoerter = (d: readonly DeWort[]) => d.map((x) => x.wort).join(' ');
 
 /** Die Bedeutungen eines Eintrags einzeln: „der Laden, das Geschäft“ → „laden“, „geschäft“. */
-const bedeutungen = (deutsch: string) =>
+export const bedeutungen = (deutsch: string) =>
   deutsch
     .replace(/\([^)]*\)/g, ' ')
     .split(/[,;/]/)
@@ -130,7 +130,7 @@ export interface Merkmale {
  *   „Präsens - /a/, Sg., 3. m.“ → „Präsens“, „Präsensbasis (G.7a), …“ → „Präsens“,
  *   „Präsens (G.7b), …“ → „Präsens (G.7b)“
  */
-function zeitVon(merkmal: string): string | undefined {
+export function zeitVon(merkmal: string): string | undefined {
   const z = merkmal
     .split(',')[0]
     .replace(/\s+-\s+\/.*\/\s*$/, '')
@@ -161,7 +161,7 @@ function geschlechtIn(text: string): { geschlecht?: Geschlecht; zahl?: Zahl } {
 }
 
 /** Die Überschrift über einem Block einer Grammatik-Seite (für „Maskuline Substantive“ usw.). */
-function ueberschriftVor(wb: Woerterbuch, seiteId: string, block: number): string {
+export function ueberschriftVor(wb: Woerterbuch, seiteId: string, block: number): string {
   const seite = wb.seiten.get(seiteId);
   for (let i = block; i >= 0 && seite; i--) {
     const b = seite.bloecke[i];
@@ -312,8 +312,23 @@ export function merkmale(wb: Woerterbuch, s: Pick<Schreibweise, 'fund' | 'genau'
   return { wortart, ...(g ? { geschlecht: g } : {}), ...(zahl ? { zahl } : {}), belege: zaehlt };
 }
 
+const merkmalCache = new WeakMap<Woerterbuch, Map<Schreibweise, Merkmale>>();
+
+/**
+ * Wie `merkmale`, aber zwischengespeichert: Der ausgeblendete Eintrag zählt nur,
+ * wenn er wirklich ein Beleg für dieses Wort ist (das spart in der Gegenprobe Zeit).
+ */
+export function merkmaleMitCache(wb: Woerterbuch, s: Schreibweise, ohne?: Fund): Merkmale {
+  if (ohne && (merkmalIndex(wb).belege.get(s.genau) ?? []).some((b) => b.fund === ohne)) return merkmale(wb, s, ohne);
+  let cache = merkmalCache.get(wb);
+  if (!cache) merkmalCache.set(wb, (cache = new Map()));
+  let m = cache.get(s);
+  if (!m) cache.set(s, (m = merkmale(wb, s)));
+  return m;
+}
+
 /** Sind die Merkmale vollständig genug, um ein Wort zu tauschen? */
-function vollstaendig(m: Merkmale): boolean {
+export function vollstaendig(m: Merkmale): boolean {
   if (m.wortart === 'verb') return !!m.formen?.length;
   if (m.wortart === 'zahl') return (m.geschlecht === 'm' || m.geschlecht === 'f') && !!m.zahl;
   return !!m.geschlecht && !!m.zahl;
@@ -485,7 +500,7 @@ function deutschMit(vorlage: Vorlagenbeleg, luecke: string, anfrage: string): st
  * („šawco – sieben“), in der Zahlentabelle als Ziffer („šawco, šwac – 7“): Teilen
  * sich „sieben“ und „7“ ein Wort, gehören auch die übrigen Formen der Ziffer dazu.
  */
-function kandidaten(wb: Woerterbuch, luecke: string): Schreibweise[] {
+export function kandidaten(wb: Woerterbuch, luecke: string): Schreibweise[] {
   const { nachBedeutung, belege } = merkmalIndex(wb);
   const direkt = nachBedeutung.get(luecke) ?? [];
   const ziffern = new Set(direkt.flatMap((s) => (belege.get(s.genau) ?? []).filter((b) => b.art === 'zahlen').map((b) => b.fund.deutsch.trim())));

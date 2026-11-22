@@ -3403,6 +3403,7 @@ button.art {
 }
 
 .bau__titel {
+  cursor: pointer;
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -3802,4 +3803,92 @@ button.art {
 
 .erklaerung[open] > summary {
   margin-bottom: 6px;
+}
+
+/* Baukasten, Teil 2 (Phase 4b, Schritt 5): Regeln aus der Grammatik */
+
+.bau__schilder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.bau__variante {
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--marke-hell);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--marke-dunkel);
+}
+
+.bau__regeln {
+  display: grid;
+  gap: 10px;
+}
+
+.bau__regelname {
+  font-weight: 800;
+}
+
+.bau__regelname span {
+  font-weight: 600;
+  color: var(--tinte-leise);
+}
+
+.bau__zitat {
+  margin: 4px 0 6px;
+  padding: 2px 0 2px 10px;
+  border-left: 3px solid #e3dccf;
+  font-size: 0.88rem;
+  font-style: italic;
+  color: #3c4157;
+}
+
+.bau__wortgruppe {
+  padding: 6px 4px;
+}
+
+.bau__teilwort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding: 0 4px;
+}
+
+.bau__teilwort span {
+  font-size: 0.8rem;
+  color: var(--tinte-leise);
+}
+
+.bau__teile {
+  margin: 2px 0 0 8px;
+  padding-left: 6px;
+  border-left: 2px solid #f0b54d;
+}
+
+.ich-bin {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-radius: var(--rund);
+  background: var(--marke-hell);
+  font-size: 0.92rem;
+}
+
+.ich-bin .zwei {
+  margin-top: 10px;
+}
+
+.ich-bin--knapp {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  color: var(--marke-dunkel);
+}
+
+.ich-bin--knapp .leise {
+  padding: 0;
+  color: var(--marke-dunkel);
+  text-decoration: underline;
 }

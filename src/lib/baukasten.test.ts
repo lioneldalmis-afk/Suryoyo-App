@@ -240,6 +240,7 @@ describe('Baukasten: nur im Übersetzer', () => {
       .filter(([, code]) => /from '\.\.?\/(?:lib\/)?baukasten'/.test(code))
       .map(([datei]) => datei)
       .sort();
-    expect(nutzer).toEqual(['../components/Zusammengesetzt.tsx', '../screens/Woerterbuch.tsx']);
+    // Die Regeln (Schritt 5) bauen auf dem Baukasten auf und sind ihrerseits nur im Übersetzer (regeln.test.ts).
+    expect(nutzer).toEqual(['../components/Zusammengesetzt.tsx', '../screens/Woerterbuch.tsx', './regeln.ts']);
   });
 });
