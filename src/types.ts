@@ -139,6 +139,8 @@ export interface GlossarSinn {
 export interface GrossEintrag {
   id: string;
   latein: string;
+  /** Gleich geschriebene Stichwörter sind im Glossar nummeriert („kët¹“, „kët²“). */
+  nr?: number;
   syrisch: string;
   /** Fundstellen im Kopf: „L.4“, „G.9a“, „Q.9,2“ */
   verweise?: string[];

@@ -91,7 +91,22 @@ export function ZusammengesetztKarte({ z, wb, offen = true, oeffnen }: Props) {
 }
 
 /** Kopf jeder Karte: Schild, Satz, Warnung – darunter der Bauplan. */
-function Karte({ latein, deutsch, variante, offen, children }: { latein: string; deutsch: string; variante?: string; offen: boolean; children: ReactNode }) {
+function Karte({
+  latein,
+  deutsch,
+  variante,
+  hinweise,
+  offen,
+  children,
+}: {
+  latein: string;
+  deutsch: string;
+  variante?: string;
+  /** Was der Übersetzer am Deutschen geändert hat („„möchte“ wie „wollen““) */
+  hinweise?: string[];
+  offen: boolean;
+  children: ReactNode;
+}) {
   return (
     <article className="bau">
       <div className="bau__schilder">
@@ -102,6 +117,11 @@ function Karte({ latein, deutsch, variante, offen, children }: { latein: string;
         <Surayt>{latein}</Surayt>
       </p>
       <p className="bau__de">{deutsch}</p>
+      {hinweise && hinweise.length > 0 && (
+        <p className="bau__hinweis">
+          <strong>Sinngemäß:</strong> {hinweise.join(' · ')}
+        </p>
+      )}
       <p className="bau__warnung">{SCHILDER.zusammengesetzt.erklaerung}</p>
       <p className="bau__still">Keine Aufnahme – zusammengesetzte Sätze hat niemand eingesprochen.</p>
       <details className="bau__plan" open={offen}>
@@ -114,7 +134,7 @@ function Karte({ latein, deutsch, variante, offen, children }: { latein: string;
 
 /** Ein Wort des gebauten Satzes: Eintrag mit Herkunft und Aufnahme, bei zusammengesetzten Wörtern die Teile. */
 function Wort({ s, oeffnen }: { s: Stueck; oeffnen?: () => void }) {
-  const zusatz = [s.rolle, s.merkmal].filter(Boolean).join(' · ');
+  const zusatz = [s.rolle, s.merkmal, s.statt].filter(Boolean).join(' · ');
   if (s.fund && !s.aus) {
     const form = s.text.normalize('NFC').toLowerCase() === s.fund.latein.normalize('NFC').toLowerCase() ? undefined : s.text;
     return <Bedeutung fund={s.fund} form={form} mitForm zusatz={zusatz} oeffnen={oeffnen} />;
@@ -138,7 +158,7 @@ export function RegelKarte({ r, wb, offen = true, oeffnen }: { r: Regelsatz; wb:
   // Jede Regel einmal, die äußere zuerst
   const regeln = [...new Set(r.regeln.map((x) => x.regel))].map((id) => regelVon(wb, id));
   return (
-    <Karte latein={r.latein} deutsch={r.deutsch} variante={r.variante} offen={offen}>
+    <Karte latein={r.latein} deutsch={r.deutsch} variante={r.variante} hinweise={r.hinweise} offen={offen}>
       <h4 className="bau__zwischen">{regeln.length === 1 ? 'Regel aus dem Lehrbuch' : 'Regeln aus dem Lehrbuch'}</h4>
       <ol className="bau__regeln">
         {regeln.map((regel) => {

@@ -3224,6 +3224,11 @@ button.art {
   font-weight: 700;
 }
 
+.einzeln__als {
+  font-weight: 500;
+  color: var(--tinte-leise);
+}
+
 /* Wort für Wort (Phase 4b, Schritt 3): links das Wort, rechts seine Bedeutungen */
 
 .wfw {
@@ -3378,6 +3383,17 @@ button.art {
   margin-top: 4px;
   font-size: 1.1rem;
   color: #3c4157;
+}
+
+.bau__hinweis {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #3c4157;
+}
+
+.bau__hinweis strong {
+  font-weight: 800;
 }
 
 .bau__warnung {

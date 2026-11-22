@@ -44,7 +44,7 @@ import {
   type Woerterbuch,
 } from '../lib/woerterbuch';
 import { eingeschaltet, gleicherText, setzeZusammen, stehtSchonDa } from '../lib/baukasten';
-import { eingeschalteteRegeln, nachRegeln } from '../lib/regeln';
+import { eingeschalteteRegeln, nachRegeln, regelnVorbereiten } from '../lib/regeln';
 import { anzahlWoerter, erklaere, ganzGleich, siehtNachSuraytAus } from '../lib/wortfuerwort';
 import type { GrammatikTeil } from '../types';
 
@@ -109,7 +109,7 @@ export function WoerterbuchScreen() {
   // (Wort für Wort, Satzbaupläne mit Gegenprobe, Regeln mit Gegenprobe; jeder Schritt nur einmal).
   useEffect(() => {
     if (!wb.mitGrammatik) return;
-    const schritte = [() => erklaere(wb, ''), () => eingeschaltet(wb), () => eingeschalteteRegeln(wb)];
+    const schritte = [() => erklaere(wb, ''), () => eingeschaltet(wb), () => regelnVorbereiten(wb), () => eingeschalteteRegeln(wb)];
     let t = 0;
     const weiter = () => {
       const s = schritte.shift();
@@ -264,18 +264,28 @@ export function WoerterbuchScreen() {
         ) : (
           <>
             <div className="nichts">
-              <p className="nichts__titel">Nichts gefunden</p>
-              <p>
-                „{gesucht}“ ist nicht unter den Wörtern und Sätzen des Übersetzers. Er zeigt nur, was im Lehrbuch
-                steht oder von Muttersprachlern geprüft ist.
-              </p>
+              <p className="nichts__titel">{einzeln.length > 0 ? 'Als Satz nicht gefunden' : 'Nichts gefunden'}</p>
+              {einzeln.length > 0 ? (
+                <p>
+                  „{gesucht}“ steht nicht im Lehrbuch, und nach den Regeln, die der Übersetzer kennt, lässt sich der Satz
+                  (noch) nicht bauen – zum Beispiel Vergangenheit oder Nebensätze. Hier sind die Wörter einzeln, einen Satz
+                  setzt er daraus nicht zusammen.
+                </p>
+              ) : (
+                <p>
+                  „{gesucht}“ ist nicht unter den Wörtern und Sätzen des Übersetzers. Er zeigt nur, was im Lehrbuch steht
+                  oder von Muttersprachlern geprüft ist.
+                </p>
+              )}
             </div>
             {einzeln.length > 0 && (
               <section>
                 <h2 className="zwischentitel">Einzelne Wörter aus deiner Suche</h2>
                 {einzeln.map((g) => (
                   <div key={g.wort} className="einzeln">
-                    <p className="einzeln__wort">„{g.wort}“</p>
+                    <p className="einzeln__wort">
+                      „{g.wort}“{g.als && <span className="einzeln__als"> – gesucht als „{g.als}“</span>}
+                    </p>
                     <Fundliste funde={g.funde} />
                   </div>
                 ))}
@@ -347,15 +357,19 @@ function Ohne({ wb }: { wb: Woerterbuch }) {
           </li>
           <li>Wortteile und kleine Tippfehler klappen auch.</li>
           <li>
-            Steht ein einfacher Satz nicht im Lehrbuch („ich bin müde“, „mein Lehrer“, „im Haus“), setzt der Übersetzer ihn
-            nach Regeln aus dem Lehrbuch zusammen – dann mit orangem Schild und ohne Aufnahme.
+            Steht ein Satz nicht im Lehrbuch („Wollen wir Fußball spielen?“, „Ich bin krank und kann nicht kommen.“), setzt der
+            Übersetzer ihn nach Regeln aus dem Lehrbuch zusammen – dann mit orangem Schild und ohne Aufnahme.
+          </li>
+          <li>
+            Kennt das Lehrbuch ein Wort nicht, nimmt der Übersetzer ein gleichbedeutendes („möchte“ wie „will“, „Kumpel“ wie
+            „Freund“) und sagt dir, was er genommen hat.
           </li>
           <li>Tippe auf den Lautsprecher, um ein Wort zu hören – oder es am Tisch vorzuspielen.</li>
           <li>Nichts wird von einer KI übersetzt. Der Übersetzer geht auch ohne Internet.</li>
         </ul>
         <p className="tipps__zahl">
           {wb.funde.length.toLocaleString('de-DE')} Wörter, Formen und Sätze aus den Lektionen
-          {wb.mitGlossar && wb.mitGrammatik ? ', dem Glossar und der Grammatik' : wb.mitGlossar ? ' und dem Glossar' : ''} von{' '}
+          {wb.mitGlossar && wb.mitGrammatik ? `, ${wb.mitGrossemGlossar ? 'den Glossaren' : 'dem Glossar'} und der Grammatik` : wb.mitGlossar ? ' und dem Glossar' : ''} von{' '}
           <a href={QUELLE.url}>{QUELLE.name}</a>
         </p>
       </section>
@@ -701,6 +715,8 @@ function Herkunft({ fund, wb }: { fund: Fund; wb: Woerterbuch }) {
             , Lektion {titel.nr} <Surayt>{titel.latein}</Surayt> ({titel.deutsch})
           </>
         )}
+        {/* Level B (Lektion 17–24) steht noch nicht als Lektion in der App */}
+        {!titel && mitLektion && nr !== undefined && nr > 16 && <>, Lektion {nr} (Level B)</>}
       </p>
       {auchIn.length > 0 && <p className="herkunft__klein">Auch in: {[...new Set(auchIn)].join(', ')}</p>}
       {!stelle && weitere.length > 0 && <p className="herkunft__klein">Auch in Lektion {weitere.join(', ')}</p>}

@@ -23,9 +23,9 @@
 import type { GrammatikSeite } from '../types';
 import { woerter, zerlege } from './text';
 import type { Fund, Woerterbuch } from './woerterbuch';
-import { alleSchreibweisen, erklaere, type Schreibweise } from './wortfuerwort';
+import { alleSchreibweisen, artikelVor, erklaere, type Schreibweise } from './wortfuerwort';
 import { bedeutungen, genau, gleicherText, kandidaten, merkmaleMitCache, surWoerter, zeitVon, type Merkmale, type Zahl } from './baukasten';
-import { stichwort } from './woerterbuch';
+import { RANG, stichwort } from './woerterbuch';
 import {
   BESTIMMT,
   begleiterAuchMehrzahl,
@@ -47,7 +47,16 @@ import {
   adjektivKandidaten,
   istBegleiter,
   FAMILIE_KOERPER,
+  FRAGEWOERTER,
+  HILFSFORMEN,
+  modalFuerDritte,
+  modalVon,
+  synonymeVon,
+  SYNONYME as DEUTSCHE_SYNONYME,
+  ZUKUNFT,
+  zerlegeSatz,
   zerlegeDeutsch,
+  gleichePerson,
   type DeToken,
   type Person,
 } from './deutsch';
@@ -65,7 +74,17 @@ export type RegelId =
   | 'haben'
   | 'esgibt'
   | 'futur'
-  | 'praesens';
+  | 'praesens'
+  | 'muster'
+  | 'verbalsatz'
+  | 'modal'
+  | 'vorschlag'
+  | 'jussiv'
+  | 'verneinung'
+  | 'adverb'
+  | 'frage'
+  | 'janein'
+  | 'und';
 
 /** Wo eine Regel im Lehrbuch steht: Seite und Überschrift des Abschnitts; der Erklärsatz enthält `zitat`. */
 interface Fundstelle {
@@ -78,9 +97,14 @@ interface RegelDef {
   name: string;
   stellen: Fundstelle[];
   /** Sätze aus dem Erklärtext, die diese Wörter enthalten, werden wörtlich gezeigt. */
-  zitat: { seite: string; enthaelt: string[] };
+  zitat: { seite: string; enthaelt: string[] } | { seite: string; enthaelt: string[] }[];
   /** Nur Beispiele des Abschnitts, die das erfüllen (Präsens und Futur stehen im selben Abschnitt). */
   beleg?: (f: Fund, ix: Tafeln) => boolean;
+  /**
+   * Statt eines Grammatik-Abschnitts ein Wort aus dem Glossar, das die Regel trägt („w (conj.) –
+   * und“); Belege sind dann die Sätze der Daten, auf die `beleg` passt.
+   */
+  glossar?: (ix: Tafeln) => Fund | undefined;
 }
 
 const DEFS: RegelDef[] = [
@@ -152,9 +176,101 @@ const DEFS: RegelDef[] = [
   {
     id: 'praesens',
     name: 'Präsens',
-    stellen: [{ seite: '1.7.2', abschnitt: 'b)' }],
-    zitat: { seite: '1.7.2', enthaelt: ['Für die Kennzeichnung des Präsens'] },
-    beleg: (f, ix) => !!ix.praesens && surWoerter(f.latein).some((w) => w.startsWith(ix.praesens!.form) && w.length > ix.praesens!.form.length + 2),
+    stellen: [
+      { seite: '1.7.2', abschnitt: 'b)' },
+      { seite: '2.1.3', abschnitt: 'a) Häufige Verben' },
+    ],
+    zitat: [
+      { seite: '1.7.2', enthaelt: ['Für die Kennzeichnung des Präsens'] },
+      { seite: '2.1.3', enthaelt: ['verschmilzt der Vokal des Präsensmarkers'] },
+    ],
+    beleg: (f, ix) => !!ix.praesens && surWoerter(f.latein).some((w) => /^k/.test(w) && w.length > 3) && !f.verb,
+  },
+  {
+    // Verben, von denen das Glossar nur die Formen für „er“ und „sie“ nennt (siehe `verbMuster`)
+    id: 'muster',
+    name: 'Grundform des Präsens nach dem Muster der Verbtabellen',
+    stellen: [{ seite: '1.7.2', abschnitt: 'a)' }],
+    zitat: { seite: '1.7.2', enthaelt: ['An diese Formen werden', 'Alle regelmäßigen Verben bilden die Grundform des Präsens auf diese Weise', 'als erste Zitierform für Verben'] },
+  },
+  // --- Ganze Sätze (Phase 4b, Schritt 7b): Grammatik 17–24 ---
+  {
+    id: 'verbalsatz',
+    name: 'Verbalsatz: Subjekt – Verb – Objekt',
+    stellen: [{ seite: '2.1.3', abschnitt: 'd) Verbalsätze' }],
+    zitat: { seite: '2.1.3', enthaelt: ['Die übliche Wortstellung des einfachen Satzes ist Subjekt-Verb-Objekt'] },
+  },
+  {
+    id: 'modal',
+    name: 'Modalverb mit Subjunktiv',
+    stellen: [{ seite: '2.4.3', abschnitt: 'c) Ausdruck der Modalität' }],
+    zitat: { seite: '2.4.3', enthaelt: ['Das flektierte Vollverb folgt direkt', 'werden im Surayt nicht unterschieden', 'Für das Modalverb „wollen, mögen“'] },
+  },
+  {
+    id: 'vorschlag',
+    name: 'Frage nach einem Vorschlag: Subjunktiv',
+    // „Šotina ucdo qaḥwa …? – Wollen wir jetzt Kaffee trinken …?“ steht bei den Alternativfragen (Grammatik 24a)
+    stellen: [
+      { seite: '2.7.3', abschnitt: '1. Der Subjunktiv allgemein' },
+      { seite: '2.8.3', abschnitt: '2) Alternativfragen' },
+    ],
+    zitat: { seite: '2.7.3', enthaelt: ['So steht der Subjunktiv bei Fragen der Vergewisserung'] },
+    beleg: (f) => !f.stellen?.some((st) => st.seite === '2.8.3') || /^(wollen|sollen) wir\b|^soll ich\b/i.test(f.deutsch),
+  },
+  {
+    id: 'jussiv',
+    name: 'ṭro mit Subjunktiv: „soll“',
+    stellen: [{ seite: '2.7.3', abschnitt: '2. Die Partikel' }],
+    zitat: { seite: '2.7.3', enthaelt: ['hat eine jussivische Bedeutung'] },
+  },
+  {
+    id: 'verneinung',
+    name: 'Verneinung mit lo',
+    stellen: [
+      { seite: '2.6.3', abschnitt: '2. Verbalsatz' },
+      { seite: '2.6.3', abschnitt: 'd) Negiertes Futur' },
+    ],
+    zitat: { seite: '2.6.3', enthaelt: ['Verbalsätze werden mit der Negationspartikel', 'steht die Negationspartikel vor dem Hilfsverb', 'beide werden durch'] },
+  },
+  {
+    id: 'adverb',
+    name: 'Adverbien der Zeit und des Ortes',
+    stellen: [{ seite: '2.2.3', abschnitt: 'b) Adverbien' }],
+    zitat: { seite: '2.2.3', enthaelt: ['Zu den häufigsten Adverbien der Zeit gehören', 'Die Ortsadverbien haben keine bestimmte Kennzeichnung'] },
+    // Belege: die Sätze im Abschnitt „Beispiele für die Verwendung der Adverbien“
+    beleg: (f) => f.art === 'satz',
+  },
+  {
+    id: 'frage',
+    name: 'Frage mit Fragewort',
+    // Die Unterabschnitte sind im Lehrbuch mit „1)“ nummeriert und stehen deshalb einzeln da
+    stellen: [
+      { seite: '2.8.3', abschnitt: 'a) Direkte Fragesätze' },
+      { seite: '2.8.3', abschnitt: '1) Einfache Fragewörter' },
+      { seite: '2.8.3', abschnitt: '2) Zusammengesetzte Fragewörter' },
+    ],
+    zitat: { seite: '2.8.3', enthaelt: ['Direkte Fragesätze werden überwiegend durch ein Fragewort eingeleitet', 'folgt diese direkt auf das Fragewort'] },
+    beleg: (f) => f.art === 'satz',
+  },
+  {
+    id: 'janein',
+    name: 'Frage ohne Fragewort',
+    stellen: [
+      { seite: '2.8.3', abschnitt: '2. Direkte Fragesätze ohne' },
+      { seite: '2.8.3', abschnitt: '1) Ja-/Nein-Fragen' },
+      { seite: '2.8.3', abschnitt: '2) Alternativfragen' },
+    ],
+    zitat: { seite: '2.8.3', enthaelt: ['aus der Satzmelodie deutlich', 'In der letzten Silbe des Satzes geht man mit der Stimme nach oben', 'Die Fragepartikel'] },
+    beleg: (f) => f.art === 'satz',
+  },
+  {
+    id: 'und',
+    name: 'Zwei Sätze mit „und“',
+    stellen: [],
+    zitat: [],
+    glossar: (ix) => ix.und?.fund,
+    // Sätze der Daten, in denen das Lehrbuch zwei Sätze mit „w“ verbindet („komoyad u ḥawlo w kogorašle – er nimmt das Seil und zieht es“)
+    beleg: (f, ix) => f.art === 'satz' && !!ix.und && surWoerter(f.latein).slice(1).includes(ix.und.form) && /\bund\b/.test(f.deutsch) && /^[^,]*$/.test(f.deutsch),
   },
 ];
 
@@ -181,6 +297,12 @@ interface Form {
 /** Eine Form mit den Personen, für die sie steht (aus der Beschriftung der Tabelle). */
 interface PForm extends Form {
   personen: Person[];
+  /**
+   * Nach dem Muster der Verbtabellen gebildet (nicht aus einer Tabelle): aus der Form für
+   * „er“ oder „sie“ im Glossar (`basis`) und der Endung, die die Tabellen für diese Person
+   * zeigen – `wie` ist die Form eines Vorbild-Verbs mit dieser Endung („guršina“).
+   */
+  muster?: { basis: string; endung: string; wie: string; wieFund: Fund };
 }
 
 interface Tafeln {
@@ -217,6 +339,34 @@ interface Tafeln {
   eingeschraenkt: Map<string, Fund[]>;
   /** Wörter aus dem Wortschatz der Lektionen 4 (Familie) und 7 (Körper), in jeder Schreibweise */
   familieKoerper: Set<string>;
+  // --- Ganze Sätze (Grammatik 17–24) ---
+  /** kib- „können“ und layb- „nicht können“ (Grammatik 20c, Formentabelle „Pseudo- und Hilfsverben“) */
+  kann: PForm[];
+  kannNicht: PForm[];
+  /** Modalpartikel für „müssen“ (Grammatik 20c): die, die das Lehrbuch am häufigsten für „müssen“ nimmt */
+  muessen?: Form;
+  /** Alle Modalpartikeln für „müssen“, die das Lehrbuch nennt („In gleicher Position können auch … stehen“) */
+  muessenAlle: Set<string>;
+  /** ṭro (Grammatik 23d) */
+  tro?: Form;
+  /** Negationspartikel lo („nein, nicht“) */
+  nicht?: Form;
+  /** w „und“, aw „oder“ */
+  und?: Form;
+  oder?: Form;
+  /** Fragewörter (Grammatik 24a): „wo“ → ayko … */
+  fragewoerter: Map<string, Form>;
+  /** Fragepartikel ma „etwa“, im Deutschen oft „denn“ (Grammatik 24a) */
+  fragepartikel?: Form;
+  /** Adverbien (Grammatik 18b und „(adv.)“ im Glossar): „heute“ → adyawma, „heute abend“ → adcaṣriye */
+  adverbien: Map<string, Form[]>;
+  /**
+   * Personennamen aus den Daten („Aday“, „Saro“): in Umschrift und Deutsch gleich geschrieben;
+   * das Geschlecht zeigt der Artikel davor („u Aday“, „i Saro“), Belege pro Eintrag.
+   */
+  namen: Map<string, { form: string; belege: { fund: Fund; g?: 'm' | 'f' }[] }>;
+  /** Das Muster der Verbtabellen mit seiner Prüfung */
+  muster: Muster;
 }
 
 /**
@@ -296,6 +446,147 @@ const absatz = (seite: GrammatikSeite, i: number) => {
   const b = seite.bloecke[i];
   return b?.art === 'absatz' ? b.teile.map((t) => t.text).join('') : '';
 };
+
+// --- Verben nach dem Muster der Verbtabellen ---------------------------------------------------------
+//
+// Das Lehrbuch konjugiert 49 Verben in allen Personen (Verbkonjugation „Surcofo“, Formentabellen),
+// das Glossar nennt von jedem Verb die Formen für „er“ und „sie“. An den Tabellen sieht man, wie
+// die übrigen Personen aus diesen beiden gebildet werden: „goraš, guršo“ → gorašno (ich, m.),
+// guršono (ich, f.), guršina (wir) …; „oṯe, ëṯyo“ → oṯeno, ëṯyono, oṯina. Der Baukasten liest
+// dieses Muster aus den Tabellen ab (je Verbart und Stamm) und prüft es an jeder Tabelle, ohne sie
+// zu kennen. Nur wo es bei allen Verben derselben Art genau trifft, bildet er damit Formen.
+
+/** Die Personen der Präsenstabellen: er, sie, du (m./f.), ich (m./f.), sie (Pl.), ihr, wir. */
+const MUSTER_PERSONEN: Person[] = [
+  { p: 2, zahl: 'sg', g: 'm' },
+  { p: 2, zahl: 'sg', g: 'f' },
+  { p: 1, zahl: 'sg', g: 'm' },
+  { p: 1, zahl: 'sg', g: 'f' },
+  { p: 3, zahl: 'pl' },
+  { p: 2, zahl: 'pl' },
+  { p: 1, zahl: 'pl' },
+];
+const personKey = (x: Person) => `${x.p}${x.zahl}${x.g ?? ''}`;
+
+/** Verbart nach den Formen für er und sie: „goraš, guršo“ (Konsonant am Ende) oder „oṯe, ëṯyo“ (-e). */
+function verbArt(er: string, sie: string): 'konsonant' | 'e' | undefined {
+  if (!/o$/.test(sie)) return undefined;
+  if (/e$/.test(er)) return 'e';
+  if (/[^aeiouëä]$/.test(er)) return 'konsonant';
+  return undefined;
+}
+
+/** Der Stamm aus der Wurzelangabe des Glossars: „grš I“ → I, „ylf IIIp“ → IIIp, „tlfn“ → vier Konsonanten. */
+function stammAus(wurzel: string): string {
+  const m = /\b(I{1,3}p?)\b/.exec(wurzel);
+  if (m) return m[1];
+  const r = wurzel.split(/\s+/)[0] ?? '';
+  return [...r.normalize('NFC')].length >= 4 ? 'IV' : '?';
+}
+
+/** Woraus eine Form gebildet ist: aus der Form für er (A), der für sie ohne -o (B) oder er ohne Endvokal (C). */
+type Basis = 'A' | 'B' | 'C';
+const basisVon = (er: string, sie: string, b: Basis) => (b === 'A' ? er : b === 'B' ? sie.slice(0, -1) : er.slice(0, -1));
+
+interface Muster {
+  /** Formen für die übrigen Personen, wo das Muster bei allen Verben derselben Art und desselben Stamms stimmt */
+  bilde: (er: string, sie: string, stamm: string) => { form: string; person: Person; muster: NonNullable<PForm['muster']> }[];
+  /** Ergebnis der Prüfung: je Verbart, Stamm und Person, ob das Muster stimmt */
+  probe: { art: string; stamm: string; person: string; verben: number; getroffen: number }[];
+}
+
+function verbMuster(wb: Woerterbuch, grundformen: ReadonlyMap<string, PForm[]>): Muster {
+  // Stamm eines Tabellen-Verbs aus seinem Glossar-Eintrag („goraš, guršo - grëšle, grëšla [grš I]“)
+  const stammVon = new Map<string, string>();
+  for (const f of wb.funde) {
+    const m = f.herkunft === 'glossar' ? /^([^\s,]+), [^\s,]+ [-–] .*[[(]([^\])]*)[\])]/.exec(f.latein) : null;
+    if (m) stammVon.set(genau(m[1]), stammAus(m[2]));
+  }
+  // Die Verben, an denen Grammatik 7a die Präsensbasis erklärt („goraš-/gurš-“, „domax-/dëmx-“)
+  const vorbilder = new Set<string>();
+  const g7 = wb.seiten.get('1.7.2');
+  for (const b of g7?.bloecke ?? []) if (b.art === 'absatz' && /Präsensbasis/.test(b.teile.map((t) => t.text).join(''))) for (const t of b.teile) if (t.sur) for (const w of surWoerter(t.text.replace(/[-/]/g, ' '))) vorbilder.add(w);
+  // Die vollständigen Tabellen
+  interface Voll { verb: string; er: string; sie: string; art: 'konsonant' | 'e'; stamm: string; formen: Map<string, string>; funde: Map<string, Fund>; wie: string }
+  const volle: Voll[] = [];
+  for (const [verb, liste] of grundformen) {
+    const formen = new Map<string, string>();
+    const funde = new Map<string, Fund>();
+    for (const f of liste) for (const x of f.personen) {
+      for (const k of x.g || x.p === 3 || x.zahl === 'pl' ? [personKey(x)] : [personKey({ ...x, g: 'm' }), personKey({ ...x, g: 'f' })]) {
+        if (!formen.has(k)) {
+          formen.set(k, f.form);
+          funde.set(k, f.fund);
+        }
+      }
+    }
+    const er = formen.get('3sgm');
+    const sie = formen.get('3sgf');
+    const art = er && sie ? verbArt(er, sie) : undefined;
+    if (!er || !sie || !art || !MUSTER_PERSONEN.every((x) => formen.has(personKey(x)))) continue;
+    volle.push({ verb, er, sie, art, stamm: stammVon.get(er) ?? '?', formen, funde, wie: `${er}, ${sie}` });
+  }
+  /** Das Muster einer Person: die Bildung, die bei den meisten Verben derselben Art stimmt (ohne `ohne`) */
+  const regel = (art: string, x: Person, ohne?: Voll): { basis: Basis; endung: string; wie: Voll } | undefined => {
+    const zaehler = new Map<string, { n: number; wie: Voll }>();
+    for (const v of volle) {
+      if (v.art !== art || v === ohne) continue;
+      const form = v.formen.get(personKey(x))!;
+      for (const b of ['A', 'B', 'C'] as Basis[]) {
+        const basis = basisVon(v.er, v.sie, b);
+        if (b === 'C' && !/[aeiouëä]$/.test(v.er)) continue;
+        if (!form.startsWith(basis)) continue;
+        const k = `${b}|${form.slice(basis.length)}`;
+        const z = zaehler.get(k) ?? { n: 0, wie: v };
+        z.n++;
+        zaehler.set(k, z);
+      }
+    }
+    const best = [...zaehler.entries()].sort((a, b) => b[1].n - a[1].n)[0];
+    if (!best) return undefined;
+    const [basis, endung] = best[0].split('|');
+    // Als Vorbild am liebsten ein Verb, an dem Grammatik 7a die Präsensbasis erklärt (goraš, domax)
+    const vorbild =
+      volle.find((v) => v.art === art && v !== ohne && vorbilder.has(v.er) && basisVon(v.er, v.sie, basis as Basis) + endung === v.formen.get(personKey(x))) ?? best[1].wie;
+    return { basis: basis as Basis, endung, wie: vorbild };
+  };
+  const anwenden = (r: NonNullable<ReturnType<typeof regel>>, er: string, sie: string) => basisVon(er, sie, r.basis) + r.endung;
+
+  // Prüfung: jedes vollständige Verb mit dem Muster der anderen bilden
+  const probe: Muster['probe'] = [];
+  const gruppen = new Map<string, Voll[]>();
+  for (const v of volle) gruppen.set(`${v.art}|${v.stamm}`, [...(gruppen.get(`${v.art}|${v.stamm}`) ?? []), v]);
+  const an = new Set<string>();
+  for (const [k, liste] of gruppen) {
+    const [art, stamm] = k.split('|');
+    for (const x of MUSTER_PERSONEN) {
+      let getroffen = 0;
+      for (const v of liste) {
+        const r = regel(art, x, v);
+        if (r && anwenden(r, v.er, v.sie) === v.formen.get(personKey(x))) getroffen++;
+      }
+      probe.push({ art, stamm, person: personKey(x), verben: liste.length, getroffen });
+      // Nur Stämme mit einer Tabelle, in der es genau trifft – und nie daneben
+      if (stamm !== '?' && getroffen === liste.length) an.add(`${art}|${stamm}|${personKey(x)}`);
+    }
+  }
+  return {
+    probe,
+    bilde: (er, sie, stamm) => {
+      const art = verbArt(er, sie);
+      if (!art) return [];
+      return MUSTER_PERSONEN.flatMap((x) => {
+        if (!an.has(`${art}|${stamm}|${personKey(x)}`)) return [];
+        const r = regel(art, x);
+        if (!r) return [];
+        const basis = basisVon(er, sie, r.basis);
+        return [
+          { form: basis + r.endung, person: x, muster: { basis, endung: r.endung, wie: r.wie.formen.get(personKey(x))!, wieFund: r.wie.funde.get(personKey(x))! } },
+        ];
+      });
+    },
+  };
+}
 
 const tafelnCache = new WeakMap<Woerterbuch, Tafeln>();
 
@@ -413,6 +704,31 @@ function tafeln(wb: Woerterbuch): Tafeln {
     }
   }
 
+  // Verben, die nur im großen Glossar stehen: „Bei den Verben werden die Formen der Präsensbasis
+  // 3.m.sg., 3.f.sg. … zitiert: goraš, guršo – grëšle, grëšla“ (Vorwort des Glossars) – also er und sie.
+  // Die übrigen Personen bildet der Baukasten nach dem Muster der Verbtabellen (siehe `verbMuster`).
+  const muster = verbMuster(wb, grundformen);
+  const schonDa = new Set([...grundformen.values()].flat().map((x) => x.form));
+  for (const f of wb.funde) {
+    if (f.herkunft !== 'glossar' || f.art !== 'wort') continue;
+    // „zowan, zawno - zwënle, zwënla [zwn I]“ (großes Glossar) oder „… – …, … (zwn I)“ (Glossar A)
+    const m = /^([^\s,()[\]]+), ([^\s,()[\]]+) [-–] ([^\s,()[\]/]+)[^[(]*[[(]([^\])]*)[\])]\s*$/u.exec(f.latein);
+    if (!m) continue;
+    const [er, sie] = [genau(m[1]), genau(m[2])];
+    const verb = `${m[1]} – ${m[3]}`;
+    if (schonDa.has(er) || grundformen.has(verb)) continue;
+    const liste: PForm[] = [
+      { form: er, fund: f, personen: [{ p: 3, zahl: 'sg', g: 'm' }] },
+      { form: sie, fund: f, personen: [{ p: 3, zahl: 'sg', g: 'f' }] },
+    ];
+    for (const x of muster.bilde(er, sie, stammAus(m[4]))) liste.push({ form: x.form, fund: f, personen: [x.person], muster: x.muster });
+    grundformen.set(verb, liste);
+    for (const b of bedeutungen(f.deutsch)) {
+      if (!/^[a-zäöüß]+(?:en|ern|eln)$/.test(b)) continue;
+      verben.set(b, [...new Set([...(verben.get(b) ?? []), verb])]);
+    }
+  }
+
   // Deutsche Präsensformen der Verben, damit „er isst“ schnell zu „essen“ findet
   // „sein“, „haben“, „werden“ haben eigene Regeln (Kopula, „haben“, Futur) – nicht als gewöhnliches Verb.
   const finit = new Map<string, string[]>();
@@ -454,7 +770,128 @@ function tafeln(wb: Woerterbuch): Tafeln {
       .map((x) => x.genau),
   );
 
+  // --- Ganze Sätze (Grammatik 17–24) ---
+  const schreibweisen = alleSchreibweisen(wb);
+  const wortMit = (genauForm: string, passt: (f: Fund) => boolean = () => true) =>
+    schreibweisen.filter((x) => x.genau === genauForm && passt(x.fund)).sort((a, b) => Number(b.ganz) - Number(a.ganz) || RANG[a.fund.herkunft] - RANG[b.fund.herkunft])[0]?.fund;
+  /** Ein Wort aus den Daten mit genau dieser Bedeutung (ein Wort auf Surayt), Wortschatz zuerst */
+  const wortFuer = (deutsch: string) =>
+    wb.funde
+      .filter((f) => surWoerter(stichwort(f.latein)).length === 1 && bedeutungen(f.deutsch).includes(deutsch))
+      .sort((a, b) => RANG[a.herkunft] - RANG[b.herkunft])[0];
+  const alsForm = (f: Fund | undefined) => (f ? { form: genau(stichwort(f.latein)), fund: f } : undefined);
+
+  // „müssen“: „Zum Ausdruck der Modalverben „müssen“ und „sollen“ werden die unveränderlichen Modalpartikeln këbce und kobac
+  // herangezogen. In gleicher Position können auch lazëm oder kolozam beziehungsweise majbur stehen“ (Grammatik 20c).
+  // Genommen wird die, die in den Daten am häufigsten für „müssen“ steht.
+  const g20 = wb.seiten.get('2.4.3');
+  const mussAb = g20 && abschnitt(g20, '1. „müssen');
+  const partikeln: string[] = [];
+  if (g20 && mussAb) {
+    for (let i = mussAb[0]; i < mussAb[1]; i++) {
+      const b = g20.bloecke[i];
+      if (b.art !== 'absatz' || !/Modalpartikeln .*herangezogen|In gleicher Position/.test(absatz(g20, i))) continue;
+      for (const x of b.teile) if (x.sur && surWoerter(x.text).length === 1) partikeln.push(genau(x.text.trim()));
+    }
+  }
+  const MUSS = /\b(muss|musst|müssen|müsst)\b/i;
+  const zaehle = (w: string) => wb.funde.filter((f) => MUSS.test(f.deutsch) && surWoerter(f.latein).includes(w)).length;
+  const muss = [...new Set(partikeln)].sort((a, b) => zaehle(b) - zaehle(a))[0];
+  const mussFund = muss ? (wortMit(muss, (f) => MUSS.test(f.deutsch) || /müssen/.test(f.deutsch)) ?? wb.funde.find((f) => MUSS.test(f.deutsch) && surWoerter(f.latein).includes(muss))) : undefined;
+
+  // ṭro: „Die Partikel ṭro zusammen mit dem ihr nachstehenden Subjunktiv hat eine jussivische Bedeutung“ (Grammatik 23d)
+  const g23 = wb.seiten.get('2.7.3');
+  const troAb = g23 && abschnitt(g23, '2. Die Partikel');
+  let tro: Form | undefined;
+  if (g23 && troAb) {
+    for (let i = troAb[0]; i < troAb[1] && !tro; i++) {
+      const b = g23.bloecke[i];
+      const x = b.art === 'absatz' && /jussivische Bedeutung/.test(absatz(g23, i)) ? b.teile.find((t) => t.sur) : undefined;
+      const f = x && wortMit(genau(x.text.trim()));
+      if (x && f) tro = { form: genau(x.text.trim()), fund: f };
+    }
+  }
+
+  // Fragewörter (Grammatik 24a): „wo?“, „welche/r/s?“ → welche, welcher, welches
+  const fragewoerter = new Map<string, Form>();
+  const g24 = wb.seiten.get('2.8.3');
+  // Abschnitt a) reicht bis „b) Indirekte Fragesätze“ (die Unterabschnitte „1)“ stehen im Lehrbuch eine Ebene höher)
+  const frageAnfang = g24 ? g24.bloecke.findIndex((b) => b.art === 'titel' && b.text.startsWith('a) Direkte Fragesätze')) : -1;
+  const frageEnde = g24 ? g24.bloecke.findIndex((b) => b.art === 'titel' && /^b\)/.test(b.text)) : -1;
+  const frageAb: [number, number] | undefined = frageAnfang >= 0 ? [frageAnfang, frageEnde > frageAnfang ? frageEnde : g24!.bloecke.length] : undefined;
+  for (const e of g24?.eintraege ?? []) {
+    const f = fundVon(e.id);
+    if (!f || !frageAb || e.block >= frageAb[1] || !/\?$/.test(e.deutsch.trim()) || surWoerter(e.latein).length > 2 || e.art !== 'wort') continue;
+    for (const teil of e.deutsch.replace(/\?/g, '').split(/[,?]/)) {
+      const t = teil.trim().toLowerCase();
+      const m = /^([a-zäöüß]+)((?:\/[a-zäöüß]{1,2})+)$/.exec(t);
+      const keys = m ? [m[1], ...m[2].split('/').filter(Boolean).map((x) => m[1] + x)] : /^[a-zäöüß ]+$/.test(t) ? [t] : [];
+      for (const k of keys) if (!fragewoerter.has(k)) fragewoerter.set(k, form(f));
+    }
+  }
+
+  // „Die Fragepartikel ma „etwa“ … Im Deutschen bleibt ma unübersetzt oder kann mit „denn“ wiedergegeben werden“ (Grammatik 24a)
+  let fragepartikel: Form | undefined;
+  for (let i = 0; g24 && i < g24.bloecke.length && !fragepartikel; i++) {
+    const b = g24.bloecke[i];
+    const x = b.art === 'absatz' && /^Die Fragepartikel/.test(absatz(g24, i)) && /„denn“/.test(absatz(g24, i)) ? b.teile.find((t) => t.sur) : undefined;
+    const f = x && wortMit(genau(x.text.trim()));
+    if (x && f) fragepartikel = { form: genau(x.text.trim()), fund: f };
+  }
+
+  // Adverbien: Tabellen in Grammatik 18b, Einträge mit „(adv.)“ im Glossar
+  const adverbien = new Map<string, Form[]>();
+  const advDazu = (k: string, x: Form) => {
+    const key = k.trim().toLowerCase();
+    if (!key || !/^[a-zäöüß ]+$/.test(key)) return;
+    const liste = adverbien.get(key) ?? [];
+    if (!liste.some((y) => y.form === x.form)) adverbien.set(key, [...liste, x]);
+  };
+  const g18 = wb.seiten.get('2.2.3');
+  const advAb = g18 && abschnitt(g18, 'b) Adverbien');
+  const beispieleAb = g18 && abschnitt(g18, '4. Beispiele');
+  for (const e of g18?.eintraege ?? []) {
+    const f = fundVon(e.id);
+    if (!f || !advAb || e.block < advAb[0] || e.block >= advAb[1] || (beispieleAb && e.block >= beispieleAb[0]) || e.art !== 'wort') continue;
+    for (const b of e.deutsch.replace(/\([^)]*\)/g, ' ').split(/[,/]/)) advDazu(b, form(f));
+  }
+  for (const f of wb.funde) {
+    if (f.herkunft !== 'glossar' || !/\(adv\.\)/.test(f.latein)) continue;
+    const x = alsForm(f);
+    if (x) for (const b of f.deutsch.replace(/\([^)]*\)/g, ' ').split(/[,;/]/)) advDazu(b, x);
+  }
+
+  // Personennamen: „Personennamen können mit oder ohne Artikel stehen“ (Grammatik 3a)
+  const namen: Tafeln['namen'] = new Map();
+  for (const f of wb.funde) {
+    const sur = woerter(f.latein).map((w) => zerlege(w).kern.normalize('NFC')).filter(Boolean);
+    const de = new Set(f.deutsch.normalize('NFC').split(/[^\p{L}]+/u).filter((w) => /^\p{Lu}/u.test(w)));
+    sur.forEach((w, i) => {
+      if (!/^\p{Lu}\p{Ll}/u.test(w) || !de.has(w) || w.length < 3) return;
+      const vorher = i > 0 ? artikelVor(wb, sur[i - 1].toLowerCase(), w.toLowerCase()) : undefined;
+      const m = vorher?.merkmal ?? '';
+      const g = /^Sg\., m\./.test(m) ? 'm' : /^Sg\., f\./.test(m) ? 'f' : undefined;
+      const k = w.toLowerCase();
+      const da = namen.get(k) ?? { form: w, belege: [] };
+      da.belege.push({ fund: f, ...(g ? { g } : {}) });
+      namen.set(k, da);
+    });
+  }
+
   const ix: Tafeln = {
+    muster,
+    namen,
+    kann: ausHilfs('können', 'Gegenwart'),
+    kannNicht: ausHilfs('nicht können', 'Gegenwart'),
+    ...(muss && mussFund ? { muessen: { form: muss, fund: mussFund } } : {}),
+    muessenAlle: new Set(partikeln),
+    ...(tro ? { tro } : {}),
+    ...(alsForm(wortFuer('nicht')) ? { nicht: alsForm(wortFuer('nicht')) } : {}),
+    ...(alsForm(wortFuer('und')) ? { und: alsForm(wortFuer('und')) } : {}),
+    ...(alsForm(wortFuer('oder')) ? { oder: alsForm(wortFuer('oder')) } : {}),
+    fragewoerter,
+    ...(fragepartikel ? { fragepartikel } : {}),
+    adverbien,
     eingeschraenkt,
     familieKoerper,
     finit,
@@ -493,8 +930,13 @@ function tafeln(wb: Woerterbuch): Tafeln {
         if (!d.beleg || d.beleg(f, ix)) if (!belege.includes(f)) belege.push(f);
       }
     }
+    // Eine Regel, die ein Glossar-Wort trägt („w – und“): Belege aus allen Sätzen der Daten
+    const traeger = d.glossar?.(ix);
+    if (traeger) {
+      kapitel.push(`Glossar: ${traeger.latein} – ${traeger.deutsch}`);
+      for (const f of wb.funde) if (d.beleg?.(f, ix)) belege.push(f);
+    }
     // Der Erklärsatz ohne syrische Schrift (die zeigt die App noch nicht)
-    const s = wb.seiten.get(d.zitat.seite);
     const ohneSchrift = (b: GrammatikSeite['bloecke'][number]) =>
       b.art === 'absatz'
         ? b.teile
@@ -506,11 +948,12 @@ function tafeln(wb: Woerterbuch): Tafeln {
             .replace(/\s+/g, ' ')
             .replace(/\s+([,.:])/g, '$1')
         : '';
-    const saetze = s
-      ? s.bloecke.flatMap((b) => ohneSchrift(b).split(/(?<=[.:])\s+(?=\p{Lu}|„)/u)).filter((t) => d.zitat.enthaelt.some((z) => t.includes(z)))
-      : [];
+    const saetze = (Array.isArray(d.zitat) ? d.zitat : [d.zitat]).flatMap((z) => {
+      const s = wb.seiten.get(z.seite);
+      return s ? s.bloecke.flatMap((b) => ohneSchrift(b).split(/(?<=[.:])\s+(?=\p{Lu}|„)/u)).filter((t) => z.enthaelt.some((x) => t.includes(x))) : [];
+    });
     // „Grammatik 4b, Grammatik 9c“ → „Grammatik 4b, 9c“
-    const k = kapitel.map((x, i) => (i ? x.replace(/^Grammatik /, '') : x)).join(', ');
+    const k = [...new Set(kapitel)].map((x, i) => (i ? x.replace(/^Grammatik /, '') : x)).join(', ');
     ix.regeln.set(d.id, { id: d.id, name: d.name, kapitel: k, zitat: [...new Set(saetze.map((t) => t.trim()))], belege });
   }
   tafelnCache.set(wb, ix);
@@ -540,6 +983,8 @@ export interface Stueck {
   merkmal?: string;
   /** Bei zusammengesetzten Wörtern die Teile */
   aus?: Teilstueck[];
+  /** Für ein deutsches Wort, das so nicht im Lehrbuch steht: „„Kumpel“ wie „Freund““ */
+  statt?: string;
 }
 
 /** Eine Regel und das Stück Surayt, das sie gebaut hat. */
@@ -560,6 +1005,8 @@ export interface Regelsatz {
   variante?: string;
   /** Hängt die Form davon ab, ob ein Junge oder ein Mädchen spricht? */
   ich?: 'm' | 'f';
+  /** Was der Übersetzer am Deutschen geändert hat: „„möchte“ wie „will““, „„mal“ weggelassen“ */
+  hinweise?: string[];
 }
 
 export interface RegelOptionen {
@@ -579,11 +1026,14 @@ interface Bau {
   g?: 'm' | 'f';
   variante?: string;
   ich?: 'm' | 'f';
+  /** Mit „du“: zu einem Jungen oder einem Mädchen (damit Teilsätze zusammenpassen) */
+  du?: 'm' | 'f';
+  hinweise?: string[];
 }
 
 const text = (stuecke: readonly Stueck[]) => stuecke.map((s) => s.text).join(' ');
 const mitRegel = (b: Bau, regel: RegelId): Bau => ({ ...b, regeln: [{ regel, text: text(b.stuecke) }, ...b.regeln] });
-const varianteZusammen = (...v: (string | undefined)[]) => v.filter(Boolean).join(', ') || undefined;
+const varianteZusammen = (...v: (string | undefined)[]) => [...new Set(v.flatMap((x) => (x ? x.split(', ') : [])))].join(', ') || undefined;
 
 /** Ein Wort mit Rolle als Stück. */
 const stueck = (f: Form, rolle: string, merkmal?: string): Stueck => ({ text: f.form, rolle, fund: f.fund, ...(merkmal ? { merkmal } : {}) });
@@ -603,13 +1053,42 @@ interface Ctx {
 interface Wahl {
   s: Schreibweise;
   m: Merkmale;
+  /** Gefunden über ein gleichbedeutendes Wort: „„Kumpel“ wie „Freund““ */
+  statt?: string;
 }
 
-/** Wörter mit dieser deutschen Bedeutung, ohne den ausgeblendeten Eintrag. */
-function woerterFuer(ctx: Ctx, deutsch: string): Wahl[] {
+/** Wörter mit genau dieser deutschen Bedeutung, ohne den ausgeblendeten Eintrag. */
+function direktFuer(ctx: Ctx, deutsch: string): Wahl[] {
   return kandidaten(ctx.wb, deutsch)
     .filter((s) => s.fund !== ctx.ohne)
     .map((s) => ({ s, m: merkmaleMitCache(ctx.wb, s, ctx.ohne, deutsch) }));
+}
+
+/**
+ * Wörter mit dieser deutschen Bedeutung. Steht das Wort so nicht im Lehrbuch, sinngemäß:
+ * erst gleichbedeutende deutsche Wörter (deutsch.ts), dann die Wortliste „Deutsch > Surayt“
+ * des großen Glossars („Kirchenbesuch → cito“). Was so gefunden wurde, sagt `statt`.
+ * `passt` wählt aus (z. B. nur Substantive) – ein Ersatz zählt nur, wenn danach etwas übrig bleibt.
+ */
+function woerterFuer(ctx: Ctx, deutsch: string, passt: (w: Wahl) => boolean = () => true): Wahl[] {
+  const direkt = direktFuer(ctx, deutsch).filter(passt);
+  if (direkt.length || ctx.ohne) return direkt;
+  for (const syn of synonymeVon(deutsch)) {
+    const da = direktFuer(ctx, syn).filter(passt);
+    // Substantive groß („Kumpel“ wie „Freund“)
+    const gross = (w: Wahl, x: string) => (w.m.wortart === 'nomen' ? x.charAt(0).toUpperCase() + x.slice(1) : x);
+    if (da.length) return da.map((w) => ({ ...w, statt: `„${gross(w, deutsch)}“ wie „${gross(w, syn)}“` }));
+  }
+  const ausListe: Wahl[] = [];
+  for (const sur of ctx.wb.wortliste.get(deutsch) ?? []) {
+    const k = genau(sur.split(/\s+/)[0] ?? '');
+    for (const s of alleSchreibweisen(ctx.wb).filter((x) => x.genau === k && x.ganz && x.fund.art === 'wort')) {
+      const b = bedeutungen(s.fund.deutsch)[0] ?? '';
+      const w: Wahl = { s, m: merkmaleMitCache(ctx.wb, s, undefined, b), statt: `„${deutsch}“ wie „${b}“ (Wortliste des Glossars)` };
+      if (passt(w)) ausListe.push(w);
+    }
+  }
+  return ausListe;
 }
 
 /** Ein Wort so geschrieben wie im Eintrag („Surayt“ groß, sonst klein). */
@@ -637,14 +1116,14 @@ const SYNONYME = 2;
  * „Haus“), „Haus“ Einzahl. `sicher`: Geschlecht und Zahl müssen belegt sein.
  */
 function nomen(ctx: Ctx, wort: string, opt: { zahl?: Zahl; sicher?: boolean; offen?: boolean }): Wahl[] {
-  const direkt = woerterFuer(ctx, wort).filter((w) => w.m.wortart === 'nomen');
+  const direkt = woerterFuer(ctx, wort, (w) => w.m.wortart === 'nomen');
   const einzahl = direkt.filter((w) => w.m.zahl === 'sg' || (!opt.sicher && w.m.zahl === undefined && w.s.ganz));
   // Mehrzahl mit derselben Bedeutung: „malfone“ zu „Lehrer“, „nacime“ für „Kinder“
   const mehrzahl = direkt.filter((w) => w.m.zahl === 'pl');
   // Ein deutsches Mehrzahlwort zu einem anderen Substantiv („Häuser“ → „Haus“) – nur, wenn das Wort selbst nicht im Übersetzer steht
   const abgeleitet = direkt.length
     ? []
-    : einzahlKandidaten(wort).flatMap((sg) => woerterFuer(ctx, sg).filter((w) => w.m.wortart === 'nomen' && w.m.zahl === 'pl'));
+    : einzahlKandidaten(wort).flatMap((sg) => direktFuer(ctx, sg).filter((w) => w.m.wortart === 'nomen' && w.m.zahl === 'pl'));
   let liste: Wahl[];
   if (opt.zahl === 'sg') liste = einzahl;
   else if (opt.zahl === 'pl') liste = [...mehrzahl, ...abgeleitet];
@@ -658,11 +1137,16 @@ function nomen(ctx: Ctx, wort: string, opt: { zahl?: Zahl; sicher?: boolean; off
 /** Adjektive zu einem deutschen Wort in der gewünschten Form (Geschlecht und Zahl). */
 function adjektiv(ctx: Ctx, wort: string, g: 'm' | 'f' | undefined, zahl: Zahl): Wahl[] {
   if (istBegleiter(wort)) return [];
-  const liste = adjektivKandidaten(wort).flatMap((a) =>
-    woerterFuer(ctx, a).filter(
-      (w) => w.m.wortart === 'anderes' && w.m.zahl === zahl && (zahl === 'pl' ? !!w.m.geschlecht : w.m.geschlecht === g),
-    ),
-  );
+  const form = (w: Wahl) => w.m.wortart === 'anderes' && w.m.zahl === zahl && (zahl === 'pl' ? !!w.m.geschlecht : w.m.geschlecht === g);
+  const kandidatenListe = adjektivKandidaten(wort);
+  let liste = kandidatenListe.flatMap((a) => direktFuer(ctx, a).filter(form));
+  // Sinngemäß nur, wenn keine Form des Wortes selbst im Lehrbuch steht
+  if (!liste.length && !kandidatenListe.some((a) => direktFuer(ctx, a).some((w) => w.m.wortart === 'anderes'))) {
+    for (const a of kandidatenListe) {
+      liste = woerterFuer(ctx, a, form);
+      if (liste.length) break;
+    }
+  }
   return auswahl(liste).slice(0, SYNONYME);
 }
 
@@ -679,6 +1163,7 @@ const nomenStueck = (w: Wahl): Stueck => ({
   rolle: 'Substantiv',
   fund: w.s.fund,
   merkmal: geschlechtText(w.m.geschlecht === 'mf' ? undefined : w.m.geschlecht, w.m.zahl),
+  ...(w.statt ? { statt: w.statt } : {}),
 });
 
 // --- Wortgruppen --------------------------------------------------------------------------------------
@@ -694,7 +1179,13 @@ function artikelFuer(ctx: Ctx, nomenForm: string, g: 'm' | 'f' | undefined, zahl
   return a.plK && { text: `a${erster}`, rolle: 'Artikel', fund: a.plK.fund, merkmal: 'Mehrzahl, a + Anfangsbuchstabe' };
 }
 
-type Rolle = 'allein' | 'subjekt' | 'praedikat' | 'objekt' | 'nach-praeposition';
+/**
+ * `objekt`: Objekt im Präsens – mit bestimmtem Artikel bräuchte es die Objektmarkierung
+ * (Grammatik 16e), deshalb nur ohne. `objekt-subjunktiv`: Objekt nach einem Modalverb – dort
+ * steht es auch bestimmt ohne Markierung („Lazëm wa d saymat u buḥrono – Du musst die Prüfung
+ * machen“, „Abicina zayrina i mazracto“, Grammatik 20c).
+ */
+type Rolle = 'allein' | 'subjekt' | 'praedikat' | 'objekt' | 'objekt-subjunktiv' | 'nach-praeposition';
 
 /**
  * Eine deutsche Wortgruppe (Substantiv mit Begleiter und Adjektiv) auf Surayt.
@@ -709,6 +1200,7 @@ function gruppe(ctx: Ctx, t: readonly DeToken[], rolle: Rolle, opt: { zahl?: Zah
   // Possessiv: „mein Lehrer“, „ihre (Pl.) Bücher“ (Grammatik 5a, allgemeine Reihe)
   const besitzer = possessiv(erstes.w);
   if (besitzer && t.length === 2 && rolle !== 'objekt') {
+    // (auch als Objekt nach einem Modalverb: „Kolozam d soyamno ah hërgayḏi – Ich muss meine Hausaufgaben machen“)
     const hinweis = erstes.hinweis;
     const offen = begleiterAuchMehrzahl(erstes.w);
     for (const w of nomen(ctx, kopf, { zahl: opt.zahl, sicher: true, offen })) {
@@ -725,6 +1217,7 @@ function gruppe(ctx: Ctx, t: readonly DeToken[], rolle: Rolle, opt: { zahl?: Zah
           const wort: Stueck = {
             text: stamm + suffix.form,
             rolle: 'Substantiv mit Possessivsuffix',
+            ...(w.statt ? { statt: w.statt } : {}),
             aus: [
               { text: `${stamm}-`, fund: w.s.fund, rolle: `${w.s.genau} ohne Endung` },
               { text: `-${suffix.form}`, fund: suffix.fund, rolle: `Possessivsuffix · ${suffix.fund.deutsch}` },
@@ -760,6 +1253,20 @@ function gruppe(ctx: Ctx, t: readonly DeToken[], rolle: Rolle, opt: { zahl?: Zah
     if (aus.length) return aus;
   }
 
+  // Ein Personenname („Aday“) – nur, wenn das Wort kein Substantiv aus den Daten ist
+  // (steht der Name selbst als Wort im Übersetzer – „Aday – Aday“ –, ist es trotzdem der Name)
+  const alsName = ctx.ix.namen.get(erstes.w);
+  if (
+    t.length === 1 &&
+    rolle !== 'praedikat' &&
+    rolle !== 'nach-praeposition' &&
+    alsName &&
+    nomen(ctx, erstes.w, {}).every((w) => w.s.genau === alsName.form.toLowerCase())
+  ) {
+    const n = name(ctx, erstes.w);
+    return n ? [n] : [];
+  }
+
   // Mit bestimmtem Artikel, ohne oder mit unbestimmtem Artikel, mit „kein“; vielleicht mit Adjektiv davor
   const bestimmt = BESTIMMT.has(erstes.w);
   const kein = KEIN.has(erstes.w);
@@ -781,7 +1288,7 @@ function gruppe(ctx: Ctx, t: readonly DeToken[], rolle: Rolle, opt: { zahl?: Zah
       let stuecke: Stueck[] = [nomenStueck(w)];
       let regeln: Anwendung[] = [];
       if (a) {
-        const as: Stueck = { text: a.s.genau, rolle: 'Adjektiv', fund: a.s.fund, merkmal: geschlechtText(a.m.geschlecht, a.m.zahl) };
+        const as: Stueck = { text: a.s.genau, rolle: 'Adjektiv', fund: a.s.fund, merkmal: geschlechtText(a.m.geschlecht, a.m.zahl), ...(a.statt ? { statt: a.statt } : {}) };
         stuecke = [...stuecke, as];
         regeln = [{ regel: 'adjektiv', text: text(stuecke) }];
       }
@@ -795,6 +1302,23 @@ function gruppe(ctx: Ctx, t: readonly DeToken[], rolle: Rolle, opt: { zahl?: Zah
     }
   }
   return aus;
+}
+
+/**
+ * Ein Personenname aus den Daten („Aday“): mit Artikel, wenn das Lehrbuch das Geschlecht zeigt
+ * („u Aday“), sonst ohne – „Personennamen können mit oder ohne Artikel stehen“ (Grammatik 3a).
+ */
+function name(ctx: Ctx, w: string): Bau | undefined {
+  const n = ctx.ix.namen.get(w);
+  const belege = (n?.belege ?? []).filter((b) => b.fund !== ctx.ohne);
+  if (!n || !belege.length) return undefined;
+  const geschlechter = [...new Set(belege.map((b) => b.g).filter(Boolean))];
+  const g = geschlechter.length === 1 ? geschlechter[0] : undefined;
+  const fund = belege.find((b) => b.g === g)?.fund ?? belege[0].fund;
+  const ns: Stueck = { text: n.form, rolle: 'Name', fund, ...(g ? { merkmal: g === 'm' ? 'männlich (am Artikel im Lehrbuch)' : 'weiblich (am Artikel im Lehrbuch)' } : {}) };
+  const art = g ? artikelFuer(ctx, n.form.toLowerCase(), g, 'sg') : undefined;
+  if (!art) return { stuecke: [ns], regeln: [], zahl: 'sg' };
+  return { stuecke: [art, ns], regeln: [{ regel: 'artikel', text: `${art.text} ${n.form}` }], zahl: 'sg', g };
 }
 
 /** „Das endungslose Substantiv“ (Grammatik 5a): ohne -o in der Einzahl, ohne -e in der Mehrzahl. */
@@ -873,7 +1397,17 @@ const formStueck = (f: PForm, rolle: string, x: Person, zeit?: string): Stueck =
   rolle,
   fund: f.fund,
   merkmal: [zeit, personText(x)].filter(Boolean).join(' · '),
+  ...(f.muster ? { aus: musterTeile(f) } : {}),
 });
+
+/** Die Teile einer Form nach dem Muster der Verbtabellen: „yëlf-“ (aus yëlfo im Glossar) + „-i“ (wie gurši). */
+function musterTeile(f: PForm): Teilstueck[] {
+  const m = f.muster!;
+  return [
+    { text: `${m.basis}-`, fund: f.fund, rolle: `aus der Form für er/sie im Glossar` },
+    ...(m.endung ? [{ text: `-${m.endung}`, fund: m.wieFund, rolle: `Endung wie in ${m.wie} (Verbtabelle)` }] : []),
+  ];
+}
 
 /** Das Prädikat nach „sein“: Adjektiv (angeglichen), Substantiv, Präposition oder Ortswort. */
 function praedikat(ctx: Ctx, t: readonly DeToken[], x: Person, negiert: boolean): Bau[] {
@@ -884,9 +1418,11 @@ function praedikat(ctx: Ctx, t: readonly DeToken[], x: Person, negiert: boolean)
     if (orte.length) return [{ stuecke: orte, regeln: [] }];
     // Adjektiv: in Geschlecht und Zahl wie das Subjekt (Grammatik 11a)
     for (const a of adjektiv(ctx, w, x.g, x.zahl)) {
-      aus.push({ stuecke: [{ text: a.s.genau, rolle: 'Adjektiv', fund: a.s.fund, merkmal: geschlechtText(a.m.geschlecht, a.m.zahl) }], regeln: [{ regel: 'adjektiv', text: a.s.genau }] });
+      aus.push({ stuecke: [{ text: a.s.genau, rolle: 'Adjektiv', fund: a.s.fund, merkmal: geschlechtText(a.m.geschlecht, a.m.zahl), ...(a.statt ? { statt: a.statt } : {}) }], regeln: [{ regel: 'adjektiv', text: a.s.genau }] });
     }
   }
+  // „zu Hause“: eine Wendung aus den Daten („Bu bayto yo – Er ist (gerade) zu Hause“, Grammatik 24c)
+  aus.push(...wendung(ctx, t));
   // „im Haus“
   aus.push(...mitPraeposition(ctx, t));
   // Substantiv, auch mit „ein“ oder „kein“ – in der Zahl des Subjekts
@@ -898,8 +1434,8 @@ function praedikat(ctx: Ctx, t: readonly DeToken[], x: Person, negiert: boolean)
   return aus;
 }
 
-/** Alle Sätze, die die Regeln aus einer deutschen Eingabe bauen können (ohne Gegenprobe). */
-function baue(ctx: Ctx, t: readonly DeToken[]): Bau[] {
+/** Alle Sätze, die die Regeln aus einem Teilsatz in der Form „Subjekt – Verb – Rest“ bauen können (ohne Gegenprobe). */
+function baue(ctx: Ctx, t: readonly DeToken[], opt: { frage?: boolean } = {}): Bau[] {
   const aus: Bau[] = [];
   const [a, b, ...rest] = t;
   if (!a || !b) return aus;
@@ -911,10 +1447,13 @@ function baue(ctx: Ctx, t: readonly DeToken[]): Bau[] {
     [WAR, ix.kopulaVergangen, 'Vergangenheit'],
   ] as const) {
     for (const x0 of subjekt(a.w, b.w, formen)) {
-      const negiert = rest[0]?.w === 'nicht' || KEIN.has(rest[0]?.w ?? '');
+      // Zeitangaben („heute“) stehen im Nominalsatz vorn (Grammatik 18b)
+      const { vorne, rest: ohneZeit } = zeitangabenRaus(ctx, rest);
+      const negiert = ohneZeit[0]?.w === 'nicht' || KEIN.has(ohneZeit[0]?.w ?? '');
       // Verneint nur im Präsens: dafür stehen die Beispiele in Grammatik 9c.
       if (negiert && zeit !== 'Gegenwart') continue;
-      const pt = rest[0]?.w === 'nicht' ? rest.slice(1) : rest;
+      const pt = ohneZeit[0]?.w === 'nicht' ? ohneZeit.slice(1) : ohneZeit;
+      if (!pt.length) continue;
       for (const { x, variante, ich } of mitGeschlecht(ctx, x0)) {
         const kop = formFuerPerson(negiert ? ix.kopulaNegiert : tafel, x);
         if (!kop) continue;
@@ -922,7 +1461,9 @@ function baue(ctx: Ctx, t: readonly DeToken[]): Bau[] {
           const k = formStueck(kop, negiert ? 'Kopula, verneint' : 'Kopula', x, zeit);
           // „die dem betreffenden Wort oder Satzteil folgt“; verneint steht latyo davor (Beispiele in 9c)
           const stuecke = negiert ? [k, ...p.stuecke] : [...p.stuecke, k];
-          aus.push(mitRegel({ stuecke, regeln: p.regeln, variante: varianteZusammen(variante, p.variante), ich }, 'kopula'));
+          let bau = mitRegel({ stuecke, regeln: p.regeln, variante: varianteZusammen(variante, p.variante), ich, ...(x.p === 2 && x.zahl === 'sg' ? { du: x.g } : {}) }, 'kopula');
+          for (const v of [...vorne].reverse()) bau = mitRegel(verbinde(v, bau), 'adverb');
+          aus.push(bau);
         }
       }
     }
@@ -940,7 +1481,7 @@ function baue(ctx: Ctx, t: readonly DeToken[]): Bau[] {
       const kop = formFuerPerson(ix.kopula, x);
       for (const a2 of adjektiv(ctx, pt[0].w, x.g, zahl)) {
         if (!kop) continue;
-        const adj: Stueck = { text: a2.s.genau, rolle: 'Adjektiv', fund: a2.s.fund, merkmal: geschlechtText(a2.m.geschlecht, a2.m.zahl) };
+        const adj: Stueck = { text: a2.s.genau, rolle: 'Adjektiv', fund: a2.s.fund, merkmal: geschlechtText(a2.m.geschlecht, a2.m.zahl), ...(a2.statt ? { statt: a2.statt } : {}) };
         aus.push(
           mitRegel(
             { stuecke: [...s.stuecke, adj, formStueck(kop, 'Kopula', x, 'Gegenwart')], regeln: [...s.regeln, { regel: 'adjektiv', text: adj.text }], variante: s.variante },
@@ -967,13 +1508,16 @@ function baue(ctx: Ctx, t: readonly DeToken[]): Bau[] {
 
   // „haben“: „ich habe ein Auto“ = këtli … , „ich habe kein Auto“ = latli … (Grammatik 9b)
   for (const x0 of subjekt(a.w, b.w, HABEN)) {
-    const negiert = KEIN.has(rest[0]?.w ?? '');
+    const negiert = rest.some((x) => KEIN.has(x.w));
     for (const { x, variante, ich } of mitGeschlecht(ctx, x0)) {
       const h = formFuerPerson(negiert ? ix.nichtHaben : ix.haben, x);
       if (!h) continue;
-      for (const o of gruppe(ctx, rest, 'objekt', { negiert })) {
+      // Das Objekt, auch mit Zeitangabe und Ort: „ich habe heute einen langen Tag in der Schule“
+      const objekte = rest.length && rest.every((y) => !SEIN.includes(y.w)) ? ergaenzungen(ctx, rest, { negiert }) : [];
+      for (const o of objekte) {
+        if (!o.stuecke.some((y) => /Substantiv/.test(y.rolle))) continue;
         const hs = formStueck(h, negiert ? '„nicht haben“' : '„haben“', x);
-        aus.push(mitRegel({ stuecke: [hs, ...o.stuecke], regeln: o.regeln, variante: varianteZusammen(variante, o.variante), ich }, 'haben'));
+        aus.push(mitRegel({ ...o, stuecke: [hs, ...o.stuecke], regeln: o.regeln, variante: varianteZusammen(variante, o.variante), ich, ...(x.p === 2 && x.zahl === 'sg' ? { du: x.g } : {}) }, 'haben'));
       }
     }
   }
@@ -1020,64 +1564,519 @@ function baue(ctx: Ctx, t: readonly DeToken[]): Bau[] {
     }
   }
 
-  // Futur: „ich werde schlafen“ = gëd + Grundform (Grammatik 7b), auch mit Objekt ohne Artikel
-  if (ix.futur && t.length >= 3) {
-    for (const x0 of subjekt(a.w, b.w, WERDEN)) {
-      const inf = t[t.length - 1].w;
-      const objekt = t.slice(2, -1);
-      for (const verb of ix.verben.get(inf) ?? []) {
-        for (const { x, variante, ich } of mitGeschlecht(ctx, x0)) {
-          for (const f of formenFuerPerson(ix.grundformen.get(verb) ?? [], x)) {
-          if (f.fund === ctx.ohne) continue;
-          // Objekt ohne Artikel („Surayt lernen“) oder Ort mit Präposition („im Zimmer schlafen“)
-          const objekte = objekt.length ? [...gruppe(ctx, objekt, 'objekt'), ...mitPraeposition(ctx, objekt)] : [{ stuecke: [], regeln: [] } as Bau];
-          for (const o of objekte) {
-            const stuecke = [stueck(ix.futur, 'Futurmarker'), formStueck(f, 'Verb, Grundform des Präsens', x), ...o.stuecke];
-            aus.push(mitRegel({ stuecke, regeln: o.regeln, variante: varianteZusammen(variante, o.variante), ich }, 'futur'));
-          }
-          }
-        }
-      }
-    }
-  }
-
-  // Präsens: „er schläft“ = ko- + Grundform (Grammatik 7b), auch mit Objekt ohne Artikel
-  if (ix.praesens && istPronomen(a.w)) {
-    for (const inf of ix.finit.get(b.w) ?? []) {
-      const formen = praesens(inf);
-      const verben = ix.verben.get(inf) ?? [];
-      if (!formen) continue;
-      for (const x0 of subjekt(a.w, b.w, formen)) {
-        for (const verb of verben) {
-          for (const { x, variante, ich } of mitGeschlecht(ctx, x0)) {
-            for (const f of formenFuerPerson(ix.grundformen.get(verb) ?? [], x)) {
-            // Vor Vokal nennt das Lehrbuch keine eigene Form des Präsensmarkers – dann nichts bauen.
-            if (f.fund === ctx.ohne || /^[aeiouëä]/.test(f.form)) continue;
-            const objekte = rest.length ? [...gruppe(ctx, rest, 'objekt'), ...mitPraeposition(ctx, rest)] : [{ stuecke: [], regeln: [] } as Bau];
-            for (const o of objekte) {
-              const verbStueck: Stueck = {
-                text: ix.praesens.form + f.form,
-                rolle: 'Verb im Präsens',
-                merkmal: personText(x),
-                aus: [
-                  { text: `${ix.praesens.form}-`, fund: ix.praesens.fund, rolle: 'Präsensmarker' },
-                  { text: f.form, fund: f.fund, rolle: `Grundform des Präsens · ${personText(x)}` },
-                ],
-              };
-              aus.push(mitRegel({ stuecke: [verbStueck, ...o.stuecke], regeln: o.regeln, variante: varianteZusammen(variante, o.variante), ich }, 'praesens'));
-            }
-            }
-          }
-        }
-      }
-    }
-  }
+  // Verbalsätze: Präsens, Futur, Modalverben, verneint, mit Ergänzungen (Grammatik 7b, 17a, 17d, 20c, 22c, 23d)
+  aus.push(...verbalsaetze(ctx, t, opt.frage ?? false));
 
   // Wortgruppen allein: „mein Lehrer“, „drei Häuser“, „ein großes Haus“, „im Haus“ – aber nur, wenn eine Regel mitspielt
   if (!aus.length) {
     for (const g of [...gruppe(ctx, t, 'allein'), ...mitPraeposition(ctx, t)]) if (g.regeln.length) aus.push(g);
   }
   return aus;
+}
+
+// --- Ganze Sätze (Phase 4b, Schritt 7b): Grammatik 17–24 ---------------------------------------------
+//
+// Was hier dazukommt: Verbalsätze mit Substantiv als Subjekt (G17d), Modalverben mit Subjunktiv
+// (G20c), Verneinung mit lo (G22c, d), Adverbien der Zeit und des Ortes (G18b), Fragen (G24a),
+// Fragen nach einem Vorschlag und ṭro (G23d) und zwei Sätze mit „und“/„oder“/„aber“. Die deutsche
+// Wortstellung wird dafür in die einfache Form „Subjekt – Verb – Rest“ gebracht (deutsch.ts),
+// die Teile kommen aus den Bausteinen oben.
+
+const LEER: Bau = { stuecke: [], regeln: [] };
+
+/** Zwei Bausteine hintereinander (Merkmale vom ersten, Hinweise von beiden). */
+function verbinde(a: Bau, b: Bau): Bau {
+  const hinweise = [...(a.hinweise ?? []), ...(b.hinweise ?? [])];
+  return {
+    ...a,
+    stuecke: [...a.stuecke, ...b.stuecke],
+    regeln: [...a.regeln, ...b.regeln],
+    variante: varianteZusammen(a.variante, b.variante),
+    ...(a.ich ?? b.ich ? { ich: a.ich ?? b.ich } : {}),
+    ...(a.du ?? b.du ? { du: a.du ?? b.du } : {}),
+    ...(hinweise.length ? { hinweise: [...new Set(hinweise)] } : {}),
+  };
+}
+
+/** Ein Adverb aus den Daten (Grammatik 18b, „(adv.)“ im Glossar): „heute“, „heute abend“, „hier“; auch sinngemäß („nun“ wie „jetzt“). */
+function adverb(ctx: Ctx, t: readonly DeToken[]): Bau[] {
+  const key = t.map((x) => x.w).join(' ');
+  const finde = (k: string) => (ctx.ix.adverbien.get(k) ?? []).filter((f) => f.fund !== ctx.ohne);
+  let formen = finde(key);
+  let statt: string | undefined;
+  if (!formen.length && !ctx.ohne) {
+    for (const syn of synonymeVon(key)) {
+      formen = finde(syn);
+      if (formen.length) {
+        statt = `„${key}“ wie „${syn}“`;
+        break;
+      }
+    }
+  }
+  return formen.slice(0, 1).map((f) => ({
+    stuecke: [{ ...stueck(f, 'Adverb'), ...(statt ? { statt } : {}) }],
+    regeln: [{ regel: 'adverb', text: f.form }],
+  }));
+}
+
+const wendungenCache = new WeakMap<Woerterbuch, Map<string, Fund[]>>();
+
+/**
+ * Eine Wendung, die genau so in den Daten steht – „zu Hause“ (bu bayto), „nach Hause“ (lu bayto):
+ * ein deutscher Ausdruck aus zwei oder drei Wörtern, der als Bedeutung eines kurzen Eintrags steht.
+ * Das ist keine Regel, sondern ein Eintrag aus dem Lehrbuch.
+ */
+function wendung(ctx: Ctx, t: readonly DeToken[]): Bau[] {
+  if (t.length < 2 || t.length > 3) return [];
+  let index = wendungenCache.get(ctx.wb);
+  if (!index) {
+    index = new Map();
+    for (const f of ctx.wb.funde) {
+      const n = surWoerter(f.latein.replace(/\([^)]*\)/g, ' ')).length;
+      if (n < 1 || n > 3 || /[,;:/~+…]/.test(f.latein) || f.verb) continue;
+      for (const b of bedeutungen(f.deutsch)) {
+        if (b.split(' ').length < 2 || b.split(' ').length > 3) continue;
+        index.set(b, [...(index.get(b) ?? []), f]);
+      }
+    }
+    for (const liste of index.values()) liste.sort((a, b) => RANG[a.herkunft] - RANG[b.herkunft] || Number(!!b.audio) - Number(!!a.audio));
+    wendungenCache.set(ctx.wb, index);
+  }
+  // Der deutsche Ausdruck mit Artikeln, so wie `bedeutungen` sie ablegt (ohne Artikel)
+  const key = t.map((x) => x.w).filter((w) => !BESTIMMT.has(w) && !UNBESTIMMT.has(w)).join(' ');
+  return (index.get(key) ?? [])
+    .filter((f) => f !== ctx.ohne)
+    .slice(0, 1)
+    .map((f) => ({ stuecke: [{ text: surWoerter(f.latein.replace(/\([^)]*\)/g, ' ')).join(' '), rolle: 'Wendung aus dem Lehrbuch', fund: f }], regeln: [] }));
+}
+
+/** Ist das Wort (oder sind die zwei Wörter) ein Adverb? */
+const istAdverb = (ctx: Ctx, t: readonly DeToken[]) => adverb(ctx, t).length > 0;
+
+/**
+ * Zeitangaben aus dem Rest eines Nominalsatzes nach vorn: „ich bin heute krank“ → adyawma …,
+ * wie „Ramḥël yawme dë cruto yo – Morgen ist Freitag“, „Ucdo u Aday malfono yo – Jetzt ist Aday
+ * Lehrer“. Ortsadverbien („hier“) bleiben, sie sind das Prädikat.
+ */
+function zeitangabenRaus(ctx: Ctx, t: readonly DeToken[]): { vorne: Bau[]; rest: DeToken[] } {
+  const vorne: Bau[] = [];
+  const rest: DeToken[] = [];
+  for (let i = 0; i < t.length; i++) {
+    const zwei = i + 1 < t.length ? adverb(ctx, t.slice(i, i + 2)) : [];
+    const eins = ORTSWORT.has(t[i].w) ? [] : adverb(ctx, t.slice(i, i + 1));
+    if (zwei.length) {
+      vorne.push(zwei[0]);
+      i++;
+    } else if (eins.length && t.length > 1) vorne.push(eins[0]);
+    else rest.push(t[i]);
+  }
+  return { vorne, rest };
+}
+
+/**
+ * Die Ergänzungen nach dem Verb, in der Reihenfolge des Deutschen: Adverbien („heute“),
+ * Wortgruppen ohne bestimmten Artikel („einen langen Tag“), Präpositionen („in der Schule“).
+ * So stehen sie auch im Lehrbuch: „Kobac fayšat adlalyo harke – Du musst heute Nacht hier
+ * bleiben“, „Šotina ucdo qaḥwa – Wollen wir jetzt Kaffee trinken“.
+ */
+function ergaenzungen(ctx: Ctx, t: readonly DeToken[], opt: { negiert?: boolean; rolle?: Rolle } = {}): Bau[] {
+  const memo = new Map<number, Bau[]>();
+  const ab = (i: number): Bau[] => {
+    if (i >= t.length) return [LEER];
+    const da = memo.get(i);
+    if (da) return da;
+    const aus: Bau[] = [];
+    for (let n = Math.min(4, t.length - i); n >= 1 && aus.length < 4; n--) {
+      const teil = t.slice(i, i + n);
+      // Ist ein Wort ein Adverb („morgen“), dann nicht noch als Substantiv („der Morgen“) – klein getippt sieht man es nicht.
+      const adv = adverb(ctx, teil);
+      const wen = adv.length ? [] : wendung(ctx, teil);
+      const erste = [...adv, ...wen, ...(wen.length ? [] : mitPraeposition(ctx, teil)), ...(adv.length || wen.length ? [] : gruppe(ctx, teil, opt.rolle ?? 'objekt', { negiert: opt.negiert }))];
+      if (!erste.length) continue;
+      const weiter = ab(i + n);
+      for (const a of erste.slice(0, 2)) for (const b of weiter.slice(0, 2)) aus.push(verbinde(a, b));
+    }
+    memo.set(i, aus);
+    return aus;
+  };
+  return ab(0);
+}
+
+/** „nicht“ und „kein“ im Rest eines Satzes: Ohne „nicht“ bleibt der Rest, „kein“ bleibt stehen (die Wortgruppe baut es ohne Artikel). */
+function verneinungIn(t: readonly DeToken[]): { negiert: boolean; rest: DeToken[] } {
+  const ohne = t.filter((x) => x.w !== 'nicht');
+  return { negiert: ohne.length < t.length || t.some((x) => KEIN.has(x.w)), rest: ohne };
+}
+
+/** Das Wort für „nicht“ (lo), „und“ (w) usw. als Stück. */
+const kleinwortStueck = (f: Form | undefined, rolle: string): Stueck[] => (f ? [stueck(f, rolle)] : []);
+
+/** Präsens: ko- + Grundform, vor Vokal k- (Grammatik 7b, 17a: „komar“, „këzze“, „kobac“). */
+function praesensStueck(ctx: Ctx, f: PForm, x: Person): Stueck | undefined {
+  const ko = ctx.ix.praesens;
+  // h-Anlaut („howe“ → „kowe“) nennt das Lehrbuch nur für howe – „sein“, „werden“ haben eigene Regeln.
+  if (!ko || /^h/.test(f.form)) return undefined;
+  const vokal = /^[aeiouëä]/.test(f.form);
+  const marker = vokal ? ko.form.replace(/[aeiouëä]+$/, '') : ko.form;
+  return {
+    text: marker + f.form,
+    rolle: 'Verb im Präsens',
+    merkmal: personText(x),
+    aus: [
+      { text: `${marker}-`, fund: ko.fund, rolle: vokal ? 'Präsensmarker, vor Vokal k- (Grammatik 17a)' : 'Präsensmarker' },
+      ...(f.muster ? musterTeile(f) : [{ text: f.form, fund: f.fund, rolle: `Grundform des Präsens · ${personText(x)}` }]),
+    ],
+  };
+}
+
+/** Deutsches Verb (Infinitiv) → Verben im Lehrbuch; sinngemäß über gleichbedeutende Verben („gucken“ wie „sehen“). */
+function verbenFuer(ctx: Ctx, inf: string): { verb: string; statt?: string }[] {
+  const direkt = ctx.ix.verben.get(inf) ?? [];
+  if (direkt.length) return direkt.map((verb) => ({ verb }));
+  if (ctx.ohne) return [];
+  for (const syn of synonymeVon(inf)) {
+    const da = ctx.ix.verben.get(syn) ?? [];
+    if (da.length) return da.map((verb) => ({ verb, statt: `„${inf}“ wie „${syn}“` }));
+  }
+  return [];
+}
+
+/** Deutsche Präsensform → Infinitive, auch von gleichbedeutenden Verben („guckst“ → gucken). */
+function infinitiveVon(ctx: Ctx, finit: string): string[] {
+  const da = ctx.ix.finit.get(finit) ?? [];
+  if (da.length || ctx.ohne) return da;
+  return Object.keys(DEUTSCHE_SYNONYME).filter((inf) => /(?:en|ern|eln)$/.test(inf) && (praesens(inf) ?? []).includes(finit));
+}
+
+/** Das Subjekt eines Verbalsatzes: ein Pronomen (fällt im Surayt weg) oder eine Wortgruppe mit Artikel/Possessiv (Grammatik 17d). */
+interface SubjektTeil {
+  personen: Person[];
+  bau: Bau;
+  /** Wo im Deutschen das Verb steht */
+  verb: number;
+  nomen: boolean;
+}
+
+function subjekteVon(ctx: Ctx, t: readonly DeToken[]): SubjektTeil[] {
+  const aus: SubjektTeil[] = [];
+  // Wer zu Pronomen und Verbform passt: „wir möchten“, „du kommst“, „er wird“
+  const personenFuer = (pron: string, w: string): Person[] => [
+    ...subjekt(pron, w, WERDEN),
+    ...modalVon(pron, w).flatMap((m) => m.personen),
+    ...infinitiveVon(ctx, w).flatMap((inf) => subjekt(pron, w, praesens(inf) ?? [])),
+  ];
+  // Welche dritte Person (Einzahl/Mehrzahl) zur Verbform passt: „der Lehrer kommt“, „die Kinder wollen“
+  const dritte = (w: string): Zahl[] =>
+    (['sg', 'pl'] as const).filter(
+      (z) =>
+        WERDEN[z === 'sg' ? 2 : 5] === w ||
+        modalFuerDritte(w).some((m) => m.zahl === z) ||
+        infinitiveVon(ctx, w).some((inf) => (praesens(inf) ?? [])[z === 'sg' ? 2 : 5] === w),
+    );
+  if (t[0] && istPronomen(t[0].w) && t[1]) {
+    const personen = personenFuer(t[0].w, t[1].w);
+    if (personen.length) aus.push({ personen: [...new Map(personen.map((p) => [`${p.p}${p.zahl}${p.g ?? ''}`, p])).values()], bau: LEER, verb: 1, nomen: false });
+  }
+  const bestimmtesSubjekt = (g: Bau) => g.regeln.some((r) => r.regel === 'artikel' || r.regel === 'possessiv') || g.stuecke.some((x) => x.rolle === 'Name');
+  for (let i = 1; i <= 7 && i < t.length; i++) {
+    if (istPronomen(t[0].w)) break;
+    const vorn = t.slice(0, i);
+    const und = vorn.findIndex((x) => x.w === 'und');
+    for (const zahl of dritte(t[i].w)) {
+      if (und < 0 && i <= 3) {
+        for (const g of gruppe(ctx, vorn, 'subjekt', { zahl })) {
+          if (!bestimmtesSubjekt(g)) continue;
+          aus.push({ personen: [{ p: 3, zahl, ...(g.g && zahl === 'sg' ? { g: g.g } : {}) }], bau: g, verb: i, nomen: true });
+        }
+      }
+      // „Saro und Aday wollen …“ – zwei Subjekte mit w „und“, das Verb in der Mehrzahl
+      if (und > 0 && und < i - 1 && zahl === 'pl' && ctx.ix.und) {
+        const links = gruppe(ctx, vorn.slice(0, und), 'subjekt').filter(bestimmtesSubjekt);
+        const rechts = gruppe(ctx, vorn.slice(und + 1), 'subjekt').filter(bestimmtesSubjekt);
+        for (const a of links.slice(0, 2)) {
+          for (const b of rechts.slice(0, 2)) {
+            const bau = mitRegel(verbinde(verbinde(a, { stuecke: [stueck(ctx.ix.und, 'Bindewort „und“')], regeln: [] }), b), 'und');
+            aus.push({ personen: [{ p: 3, zahl: 'pl' }], bau: { ...bau, zahl: 'pl' }, verb: i, nomen: true });
+          }
+        }
+      }
+    }
+  }
+  return aus;
+}
+
+/** Personen mit Geschlecht, als Bau-Merkmale für das Zusammenpassen von Teilsätzen. */
+function personMitGeschlecht(ctx: Ctx, x0: Person) {
+  return mitGeschlecht(ctx, x0).map((m) => ({ ...m, du: m.x.p === 2 && m.x.zahl === 'sg' ? m.x.g : undefined }));
+}
+
+/**
+ * Verbalsätze: Präsens („ich spiele“), Futur („ich werde spielen“, auch Präsens mit „morgen“),
+ * Modalverben („ich will/kann/muss spielen“), verneint („ich spiele nicht“), mit Ergänzungen.
+ * `frage`: der Satz war eine Frage – „Wollen wir …?“, „Sollen wir …?“, „Soll ich …?“ sind dann
+ * Fragen nach einem Vorschlag (Subjunktiv allein, Grammatik 23d).
+ */
+function verbalsaetze(ctx: Ctx, t: readonly DeToken[], frage: boolean): Bau[] {
+  const ix = ctx.ix;
+  const aus: Bau[] = [];
+  const nicht = ix.nicht;
+  if (!ix.praesens) return aus;
+
+  for (const s of subjekteVon(ctx, t)) {
+    const vw = t[s.verb].w;
+    const nachVerb = t.slice(s.verb + 1);
+    for (const x0 of s.personen) {
+      // Modalverb + … + Infinitiv
+      const modale = s.nomen ? modalFuerDritte(vw).filter((m) => m.zahl === x0.zahl) : istPronomen(t[0].w) ? modalVon(t[0].w, vw).filter((m) => m.personen.some((p) => gleichePerson(p, x0))) : [];
+      const futur = WERDEN.includes(vw) && (s.nomen ? WERDEN[x0.zahl === 'sg' ? 2 : 5] === vw : subjekt(t[0].w, vw, WERDEN).some((p) => gleichePerson(p, x0)));
+      let mitInfinitiv = modale.length > 0 || futur;
+      let inf = mitInfinitiv ? nachVerb[nachVerb.length - 1]?.w : undefined;
+      // „Möchtest du Wasser?“: „wollen“ ohne Infinitiv ist ein gewöhnliches Verb (obac „wollen, mögen“)
+      const alsVollverb = mitInfinitiv && !futur && !(inf && verbenFuer(ctx, inf).length) && modale.some((m) => m.modal === 'wollen');
+      const wieWollen = alsVollverb && modale.some((m) => m.deutsch !== 'wollen') ? `„${vw}“ wie „wollen“` : undefined;
+      if (alsVollverb) {
+        modale.length = 0;
+        mitInfinitiv = false;
+        inf = undefined;
+      }
+      const mitte = mitInfinitiv ? nachVerb.slice(0, -1) : nachVerb;
+      const { negiert, rest } = verneinungIn(mitte);
+      const zukunft = rest.some((x) => ZUKUNFT.has(x.w));
+      const vollverben = alsVollverb
+        ? verbenFuer(ctx, 'wollen').map((v) => ({ ...v, statt: wieWollen }))
+        : mitInfinitiv
+        ? inf
+          ? verbenFuer(ctx, inf)
+          : []
+        : infinitiveVon(ctx, vw)
+            .filter((i) => (praesens(i) ?? [])[STELLE_VON(x0)] === vw)
+            .flatMap((i) => verbenFuer(ctx, i));
+      if (!vollverben.length) continue;
+      const erg = ergaenzungen(ctx, rest, { negiert });
+      const ergSubjunktiv = modale.length ? ergaenzungen(ctx, rest, { negiert, rolle: 'objekt-subjunktiv' }) : erg;
+      if (!erg.length && !ergSubjunktiv.length) continue;
+
+      for (const { x, variante, ich, du } of personMitGeschlecht(ctx, x0)) {
+        for (const { verb, statt } of vollverben) {
+          for (const f of formenFuerPerson(ix.grundformen.get(verb) ?? [], x)) {
+            if (f.fund === ctx.ohne) continue;
+            const subj: Stueck = { ...formStueck(f, 'Verb im Subjunktiv (Grundform des Präsens)', x), ...(statt ? { statt } : {}) };
+            const lo = negiert ? kleinwortStueck(nicht, 'Negationspartikel') : [];
+            if (negiert && !lo.length) continue;
+            const teile: { stuecke: Stueck[]; regeln: RegelId[] }[] = [];
+
+            if (modale.length) {
+              for (const m of modale) {
+                if (m.modal === 'wollen') {
+                  // obac – abëc „wollen“, im Präsens mit k- (Grammatik 17a, 20c)
+                  for (const w of ix.verben.get('wollen') ?? []) {
+                    const wf = formFuerPerson(ix.grundformen.get(w) ?? [], x);
+                    const ws = wf && praesensStueck(ctx, wf, x);
+                    if (!ws) continue;
+                    // „Wollen wir …?“ fragt nach einem Vorschlag: so übersetzt das Lehrbuch „Wollen wir jetzt Kaffee trinken …?“ (Grammatik 24a)
+                    if (frage && !negiert && x.p === 1 && x.zahl === 'pl') teile.push({ stuecke: [subj], regeln: ['vorschlag'] });
+                    teile.push({ stuecke: [...lo, { ...ws, rolle: 'Modalverb „wollen“ im Präsens', ...(m.deutsch !== 'wollen' ? { statt: `„${vw}“ wie „wollen“` } : {}) }, subj], regeln: ['modal', 'praesens', ...(negiert ? (['verneinung'] as RegelId[]) : [])] });
+                    break;
+                  }
+                } else if (m.modal === 'können') {
+                  // kib- „können“, verneint layb- (Grammatik 20c)
+                  const k = formFuerPerson(negiert ? ix.kannNicht : ix.kann, x);
+                  if (k) teile.push({ stuecke: [{ ...formStueck(k, negiert ? '„nicht können“' : '„können“', x, 'Gegenwart'), ...(m.deutsch !== 'können' ? { statt: `„${vw}“ wie „können“` } : {}) }, subj], regeln: ['modal'] });
+                } else if (m.modal === 'müssen') {
+                  if (ix.muessen) teile.push({ stuecke: [...lo, stueck(ix.muessen, 'Modalpartikel „müssen“'), subj], regeln: ['modal', ...(negiert ? (['verneinung'] as RegelId[]) : [])] });
+                } else if (m.modal === 'sollen') {
+                  if (frage && !negiert && x.p === 1) teile.push({ stuecke: [subj], regeln: ['vorschlag'] });
+                  else if (ix.tro && !negiert) teile.push({ stuecke: [stueck(ix.tro, 'Partikel ṭro'), subj], regeln: ['jussiv'] });
+                }
+              }
+            } else if (futur || (zukunft && !negiert)) {
+              if (negiert) {
+                // „Bei der Negation wird zwischen Futur und Präsens nicht unterschieden“ (Grammatik 22d)
+                const p = praesensStueck(ctx, f, x);
+                if (p) teile.push({ stuecke: [...lo, { ...p, ...(statt ? { statt } : {}) }], regeln: ['verneinung', 'praesens'] });
+              } else if (ix.futur) {
+                teile.push({ stuecke: [stueck(ix.futur, 'Futurmarker'), { ...formStueck(f, 'Verb, Grundform des Präsens', x), ...(statt ? { statt } : {}) }], regeln: ['futur'] });
+              }
+            } else {
+              const p = praesensStueck(ctx, f, x);
+              if (p) teile.push({ stuecke: [...lo, { ...p, ...(statt ? { statt } : {}) }], regeln: ['praesens', ...(negiert ? (['verneinung'] as RegelId[]) : [])] });
+            }
+
+            // Nach dem Muster der Verbtabellen gebildet? Dann trägt der Satz auch diese Regel.
+            if (f.muster) for (const teil of teile) teil.regeln.push('muster');
+            for (const teil of teile) {
+              const subjunktiv = teil.regeln.includes('modal') || teil.regeln.includes('vorschlag') || teil.regeln.includes('jussiv');
+              for (const e of (subjunktiv ? ergSubjunktiv : erg).slice(0, 3)) {
+                // „wollen“ als Vollverb nur mit einem Ding, das man will („Möchtest du Wasser?“), nicht „Ich will nach Hause“
+                if (alsVollverb && !e.stuecke.some((x) => /Substantiv/.test(x.rolle))) continue;
+                let b: Bau = verbinde(s.bau, { stuecke: [...teil.stuecke], regeln: [], variante, ...(ich ? { ich } : {}), ...(du ? { du } : {}) });
+                b = verbinde(b, e);
+                // Die Regeln: die äußere zuerst
+                const anwendungen: Anwendung[] = teil.regeln.map((regel) => ({ regel, text: text(b.stuecke) }));
+                b = { ...b, regeln: [...anwendungen, ...b.regeln] };
+                if (s.nomen) b = mitRegel(b, 'verbalsatz');
+                aus.push(b);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return aus;
+}
+
+/** Stelle einer Person in den Formenlisten von deutsch.ts (ich, du, er/sie, wir, ihr, sie). */
+const STELLE_VON = (x: Person) => (x.zahl === 'sg' ? x.p - 1 : x.p + 2);
+
+/** Eine deutsche Verbform an zweiter Stelle? (Hilfs- und Modalverben, Verben aus den Daten, Synonyme) */
+const istVerbform = (ctx: Ctx, w: string) => HILFSFORMEN.has(w) || infinitiveVon(ctx, w).length > 0;
+
+/**
+ * Ein Teilsatz in die einfache Form „Subjekt – Verb – Rest“ bringen und bauen. Erkennt:
+ * Fragewort am Anfang („Wo …“), Verb am Anfang („Kommst du …?“), Zeitangabe am Anfang
+ * („Morgen komme ich …“) und ein weggelassenes Subjekt nach „und“ („… und kann nicht kommen“).
+ */
+function teilsatz(ctx: Ctx, t0: readonly DeToken[], opt: { frage: boolean; denn?: boolean; subjektDavor?: DeToken[] }): { bau: Bau; subjekt: DeToken[] }[] {
+  const ix = ctx.ix;
+  let t = [...t0];
+  const vorne: Bau[] = [];
+  let fragewort: Bau | undefined;
+
+  // Fragewort („wo“, „wie viel“) – Grammatik 24a
+  for (const n of [2, 1]) {
+    const key = t.slice(0, n).map((x) => x.w).join(' ');
+    const f = t.length > n && (n === 2 || FRAGEWOERTER.has(key)) ? ix.fragewoerter.get(key) : undefined;
+    if (f && f.fund !== ctx.ohne) {
+      fragewort = { stuecke: [stueck(f, 'Fragewort')], regeln: [] };
+      t = t.slice(n);
+      break;
+    }
+  }
+  // Zeitangabe vorn („Heute habe ich …“, „Morgen kommst du?“): bleibt vorn, wie im Lehrbuch („Aṯmël mtawbal … – Gestern wurde er …“)
+  if (!fragewort) {
+    for (const n of [2, 1]) {
+      const teil = t.slice(0, n);
+      if (t.length > n + 1 && istVerbform(ctx, t[n].w) && istAdverb(ctx, teil)) {
+        vorne.push(...adverb(ctx, teil).slice(0, 1));
+        t = t.slice(n);
+        break;
+      }
+    }
+  }
+  // Verb am Anfang: „Kommst du morgen?“ → „du kommst morgen“; „Kommt der Lehrer?“ → „der Lehrer kommt“
+  if (t[0] && istVerbform(ctx, t[0].w) && t[1]) {
+    if (istPronomen(t[1].w)) t = [t[1], t[0], ...t.slice(2)];
+    else if (BESTIMMT.has(t[1].w) || possessiv(t[1].w)) {
+      const varianten = [3, 4].filter((k) => k <= t.length).map((k) => [...t.slice(1, k), t[0], ...t.slice(k)]);
+      const aus = varianten.flatMap((v) => teilsatz(ctx, v, { ...opt, subjektDavor: undefined }).map((r) => r));
+      if (aus.length) return aus.map((r) => ({ bau: wickle(ctx, r.bau, fragewort, vorne, opt), subjekt: r.subjekt }));
+      return [];
+    } else if (opt.subjektDavor?.length) {
+      // „… und kann nicht kommen“: Subjekt des Satzes davor
+      t = [...opt.subjektDavor, ...t];
+    } else return [];
+  }
+  const subjekt = istPronomen(t[0]?.w ?? '') ? t.slice(0, 1) : [];
+  // „Wo ist die Schule?“, „Wer bist du?“: Fragewort, Kopula, Subjekt (Grammatik 24a)
+  if (fragewort && t.length >= 2 && (SEIN.includes(t[1].w) || SEIN.includes(t[t.length - 1].w))) {
+    const nurKopula = frageMitKopula(ctx, t, fragewort);
+    if (nurKopula.length) return nurKopula.map((bau) => ({ bau, subjekt }));
+  }
+  const kern = baue(ctx, t, { frage: opt.frage });
+  return kern.map((bau) => ({ bau: wickle(ctx, bau, fragewort, vorne, opt), subjekt: subjekt.length ? subjekt : [] }));
+}
+
+/** Fragewort und Zeitangabe vor den Satz, Fragezeichen dahinter; „denn“ in einer Ja-/Nein-Frage ist ma (Grammatik 24a). */
+function wickle(ctx: Ctx, bau: Bau, fragewort: Bau | undefined, vorne: Bau[], opt: { frage: boolean; denn?: boolean }): Bau {
+  let b = bau;
+  for (const v of vorne) b = mitRegel(verbinde(v, b), 'adverb');
+  if (fragewort) b = mitRegel(verbinde(fragewort, b), 'frage');
+  else if (opt.frage && opt.denn && ctx.ix.fragepartikel) b = mitRegel(verbinde({ stuecke: [stueck(ctx.ix.fragepartikel, 'Fragepartikel („denn“)')], regeln: [] }, b), 'janein');
+  else if (opt.frage) b = mitRegel(b, 'janein');
+  return b;
+}
+
+/** „Wo ist die Schule?“ → Fragewort + Kopula + Subjekt; „Wer bist du?“ → Fragewort + Kopula (Grammatik 24a). */
+function frageMitKopula(ctx: Ctx, t: readonly DeToken[], fragewort: Bau): Bau[] {
+  const ix = ctx.ix;
+  const aus: Bau[] = [];
+  // „du bist“ (nach dem Umstellen) oder „die Schule ist“
+  const pronomen = istPronomen(t[0].w) && t.length === 2;
+  if (pronomen) {
+    for (const x0 of subjekt(t[0].w, t[1].w, SEIN)) {
+      for (const { x, variante, ich, du } of personMitGeschlecht(ctx, x0)) {
+        const kop = formFuerPerson(ix.kopula, x);
+        if (kop) aus.push(mitRegel(mitRegel({ ...verbinde(fragewort, { stuecke: [formStueck(kop, 'Kopula', x, 'Gegenwart')], regeln: [] }), variante, ...(ich ? { ich } : {}), ...(du ? { du } : {}) }, 'kopula'), 'frage'));
+      }
+    }
+    return aus;
+  }
+  const i = t.findIndex((x) => SEIN.includes(x.w));
+  if (i < 1 || i !== t.length - 1) return aus;
+  const zahl: Zahl = t[i].w === 'ist' ? 'sg' : 'pl';
+  for (const s of gruppe(ctx, t.slice(0, i), 'subjekt', { zahl })) {
+    if (!s.regeln.some((r) => r.regel === 'artikel' || r.regel === 'possessiv')) continue;
+    const x: Person = { p: 3, zahl, ...(s.g && zahl === 'sg' ? { g: s.g } : {}) };
+    const kop = formFuerPerson(ix.kopula, x);
+    if (!kop) continue;
+    aus.push(mitRegel(mitRegel(verbinde(verbinde(fragewort, { stuecke: [formStueck(kop, 'Kopula', x, 'Gegenwart')], regeln: [] }), s), 'kopula'), 'frage'));
+  }
+  return aus;
+}
+
+/** Höchstens so viele Fassungen eines Satzes (sonst wird es auf dem Handy langsam und unübersichtlich). */
+const FASSUNGEN_SATZ = 8;
+
+/**
+ * Ein ganzer deutscher Satz: Teilsätze an „und“, „oder“, „aber“ und Kommas, jeder für sich gebaut
+ * und mit dem Wort aus den Daten verbunden (w, aw …). Fragezeichen am Ende, Füllwörter weg.
+ */
+function baueSatz(ctx: Ctx, anfrage: string): Bau[] {
+  const satz = zerlegeSatz(anfrage);
+  if (!satz.teile.length) return [];
+  const woerterZahl = satz.teile.reduce((n, x) => n + x.tokens.length, 0);
+  if (woerterZahl < 2 || woerterZahl > 18) return [];
+  // „denn“ in einer Frage wird zur Fragepartikel ma (Grammatik 24a), sonst fallen Füllwörter weg
+  const denn = satz.frage && satz.ausgelassen.includes('denn') && !!ctx.ix.fragepartikel;
+  const hinweise = [
+    ...satz.ersetzt,
+    ...satz.ausgelassen.filter((w) => !(denn && w === 'denn')).map((w) => `„${w}“ weggelassen – dafür hat Surayt kein eigenes Wort`),
+  ];
+  const mitHinweis = (b: Bau): Bau => (hinweise.length ? { ...b, hinweise: [...hinweise, ...(b.hinweise ?? [])] } : b);
+
+  // Erst den ganzen Satz als einen Teilsatz (ohne Bindewörter)
+  if (satz.teile.length === 1) {
+    return teilsatz(ctx, satz.teile[0].tokens, { frage: satz.frage, denn }).map((r) => mitHinweis(r.bau)).slice(0, FASSUNGEN_SATZ * 2);
+  }
+  // „Saro und Aday wollen …“: ein Satz mit zwei Subjekten – geht das, ist es kein Satz aus zwei Teilen
+  const ganz = satz.alle.length !== satz.teile.reduce((n, x) => n + x.tokens.length, 0) ? teilsatz(ctx, satz.alle, { frage: satz.frage, denn }) : [];
+  if (ganz.length) return ganz.map((r) => mitHinweis(r.bau)).slice(0, FASSUNGEN_SATZ * 2);
+  // Mehrere Teilsätze: jeder muss sich bauen lassen
+  let bisher: { bau: Bau; subjekt: DeToken[] }[] = [{ bau: LEER, subjekt: [] }];
+  satz.teile.forEach((teil, k) => {
+    const letzter = k === satz.teile.length - 1;
+    const neu: { bau: Bau; subjekt: DeToken[] }[] = [];
+    for (const b of bisher.slice(0, FASSUNGEN_SATZ)) {
+      for (const r of teilsatz(ctx, teil.tokens, { frage: satz.frage && letzter, denn: denn && k === 0, subjektDavor: b.subjekt }).slice(0, 4)) {
+        // Teilsätze passen zusammen: dieselbe Antwort auf „Ich bin: Junge / Mädchen“, dasselbe „du“
+        if (b.bau.ich && r.bau.ich && b.bau.ich !== r.bau.ich) continue;
+        if (b.bau.du && r.bau.du && b.bau.du !== r.bau.du) continue;
+        let bau = r.bau;
+        // Mit Komma getrennte Sätze stehen auch im Surayt nur nebeneinander („Mën këmmat, saymina …?“)
+        if (k > 0 && teil.verbindung) {
+          const wort = teil.verbindung === 'oder' ? ctx.ix.oder : teil.verbindung === 'und' ? ctx.ix.und : undefined;
+          if (!wort) continue;
+          bau = verbinde({ stuecke: [stueck(wort, `Bindewort „${teil.verbindung}“`)], regeln: [] }, bau);
+        }
+        let zusammen = verbinde(b.bau, bau);
+        if (k > 0 && teil.verbindung) zusammen = mitRegel(zusammen, 'und');
+        neu.push({ bau: zusammen, subjekt: r.subjekt.length ? r.subjekt : b.subjekt });
+      }
+    }
+    bisher = neu;
+  });
+  return bisher.map((r) => mitHinweis(r.bau)).slice(0, FASSUNGEN_SATZ * 2);
 }
 
 // --- Gegenprobe ---------------------------------------------------------------------------------------------
@@ -1105,12 +2104,11 @@ export interface Regelgegenprobe {
 }
 
 function regelsaetze(ctx: Ctx, anfrage: string, erlaubt?: ReadonlySet<RegelId>): Regelsatz[] {
-  const t = zerlegeDeutsch(anfrage);
-  if (t.length < 2 || t.length > 8) return [];
   const gesehen = new Map<string, Regelsatz>();
-  for (const b of baue(ctx, t)) {
+  for (const b of baueSatz(ctx, anfrage)) {
     if (erlaubt && b.regeln.some((r) => !erlaubt.has(r.regel))) continue;
-    const latein = text(b.stuecke);
+    const frage = b.regeln.some((r) => r.regel === 'frage' || r.regel === 'janein');
+    const latein = text(b.stuecke) + (frage ? '?' : '');
     const da = gesehen.get(latein);
     // Gleiche Sätze für Junge und Mädchen nur einmal
     if (da) {
@@ -1128,9 +2126,19 @@ function regelsaetze(ctx: Ctx, anfrage: string, erlaubt?: ReadonlySet<RegelId>):
       regeln: b.regeln,
       ...(b.variante ? { variante: b.variante } : {}),
       ...(b.ich ? { ich: b.ich } : {}),
+      ...(hinweiseVon(b).length ? { hinweise: hinweiseVon(b) } : {}),
     });
   }
   return [...gesehen.values()];
+}
+
+/** Höchstens so viele Fassungen zeigt der Übersetzer (Junge/Mädchen und gleichbedeutende Wörter). */
+const FASSUNGEN_REGELN = 6;
+
+/** Was der Übersetzer am Deutschen geändert hat: weggelassene Füllwörter und gleichbedeutende Wörter. */
+function hinweiseVon(b: Bau): string[] {
+  const statt = b.stuecke.flatMap((x) => (x.statt ? [x.statt] : []));
+  return [...new Set([...(b.hinweise ?? []), ...statt])];
 }
 
 const regelGegenproben = new WeakMap<Woerterbuch, Regelgegenprobe>();
@@ -1193,14 +2201,17 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
   // Welche Wörter (Stichwort bzw. Verb) im echten Satz stehen – Wort für Wort erklärt, ohne den Satz selbst
   const wortVon = (f: Fund) => f.verb ?? genau(stichwort(f.latein));
   const woerterImSatz = new Map<Fund, Set<string>>();
+  const allesErklaert = new Map<Fund, boolean>();
   const woerterIn = (f: Fund) => {
     let set = woerterImSatz.get(f);
     if (!set) {
       set = new Set<string>(surWoerter(f.latein));
-      for (const t of erklaere(wb, f.latein, { ohne: f }).teile) {
+      const e = erklaere(wb, f.latein, { ohne: f });
+      for (const t of e.teile) {
         const funde = t.art === 'eintrag' ? t.funde : t.art === 'zerlegt' ? t.stuecke.flatMap((x) => x.funde) : [];
         for (const x of funde) set.add(wortVon(x));
       }
+      allesErklaert.set(f, !e.gekuerzt && e.teile.every((t) => t.art === 'eintrag' || t.art === 'zerlegt'));
       woerterImSatz.set(f, set);
     }
     return set;
@@ -1210,12 +2221,32 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
     r.stuecke.flatMap((x) => (x.aus ? x.aus.slice(x.rolle === 'Verb im Präsens' ? 1 : 0, x.rolle === 'Verb im Präsens' ? 2 : 1) : [x])).filter(
       (x) => !!x.fund && /Substantiv|Adjektiv|Zahl|Verb|Grundform|ohne Endung/.test(x.rolle),
     );
+  const kleine = new Set(
+    [
+      ...ix.praepositionen.values(),
+      ...[ix.nicht, ix.und, ix.oder, ix.futur, ix.praesens, ix.fragepartikel, ix.muessen, ix.tro].filter((x): x is Form => !!x),
+    ].map((x) => x.form),
+  );
+  for (const x of [...ix.kopula, ...ix.kopulaVergangen, ...ix.kopulaNegiert, ...ix.haben, ...ix.nichtHaben, ...ix.kann, ...ix.kannNicht]) kleine.add(x.form);
+  /** Artikel (auch mit kurzer Präposition oder d: „bu“, „di“), Präpositionen, Kopula, Partikeln */
+  const funktionswort = (w: string, naechstes: string) => kleine.has(w) || !!artikelVor(wb, w, naechstes);
   const praesentativ = new Set(
     [...wb.seiten.values()].filter((x) => x.titel === 'Pseudo- und Hilfsverben').flatMap((x) => x.eintraege.filter((e) => e.deutsch === 'da ist').map((e) => genau(e.latein))),
   );
   /** Benutzt der Satz dieselben Wörter wie das Lehrbuch? Nur dann prüft er die Regeln. */
   const vergleichbar = (p: Regelprobe, r: Regelsatz) => {
     const da = woerterIn(p.fund);
+    // Steht ein Wort des Lehrbuch-Satzes nirgends in den Daten („koxël“, eine Form aus einem
+    // Lesestück), kann der Baukasten ihn gar nicht treffen – er prüft dann die Wortwahl, nicht die Regel.
+    if (!allesErklaert.get(p.fund)) return false;
+    // Sagt das Lehrbuch mit einem weiteren Wort mehr („b gawa di rawmo – im Teich“: gawa „Inneres“),
+    // ist es eine andere Wendung. Artikel, Präpositionen, Kopula und Partikeln zählen dabei nicht.
+    const gebautSet = new Set(surWoerter(r.latein));
+    const mehr = echtVon(p.fund).every((e) => {
+      const w = surWoerter(e);
+      return w.some((x, i) => !gebautSet.has(x) && !funktionswort(x, w[i + 1] ?? ''));
+    });
+    if (mehr) return false;
     if (!inhaltswoerter(r).every((x) => da.has(wortVon(x.fund!)) || da.has(genau(x.text.replace(/-$/, ''))))) return false;
     // Nimmt das Lehrbuch dasselbe Wort in der anderen Zahl („ab buḥonayḏe – seine Forschung“, Mehrzahl
     // für eine deutsche Einzahl), prüft der Satz die Wortwahl, nicht die Regel.
@@ -1236,14 +2267,37 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
    * Untereinträge des großen Glossars sind feste Wendungen („b ḥänäke – im Scherz“, „obe xabro –
    * Bescheid geben“): Wo sie anders gebaut sind als die Regel, ist das die Wendung, kein Fehler der Regel.
    */
-  const wendung = (f: Fund) => /^GL-[^.]+\.(?!\d+\.\d+$)[^.]*[a-z]/.test(f.id) && !/\.\d+\.\d+$/.test(f.id);
+  const istWendung = (f: Fund) =>
+    (/^GL-[^.]+\.(?!\d+\.\d+$)[^.]*[a-z]/.test(f.id) && !/\.\d+\.\d+$/.test(f.id)) ||
+    // Glossar A: mehrteilige Wendungen einer Zeile („b gawa di rawmo – im Teich, im See“)
+    (/^G-/.test(f.id) && f.art === 'wort' && surWoerter(f.latein.replace(/\([^)]*\)/g, ' ')).length > 1 && !/[,;]/.test(f.latein));
   /**
    * Getroffen – auch wenn Wortschatz oder Glossar das Wort ohne Artikel nennen
    * („mawlodayḏax – dein (f.) Geburtstag“, „lwošo – das Kleiden“).
    */
+  /**
+   * Was das Lehrbuch freistellt, zählt beim Vergleich nicht: der Artikel vor einem Namen
+   * („Personennamen können mit oder ohne Artikel stehen“, Grammatik 3a) und welche der
+   * Modalpartikeln für „müssen“ (Grammatik 20c: „In gleicher Position können auch … stehen“).
+   */
+  const frei = (w: readonly string[]) =>
+    w.filter((x, i) => !(i + 1 < w.length && ix.namen.has(w[i + 1]) && artikelVor(wb, x, w[i + 1]))).map((x) => (ix.muessenAlle.has(x) ? '·müssen·' : x)).join(' ');
   const trifft = (p: Regelprobe, r: Regelsatz) => {
     const echt = echtVon(p.fund);
     if (echt.some((e) => gleicherText(e, r.latein))) return true;
+    if (echt.some((e) => frei(surWoerter(e)) === frei(surWoerter(r.latein)))) return true;
+    // Ein Adverb an anderer Stelle zählt als getroffen: Das Lehrbuch stellt Adverbien mal vor, mal
+    // hinter das Verb („Kiban ḥeloyo ëzzan – Wir können früh gehen“, „Kobac fayšat adlalyo harke –
+    // Du musst heute Nacht hier bleiben“, Grammatik 18b).
+    const adverbien = r.stuecke.filter((x) => x.rolle === 'Adverb').map((x) => x.text);
+    if (adverbien.length) {
+      const ohne = (w: string[]) => w.filter((x) => !adverbien.includes(x)).join(' ');
+      const gebaut = surWoerter(r.latein);
+      if (echt.some((e) => {
+        const w = surWoerter(e);
+        return w.length === gebaut.length && adverbien.every((a) => w.includes(a)) && ohne(w) === ohne(gebaut);
+      })) return true;
+    }
     const ohneArtikel = r.stuecke[0]?.rolle === 'Artikel' ? text(r.stuecke.slice(1)) : undefined;
     return !!ohneArtikel && surWoerter(ohneArtikel).length === 1 && echt.some((e) => gleicherText(e, ohneArtikel));
   };
@@ -1270,7 +2324,7 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
         }
         continue;
       }
-      const pruefbar = wendung(p.fund) ? [] : gueltig.filter((r) => vergleichbar(p, r));
+      const pruefbar = istWendung(p.fund) ? [] : gueltig.filter((r) => vergleichbar(p, r));
       p.vergleichbar = pruefbar.length > 0;
       const schuld = new Set<RegelId>();
       for (const r of pruefbar) {
@@ -1280,6 +2334,8 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
       p.schuld = [...schuld];
       for (const id of schuld) regeln.get(id)!.daneben++;
     }
+    // Das Muster der Verbtabellen hat seine eigene Gegenprobe: an jeder vollständigen Tabelle (siehe `verbMuster`)
+    regeln.get('muster')!.belegeGetroffen += ix.muster.probe.filter((x) => x.stamm !== '?' && x.verben > 0 && x.getroffen === x.verben).length;
     return regeln;
   };
   const abgeschaltet: Regelgegenprobe['abgeschaltet'] = [];
@@ -1320,7 +2376,11 @@ export function nachRegeln(wb: Woerterbuch, anfrage: string, opt: RegelOptionen 
   const ix = tafeln(wb);
   const erlaubt = opt.regeln ?? eingeschalteteRegeln(wb);
   if (!erlaubt.size) return [];
-  return regelsaetze({ wb, ix, ohne: opt.ohne, ich: opt.ich }, anfrage, erlaubt);
+  // Die besten zuerst: Formen aus den Tabellen vor solchen nach dem Muster, wörtliche vor sinngemäßen
+  const kosten = (r: Regelsatz) => r.regeln.filter((x) => x.regel === 'muster').length + 2 * (r.hinweise ?? []).filter((h) => / wie /.test(h)).length;
+  return regelsaetze({ wb, ix, ohne: opt.ohne, ich: opt.ich }, anfrage, erlaubt)
+    .sort((a, b) => kosten(a) - kosten(b))
+    .slice(0, FASSUNGEN_REGELN);
 }
 
 /** Für Tests: alle Wörter, aus denen ein gebauter Satz besteht, müssen aus den Daten stammen. */
@@ -1345,3 +2405,8 @@ export function beispielFuer(wb: Woerterbuch, id: RegelId): Fund | undefined {
   )[0];
 }
 
+/** Die Bausteine vorbereiten (eigener Schritt, damit das Handy beim Öffnen des Übersetzers nicht lange hängt). */
+export const regelnVorbereiten = (wb: Woerterbuch) => void tafeln(wb);
+
+/** Die Prüfung des Musters der Verbtabellen (für Tests und den Fahrplan). */
+export const verbMusterProbe = (wb: Woerterbuch) => tafeln(wb).muster.probe;

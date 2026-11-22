@@ -1912,8 +1912,9 @@
       ]
     },
     {
-      "id": "GL-be1",
-      "latein": "be1",
+      "id": "GL-be",
+      "latein": "be",
+      "nr": 1,
       "syrisch": "ܒܶܐ",
       "verweise": [
         "G.24b"
@@ -1926,8 +1927,9 @@
       ]
     },
     {
-      "id": "GL-be2",
-      "latein": "be2",
+      "id": "GL-be-2",
+      "latein": "be",
+      "nr": 2,
       "syrisch": "ܒܶܐ",
       "sinne": [
         {
@@ -6532,8 +6534,9 @@
       "siehe": "→ en, häka, iḏa"
     },
     {
-      "id": "GL-esmo1",
-      "latein": "ëšmo1 (m.), pl. ëšmone",
+      "id": "GL-esmo",
+      "latein": "ëšmo (m.), pl. ëšmone",
+      "nr": 1,
       "syrisch": "ܐܷܫܡܐ ܐܷܫܡܳܢܶܐ",
       "sinne": [
         {
@@ -6550,8 +6553,9 @@
       ]
     },
     {
-      "id": "GL-esmo2",
-      "latein": "ëšmo2",
+      "id": "GL-esmo-2",
+      "latein": "ëšmo",
+      "nr": 2,
       "syrisch": "",
       "sinne": [
         {
@@ -6561,7 +6565,7 @@
       ]
     },
     {
-      "id": "GL-esmo2.esmo-esmo",
+      "id": "GL-esmo-2.esmo-esmo",
       "latein": "ëšmo ëšmo",
       "syrisch": "ܐܷܫܡܐ ܐܷܫܡܐ",
       "sinne": [
@@ -6571,7 +6575,7 @@
         }
       ],
       "siehe": "→ hedi hedi → čike",
-      "unter": "GL-esmo2"
+      "unter": "GL-esmo-2"
     },
     {
       "id": "GL-esqad",
@@ -9417,8 +9421,9 @@
       ]
     },
     {
-      "id": "GL-haw1",
-      "latein": "haw1",
+      "id": "GL-haw",
+      "latein": "haw",
+      "nr": 1,
       "syrisch": "ܗܰܘ",
       "verweise": [
         "G.24d"
@@ -9438,8 +9443,9 @@
       "siehe": "= law"
     },
     {
-      "id": "GL-haw2",
-      "latein": "haw2 (Imperativ)",
+      "id": "GL-haw-2",
+      "latein": "haw (Imperativ)",
+      "nr": 2,
       "syrisch": "",
       "sinne": [],
       "siehe": "→ obe"
@@ -13201,8 +13207,9 @@
       ]
     },
     {
-      "id": "GL-ket1",
-      "latein": "kët1 (+ Cop., G.9c; G.12a)",
+      "id": "GL-ket",
+      "latein": "kët (+ Cop., G.9c; G.12a)",
+      "nr": 1,
       "syrisch": "ܟܷܬ",
       "sinne": [
         {
@@ -13225,8 +13232,9 @@
       ]
     },
     {
-      "id": "GL-ket2",
-      "latein": "kët2 ( + L-Suf., G.9b)",
+      "id": "GL-ket-2",
+      "latein": "kët ( + L-Suf., G.9b)",
+      "nr": 2,
       "syrisch": "ܟܷܬ",
       "sinne": [
         {
@@ -13261,7 +13269,7 @@
       ]
     },
     {
-      "id": "GL-ket2.ketle-subhoro",
+      "id": "GL-ket-2.ketle-subhoro",
       "latein": "këtle šubhoro",
       "syrisch": "ܟܷܬܠܶܗ ܫܘܒܗܳܪܐ",
       "sinne": [
@@ -13277,7 +13285,7 @@
           ]
         }
       ],
-      "unter": "GL-ket2"
+      "unter": "GL-ket-2"
     },
     {
       "id": "GL-kibe",
@@ -13688,8 +13696,9 @@
       "siehe": "→ kruxyo , makrax , mitakrax"
     },
     {
-      "id": "GL-kore1",
-      "latein": "kore1 (pl., f.)",
+      "id": "GL-kore",
+      "latein": "kore (pl., f.)",
+      "nr": 1,
       "syrisch": "",
       "sinne": [
         {
@@ -13713,8 +13722,9 @@
       "siehe": "→ naqla"
     },
     {
-      "id": "GL-kore2",
-      "latein": "kore2, kuryo - kari, karyo [kry I]",
+      "id": "GL-kore-2",
+      "latein": "kore, kuryo - kari, karyo [kry I]",
+      "nr": 2,
       "syrisch": "ܟܳܪܶܐ، ܟܘܪܝܐ - ܟܰܪܝ، ܟܰܪܝܐ",
       "sinne": [
         {
@@ -13992,11 +14002,11 @@
     },
     {
       "id": "GL-kul.kul-ha",
-      "latein": "kul ḥa",
-      "syrisch": "ܟܘܠ ܚܰܐ",
+      "latein": "kul ḥa, f. kul ḥḏo",
+      "syrisch": "ܟܘܠ ܚܰܐ ܟܠ ܚܕ݂ܐ",
       "sinne": [
         {
-          "deutsch": "f. kul ḥḏo ܟܠ ܚܕ݂ܐ jeder, jede",
+          "deutsch": "jeder, jede",
           "beispiele": []
         }
       ],
@@ -16488,8 +16498,9 @@
       "siehe": "→ korax , mitakrax"
     },
     {
-      "id": "GL-makre1",
-      "latein": "makre1, makro - makrele, makrela [kry III]",
+      "id": "GL-makre",
+      "latein": "makre, makro - makrele, makrela [kry III]",
+      "nr": 1,
       "syrisch": "ܡܰܟܪܶܐ، ܡܰܟܪܐ - ܡܰܟܪܶܠܶܗ، ܡܰܟܪܶܠܰܗ",
       "sinne": [
         {
@@ -16512,8 +16523,9 @@
       "siehe": "→ kore 2"
     },
     {
-      "id": "GL-makre2",
-      "latein": "makre2, makro - makrele, makrela",
+      "id": "GL-makre-2",
+      "latein": "makre, makro - makrele, makrela",
+      "nr": 2,
       "syrisch": "ܡܰܟܪܶܐ، ܡܰܟܪܐ - ܡܰܟܪܶܠܶܗ، ܡܰܟܪܶܠܰܗ",
       "sinne": [
         {
@@ -17903,8 +17915,9 @@
       ]
     },
     {
-      "id": "GL-maser1",
-      "latein": "mašër1, maširo - mašërle, mašërla [šyr III]",
+      "id": "GL-maser-3",
+      "latein": "mašër, maširo - mašërle, mašërla [šyr III]",
+      "nr": 1,
       "syrisch": "ܡܰܫܷܪ، ܡܰܫܝܪܐ - ܡܰܫܷܪܠܶܗ، ܡܰܫܷܪܠܰܗ",
       "sinne": [
         {
@@ -17914,8 +17927,9 @@
       ]
     },
     {
-      "id": "GL-maser2",
-      "latein": "mašër2, maširo - mašërle, mašërla [šyr III] (+ cal)",
+      "id": "GL-maser-4",
+      "latein": "mašër, maširo - mašërle, mašërla [šyr III] (+ cal)",
+      "nr": 2,
       "syrisch": "ܡܰܫܷܪ، ܡܰܫܝܪܐ - ܡܰܫܷܪܠܶܗ، ܡܰܫܷܪܠܰܗ",
       "sinne": [
         {
@@ -26385,8 +26399,9 @@
       ]
     },
     {
-      "id": "GL-polis1",
-      "latein": "polis1",
+      "id": "GL-polis",
+      "latein": "polis",
+      "nr": 1,
       "syrisch": "ܦ݁ܳܠܝܣ",
       "verweise": [
         "L.21"
@@ -26403,8 +26418,9 @@
       ]
     },
     {
-      "id": "GL-polis2",
-      "latein": "polis2, f. polise, pl. polisat",
+      "id": "GL-polis-2",
+      "latein": "polis, f. polise, pl. polisat",
+      "nr": 2,
       "syrisch": "ܦ݁ܳܠܝܣ, ܦ݁ܳܠܝܣܶܐ, ܦ݁ܳܠܝܣܰܬ",
       "sinne": [
         {
@@ -26714,8 +26730,9 @@
       "siehe": "→ rišo"
     },
     {
-      "id": "GL-qariwo1",
-      "latein": "qariwo1 (adj.), f. qaruto, pl. qariwe",
+      "id": "GL-qariwo",
+      "latein": "qariwo (adj.), f. qaruto, pl. qariwe",
+      "nr": 1,
       "syrisch": "ܩܰܪܝܘܐ ܩܰܪܘܬܐ, ܩܰܪܝܘܶܐ",
       "verweise": [
         "L.17"
@@ -26732,8 +26749,9 @@
       ]
     },
     {
-      "id": "GL-qariwo2",
-      "latein": "qariwo2, f. qarito, pl. qariwone",
+      "id": "GL-qariwo-2",
+      "latein": "qariwo, f. qarito, pl. qariwone",
+      "nr": 2,
       "syrisch": "ܩܰܪܝܘܐ, ܩܰܪܝܬܐ, ܩܰܪܝܘܳܢܶܐ",
       "sinne": [
         {
@@ -30467,8 +30485,9 @@
       ]
     },
     {
-      "id": "GL-suryoyo1",
-      "latein": "Suryoyo1",
+      "id": "GL-suryoyo",
+      "latein": "Suryoyo",
+      "nr": 1,
       "syrisch": "ܣܘܪܝܳܝܐ",
       "verweise": [
         "L.19"
@@ -30482,8 +30501,9 @@
       "siehe": "→ Surayt"
     },
     {
-      "id": "GL-suryoyo2",
-      "latein": "Suryoyo2, f. Suryayto, pl. Suryoye",
+      "id": "GL-suryoyo-2",
+      "latein": "Suryoyo, f. Suryayto, pl. Suryoye",
+      "nr": 2,
       "syrisch": "ܣܘܪܝܳܝܐ, ܣܘܪܝܰܝܬܐ, ܣܘܪܝܳܝܶܐ",
       "verweise": [
         "Q.4"
@@ -33686,8 +33706,9 @@
       "siehe": "→ tawro"
     },
     {
-      "id": "GL-tesco1",
-      "latein": "tëšco1 (num.), f. tšac",
+      "id": "GL-tesco",
+      "latein": "tëšco (num.), f. tšac",
+      "nr": 1,
       "syrisch": "ܬܷܫܥܐ ܬܫܰܥ",
       "verweise": [
         "L.8"
@@ -33700,8 +33721,9 @@
       ]
     },
     {
-      "id": "GL-tesco2",
-      "latein": "tëšco2",
+      "id": "GL-tesco-2",
+      "latein": "tëšco",
+      "nr": 2,
       "syrisch": "",
       "sinne": [],
       "siehe": "→ taḥte tëšco"
@@ -35467,8 +35489,9 @@
       ]
     },
     {
-      "id": "GL-xayifo1",
-      "latein": "xayifo1 (adv.)",
+      "id": "GL-xayifo",
+      "latein": "xayifo (adv.)",
+      "nr": 1,
       "syrisch": "ܟ݂ܰܝܝܦܐ",
       "verweise": [
         "L.21"
@@ -35486,8 +35509,9 @@
       "siehe": "→ ḥeloyo"
     },
     {
-      "id": "GL-xayifo2",
-      "latein": "xayifo2 (adj.), f. xayëfto, pl. xayife",
+      "id": "GL-xayifo-2",
+      "latein": "xayifo (adj.), f. xayëfto, pl. xayife",
+      "nr": 2,
       "syrisch": "ܟ݂ܰܝܝܦܐ ܟ݂ܰܝܷܦܬܐ, ܟ݂ܰܝܝܦܶܐ",
       "verweise": [
         "L.6"

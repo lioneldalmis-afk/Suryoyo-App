@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react';
 import { alleLektionen, NUR_MIT_BILD } from '../data';
 import type { Eintrag, Glossar, Grammatik, GrammatikEintrag, GrammatikSeite, GrossesGlossar, Lektion, Quelle } from '../types';
+import { grundformen, synonymeVon } from './deutsch';
 import { fold, kern, woerter, zerlege } from './text';
 
 /** Woher ein Fund in den Daten stammt; `formen` sind Verbkonjugation (Surcofo) und Formentabellen. */
@@ -736,21 +737,31 @@ export function suche(wb: Woerterbuch, anfrage: string, hoechstens = 40): Sucher
  * vielleicht die einzelnen Wörter weiter – jedes für sich nachgeschlagen, nicht
  * zu einem Satz zusammengesetzt.
  */
-export function einzelneWoerter(wb: Woerterbuch, anfrage: string): { wort: string; funde: Fund[] }[] {
+export function einzelneWoerter(wb: Woerterbuch, anfrage: string): { wort: string; funde: Fund[]; als?: string }[] {
   const s = suchwort(falte(anfrage), 1);
   if (!s || s.optional.filter((o) => !o).length < 2) return [];
-  const original = anfrage.split(/\s+/).filter(Boolean);
+  const original = anfrage.split(/[\s,.;:!?]+/).filter(Boolean);
   const gesehen = new Set<string>();
+  const gut = (w: string) =>
+    bewerte(wb, w)
+      .filter((t) => t.fund.art === 'wort' && !t.ungefaehr && t.wert >= 0.9)
+      .slice(0, 2)
+      .map((t) => t.fund);
   return s.woerter
     .filter((w, k) => !s.optional[k] && !gesehen.has(w) && gesehen.add(w))
-    .slice(0, 6)
-    .map((w) => ({
-      wort: original.find((o) => falte(o).includes(w)) ?? w,
-      funde: bewerte(wb, w)
-        .filter((t) => t.fund.art === 'wort' && !t.ungefaehr && t.wert >= 0.9)
-        .slice(0, 2)
-        .map((t) => t.fund),
-    }))
+    .slice(0, 8)
+    .map((w) => {
+      const wort = original.find((o) => falte(o).includes(w)) ?? w;
+      const funde = gut(w);
+      if (funde.length) return { wort, funde };
+      // Nicht so im Übersetzer: die Grundform („gespielt“ → spielen) oder ein gleichbedeutendes Wort (deutsch.ts)
+      const ersatz = [...grundformen(wort), ...synonymeVon(wort), ...grundformen(wort).flatMap(synonymeVon)];
+      for (const als of ersatz) {
+        const da = gut(falte(als));
+        if (da.length) return { wort, funde: da, als };
+      }
+      return { wort, funde: [] };
+    })
     .filter((g) => g.funde.length > 0);
 }
 

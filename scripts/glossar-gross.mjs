@@ -43,8 +43,9 @@ function schriftAus(text) {
   return text
     .replace(/\[[^\]]*\]/g, ' ') // die Wurzel („[ʾbc I ܐܒܥ]“) gehört nicht zum Wort
     .split(/\s+/)
-    .filter((t) => SYRISCH.test(t) || t === '-' || t === '–')
+    .filter((t) => SYRISCH.test(t) || t === '-' || t === '–' || t === '\u{60C}')
     .join(' ')
+    .replace(/ \u{60C}/gu, '\u{60C}')
     .replace(/^[\s–-]+|[\s–-]+$/g, '');
 }
 
@@ -87,6 +88,12 @@ function absatzLesen($, p) {
           else beispiel.rest += t;
         } else if (ort.sinn) {
           if (ort.nummer) continue;
+          // Formen vor der ersten Bedeutung („, f. kul ḥḏo ܟܠ ܚܕ݂ܐ jeder, jede“) gehören zum Kopf
+          if (!sinn.bedeutung && (ort.serto || ort.fett || /^\s*,?\s*(?:f|pl)\.\s*$/.test(t))) {
+            kopf += ort.serto ? ` ${t}` : t;
+            continue;
+          }
+          if (ort.bedeutung) sinn.bedeutung = true;
           if (/\|/.test(t)) {
             sinn.deutsch += t.split('|')[0];
             sinn.nachStrich = true;
@@ -94,7 +101,7 @@ function absatzLesen($, p) {
         } else if (sinne.length && /^\s*\|\s*$/.test(t)) {
           // „Absicht | latlan niya pis …“: Der Strich vor den Beispielen steht manchmal außerhalb der Bedeutung.
           sinne.at(-1).nachStrich = true;
-        } else kopf += t;
+        } else kopf += ort.serto ? ` ${t}` : t;
         continue;
       }
       if (c.type !== 'tag') continue;
@@ -102,6 +109,8 @@ function absatzLesen($, p) {
       const neu = { ...ort };
       if (c.tagName === 'em' || c.tagName === 'i') neu.em = true;
       if (istSerto(c)) neu.serto = true;
+      if (c.tagName === 'strong' || c.tagName === 'b') neu.fett = true;
+      if (f === '#066606') neu.bedeutung = true;
       if (/font-size:\s*9pt/.test(c.attribs?.style ?? '')) neu.klein = true;
       if (f === '#0c5252') neu.verweis = true;
       if (ort.sinn && (c.tagName === 'strong' || c.tagName === 'b') && NUMMER.test($(c).text())) {
@@ -163,13 +172,17 @@ async function surayt() {
       if (!clean($(p).text())) continue;
       const unter = /margin:\s*0pt 0pt 0pt 8pt/.test($(p).attr('style') ?? '');
       const { kopf, sinne, siehe } = absatzLesen($, p);
-      const latein = umschriftAus(kopf);
+      // Gleich geschriebene Stichwörter sind hochgestellt nummeriert („kët¹“, „kët²“) – die Zahl gehört nicht zum Wort.
+      const roh = umschriftAus(kopf);
+      const homonym = /^[^\s,(]*?\p{L}(\d+)(?=[\s,(]|$)/u.exec(roh)?.[1];
+      const latein = roh.replace(/(\p{L})\d+(?=[\s,(]|$)/gu, '$1');
       if (!latein) continue;
       const verweise = [...kopf.matchAll(FUNDSTELLE)].flatMap((m) => m[0].slice(1, -1).split(';').map((v) => v.replace(/\s+/g, '')));
       const stich = latein.split(/\s*[,;([]/)[0].trim();
       const e = {
         id: kennung(unter && haupt ? `${haupt.id}.${slug(stich)}` : `GL-${slug(stich)}`),
         latein,
+        ...(homonym && { nr: Number(homonym) }),
         syrisch: schriftAus(kopf),
         ...(verweise.length && { verweise }),
         sinne,
