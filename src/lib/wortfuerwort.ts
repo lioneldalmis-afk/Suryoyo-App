@@ -232,6 +232,43 @@ function wortIndex(wb: Woerterbuch): WortIndex {
   return index;
 }
 
+// --- Für den Baukasten (Phase 4b, Schritt 4) ---------------------------------------------
+
+/** Eine Schreibweise eines Eintrags; `ganz`: das Stichwort selbst, nicht eine Form, die der Eintrag nur aufzählt. */
+export interface Schreibweise {
+  fund: Fund;
+  /** genau wie im Eintrag, nur klein („ëšmo“) */
+  genau: string;
+  ganz: boolean;
+}
+
+/** Alle einzelnen Wörter, unter denen die Einträge zu finden sind – Stichwörter, Formen aus Tabellen, aufgezählte Formen. */
+export function alleSchreibweisen(wb: Woerterbuch): Schreibweise[] {
+  return [...wortIndex(wb).formen.values()].flat();
+}
+
+/**
+ * Steht vor `naechstes` ein bestimmter Artikel – allein („u“, „ak“) oder mit einer
+ * kurzen Präposition zusammengeschrieben („bu“, „lak“; Grammatik 11)? Dann die Form
+ * aus der Formentabelle „Der bestimmte Artikel“ mit ihrer Beschriftung („Sg., m.“).
+ */
+export function artikelVor(wb: Woerterbuch, wort: string, naechstes: string): Fund | undefined {
+  const ix = wortIndex(wb);
+  const k = schluessel(wort);
+  const n = schluessel(naechstes);
+  const form = (rest: string) => {
+    // „ak kṯowe“: a + erster Konsonant des Substantivs
+    if (rest.length === 2 && rest[0] === 'a' && !VOKAL.test(rest[1]) && n[0] === rest[1]) return ix.platzhalter;
+    return [...ix.artikel].find((a) => schluessel(a.latein) === rest && (rest !== 'an' || VOKAL.test(n)));
+  };
+  // Mit Sonderzeichen ist es kein Artikel („bë“, „dë“ sind eigene Wörter).
+  if (!n || istUmschrift(wort)) return undefined;
+  const allein = form(k);
+  if (allein) return allein;
+  for (const p of ix.kurze.keys()) if (k.startsWith(p) && k.length > p.length) return form(k.slice(p.length));
+  return undefined;
+}
+
 // --- Ein Wort nachschlagen ------------------------------------------------------------
 
 /** Höchstens so viele Bedeutungen pro Wort. */

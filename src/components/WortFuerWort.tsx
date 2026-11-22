@@ -104,31 +104,37 @@ const gleich = (a: string, b: string) => fold(a).replace(/[^a-z0-9]+/g, ' ').tri
 
 /**
  * Eine Bedeutung als Link zum Eintrag. Die Umschrift des Eintrags steht nur da,
- * wenn sie nicht ohnehin das Wort links ist (`mitForm`: immer).
+ * wenn sie nicht ohnehin das Wort links ist (`mitForm`: immer). `zusatz` ersetzt
+ * die Beschriftung aus der Tabelle (der Baukasten sagt dort, was das Wort ist).
  */
-function Bedeutung({
+export function Bedeutung({
   fund,
   wort,
   mitForm = false,
   ohneSchild = false,
+  zusatz,
+  form: andereForm,
   oeffnen,
 }: {
   fund: Fund;
   wort?: string;
   mitForm?: boolean;
   ohneSchild?: boolean;
+  zusatz?: string;
+  /** Diese Form statt des Stichworts zeigen (eine Form, die der Eintrag nur aufzählt, z. B. die Mehrzahl). */
+  form?: string;
   oeffnen?: () => void;
 }) {
   const form = mitForm || !wort || !gleich(fund.latein, wort);
-  const merkmal = ausTabelle(fund) && fund.merkmal ? merkmalText(fund) : '';
+  const merkmal = zusatz ?? (ausTabelle(fund) && fund.merkmal ? merkmalText(fund) : '');
   return (
     <li className="wfw__bedeutung">
       <a className="wfw__link" href={href({ name: 'uebersetzer', id: fund.id })} onClick={oeffnen}>
         <span className="wfw__text">
           {form && (
             <span className="wfw__form">
-              <Surayt>{fund.latein}</Surayt>
-              {fund.hinweis && (
+              <Surayt>{andereForm ?? fund.latein}</Surayt>
+              {fund.hinweis && !andereForm && (
                 <span className="wort__hinweis">
                   {vorHinweis(fund.hinweis)}
                   {fund.hinweis}

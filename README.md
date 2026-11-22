@@ -21,7 +21,7 @@ Neue Versionen kommen von selbst: Einfach die App schließen und neu öffnen. Di
 2. Beim Nachsprechen am Ende einer Einheit das Mikrofon erlauben, sich aufnehmen und mit dem Original vergleichen.
 3. In Lektion 3 unter „Üben“ das **Rollenspiel** starten, z. B. als Afrem.
 4. Oben auf der Startseite die Flamme antippen: „Deine Erfolge“ mit Serie, Tagesziel und Abzeichen.
-5. Unten auf **Übersetzer** tippen und etwas nachschlagen – auf Deutsch („Danke“, „Wie geht es dir?“) oder auf Surayt, auch ohne Sonderzeichen („slomo“). Einen Treffer antippen: großer Lautsprecher zum Vorspielen, Schild und Herkunft, Beispielsatz. Etwas suchen, das fehlt, und „Wort anfragen“ ausprobieren.
+5. Unten auf **Übersetzer** tippen und etwas nachschlagen – auf Deutsch („Danke“, „Wie geht es dir?“) oder auf Surayt, auch ohne Sonderzeichen („slomo“). Einen Treffer antippen: großer Lautsprecher zum Vorspielen, Schild und Herkunft, Beispielsatz. Etwas suchen, das fehlt, und „Wort anfragen“ ausprobieren. Einen einfachen Satz suchen, der nicht im Lehrbuch steht, z. B. „er wird essen“ oder „vier Männer“: Der Übersetzer setzt ihn nach einem Lehrbuch-Satz zusammen – mit orangem Schild und Bauplan.
 6. Am nächsten Tag wiederkommen: Unten unter **Karteikasten** steht, wie viele Karten dran sind. Erst überlegen, dann aufdecken und ehrlich bewerten: „Nicht gewusst“, „Knapp“ oder „Gewusst“.
 
 **Fragen fürs Feedback:** Sind die Einheiten zu lang oder zu kurz? Klappen Audio und Mikrofon? Ist irgendwo unklar, was man tun soll? Klingt beim Nachsprechen etwas komisch? Findet der Übersetzer, was man sucht – und welche Wörter fehlen? Versteht man die Schilder?

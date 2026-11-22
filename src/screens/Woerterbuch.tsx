@@ -1,7 +1,9 @@
 // Übersetzer (bis November 2026 „Wörterbuch“): Wörter und Sätze nachschlagen,
 // Deutsch ↔ Surayt. Gedacht für den Moment am Familientisch: schnell finden,
 // laut vorspielen. Jeder Treffer trägt ein Schild, das sagt, woher er stammt
-// und ob ihn jemand geprüft hat. Nichts wird von einer KI übersetzt.
+// und ob ihn jemand geprüft hat. Nichts wird von einer KI übersetzt. Steht ein
+// einfacher deutscher Satz nicht in den Daten, setzt ihn der Baukasten nach einem
+// Lehrbuch-Satz zusammen – mit orangem Schild und Bauplan (Phase 4b, Schritt 4).
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type MouseEvent } from 'react';
 import { AudioButton } from '../components/AudioButton';
@@ -11,6 +13,7 @@ import { Leiste } from '../components/Leiste';
 import { SCHILDER, Schild } from '../components/Schild';
 import { Surayt } from '../components/Surayt';
 import { WortFuerWort } from '../components/WortFuerWort';
+import { ZusammengesetztKarte } from '../components/Zusammengesetzt';
 import { QUELLE } from '../config';
 import { istDialog, kurs, verfuegbar } from '../data';
 import {
@@ -39,6 +42,7 @@ import {
   type Stufe,
   type Woerterbuch,
 } from '../lib/woerterbuch';
+import { eingeschaltet, setzeZusammen } from '../lib/baukasten';
 import { anzahlWoerter, erklaere, ganzGleich, siehtNachSuraytAus } from '../lib/wortfuerwort';
 import type { GrammatikTeil } from '../types';
 
@@ -76,12 +80,25 @@ export function WoerterbuchScreen() {
     if (funde[0] && ganzGleich(funde[0].latein, gesucht)) return null;
     return erklaere(wb, gesucht, { mitSaetzen: true, mitAehnlichen: true });
   }, [wb, gesucht, funde]);
+  // Ein deutscher Satz, der so nicht in den Daten steht: nach einem Lehrbuch-Satz zusammensetzen (Phase 4b, Schritt 4).
+  // Erst mit den Verbtabellen – ohne sie wären es andere Satzbaupläne.
+  const bau = useMemo(
+    () => (gesucht && !wortFuerWort && wb.mitGrammatik ? setzeZusammen(wb, gesucht) : []),
+    [wb, gesucht, wortFuerWort],
+  );
   const einzeln = useMemo(
-    () => (gesucht && !funde.length && !wortFuerWort ? einzelneWoerter(wb, gesucht) : []),
-    [wb, gesucht, funde, wortFuerWort],
+    () => (gesucht && !funde.length && !wortFuerWort && !bau.length ? einzelneWoerter(wb, gesucht) : []),
+    [wb, gesucht, funde, wortFuerWort, bau],
   );
   const feld = useRef<HTMLInputElement>(null);
   const online = useOnline();
+
+  // Den Baukasten vorbereiten, solange man noch tippt (einmal, auf dem Handy ein paar Zehntelsekunden).
+  useEffect(() => {
+    if (!wb.mitGrammatik) return;
+    const t = window.setTimeout(() => void eingeschaltet(wb), 400);
+    return () => window.clearTimeout(t);
+  }, [wb]);
 
   useEffect(() => {
     merk.ausDerSuche = false;
@@ -170,6 +187,27 @@ export function WoerterbuchScreen() {
             )}
             <AnfrageKasten key={gesucht} text={gesucht} satz />
           </>
+        ) : bau.length > 0 ? (
+          <>
+            <section>
+              <h2 className="zwischentitel">Zusammengesetzt</h2>
+              <p className="bau__vorweg">
+                „{gesucht}“ steht so nicht im Lehrbuch. Der Übersetzer hat {bau.length === 1 ? 'den Satz' : 'diese Fassungen'} nach
+                einem Lehrbuch-Satz zusammengesetzt, der genauso gebaut ist.
+              </p>
+              {bau.map((z) => (
+                <ZusammengesetztKarte key={z.latein} z={z} wb={wb} oeffnen={oeffnetAusSuche} />
+              ))}
+            </section>
+            {/* Nur ähnlich geschriebene Einträge („gegessen werden“ zu „er wird essen“) lenken hier bloß ab. */}
+            {funde.length > 0 && !nurAehnlich && (
+              <section>
+                <h2 className="zwischentitel">Einträge mit diesen Wörtern</h2>
+                <Fundliste funde={funde} />
+              </section>
+            )}
+            <AnfrageKasten key={gesucht} text={gesucht} zusammengesetzt />
+          </>
         ) : funde.length > 0 && nurAehnlich ? (
           <>
             <div className="nichts">
@@ -252,6 +290,10 @@ function Ohne({ wb }: { wb: Woerterbuch }) {
             . Statt <Surayt>š</Surayt> geht auch <em>sch</em> oder <em>sh</em>.
           </li>
           <li>Wortteile und kleine Tippfehler klappen auch.</li>
+          <li>
+            Steht ein einfacher Satz nicht im Lehrbuch, setzt der Übersetzer ihn manchmal nach einem Lehrbuch-Satz zusammen –
+            dann mit orangem Schild und ohne Aufnahme.
+          </li>
           <li>Tippe auf den Lautsprecher, um ein Wort zu hören – oder es am Tisch vorzuspielen.</li>
           <li>Nichts wird von einer KI übersetzt. Der Übersetzer geht auch ohne Internet.</li>
         </ul>
@@ -319,8 +361,21 @@ function Fundliste({ funde, inDerSuche = true }: { funde: readonly Fund[]; inDer
 
 // --- Wort anfragen -----------------------------------------------------------
 
-/** `satz`: Es geht um einen ganzen Satz (Wort für Wort erklärt), nicht um ein Wort. */
-function AnfrageKasten({ text, knapp = false, satz = false }: { text: string; knapp?: boolean; satz?: boolean }) {
+/**
+ * `satz`: Es geht um einen ganzen Satz (Wort für Wort erklärt), nicht um ein Wort.
+ * `zusammengesetzt`: Der Baukasten hat den Satz zusammengesetzt – niemand hat ihn geprüft.
+ */
+function AnfrageKasten({
+  text,
+  knapp = false,
+  satz = false,
+  zusammengesetzt = false,
+}: {
+  text: string;
+  knapp?: boolean;
+  satz?: boolean;
+  zusammengesetzt?: boolean;
+}) {
   const [offen, setOffen] = useState(false);
   const [wort, setWort] = useState(text.slice(0, ANFRAGE_LAENGE));
   const [situation, setSituation] = useState('');
@@ -348,12 +403,14 @@ function AnfrageKasten({ text, knapp = false, satz = false }: { text: string; kn
     ) : (
       <div className="anfrage">
         <p>
-          {satz
-            ? 'Verstehst du den Satz nicht ganz? Frag nach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.'
-            : 'Fehlt ein Wort, das du brauchst? Frag danach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.'}
+          {zusammengesetzt
+            ? 'Willst du sicher sein, dass man es so sagt? Frag nach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.'
+            : satz
+              ? 'Verstehst du den Satz nicht ganz? Frag nach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.'
+              : 'Fehlt ein Wort, das du brauchst? Frag danach – Menschen, die Surayt sprechen, schauen sich die Anfragen an.'}
         </p>
         <button type="button" className="knopf" onClick={() => setOffen(true)}>
-          <IconFrage size={22} /> {satz ? 'Satz anfragen' : 'Wort anfragen'}
+          <IconFrage size={22} /> {satz || zusammengesetzt ? 'Satz anfragen' : 'Wort anfragen'}
         </button>
       </div>
     );

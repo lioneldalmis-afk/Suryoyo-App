@@ -3345,6 +3345,109 @@ button.art {
   color: var(--tinte-leise);
 }
 
+/* Zusammengesetzt (Phase 4b, Schritt 4): orange umrandet wie das Schild, ohne großen Lautsprecher */
+
+.bau__vorweg {
+  margin: 0 4px 12px;
+  font-size: 0.9rem;
+  color: #3c4157;
+}
+
+.bau {
+  padding: 18px 16px 16px;
+  border-radius: var(--rund);
+  background: var(--flaeche);
+  box-shadow:
+    inset 0 0 0 2px #f0b54d,
+    var(--schatten);
+}
+
+.bau + .bau {
+  margin-top: 14px;
+}
+
+.bau__sur {
+  margin-top: 12px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.bau__de {
+  margin-top: 4px;
+  font-size: 1.1rem;
+  color: #3c4157;
+}
+
+.bau__warnung {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--schild-offen-hell);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--schild-offen);
+}
+
+.bau__still {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--tinte-leise);
+}
+
+.bau__plan {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f1ece3;
+}
+
+.bau__titel {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--schild-offen);
+}
+
+.bau__regel {
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
+
+.bau__wort {
+  font-weight: 800;
+}
+
+.bau__zwischen {
+  margin: 14px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--tinte-leise);
+}
+
+.bau__liste {
+  padding: 2px 4px;
+  border-radius: 14px;
+  background: #faf7f1;
+}
+
+.bau__klein {
+  margin: 4px 4px 0;
+  font-size: 0.8rem;
+  color: var(--tinte-leise);
+}
+
+/* Wort für Wort in der Karte: ohne eigenen Schatten */
+.bau .wfw {
+  box-shadow: none;
+  background: #faf7f1;
+}
+
+.bau .wfw__zeile {
+  padding-left: 10px;
+}
+
 .tipps ul {
   display: grid;
   gap: 8px;
