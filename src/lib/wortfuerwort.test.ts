@@ -5,13 +5,14 @@
 import { describe, expect, it } from 'vitest';
 import glossarJson from '../data/glossar-a.json';
 import grammatikJson from '../data/grammatik.json';
+import grossJson from '../data/glossar.json';
 import { alleLektionen } from '../data';
-import type { Glossar, Grammatik } from '../types';
+import type { Glossar, Grammatik, GrossesGlossar } from '../types';
 import { fold, woerter, zerlege } from './text';
 import { baueWoerterbuch, suche, type Fund } from './woerterbuch';
 import { anzahlWoerter, erklaere, ganzGleich, siehtNachSuraytAus, type Wortteil } from './wortfuerwort';
 
-const wb = baueWoerterbuch(alleLektionen, glossarJson as Glossar, grammatikJson as unknown as Grammatik);
+const wb = baueWoerterbuch(alleLektionen, glossarJson as Glossar, grammatikJson as unknown as Grammatik, grossJson as unknown as GrossesGlossar);
 const saetze = alleLektionen.flatMap((l) => [...l.text, ...l.einleitung]);
 const fundVon = (id: string) => wb.nachId.get(id)!;
 /** Jeder Satz der Lektionen, so erklärt wie auf seiner Eintragsseite. */

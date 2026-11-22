@@ -5,8 +5,9 @@
 import { describe, expect, it } from 'vitest';
 import glossarJson from '../data/glossar-a.json';
 import grammatikJson from '../data/grammatik.json';
+import grossJson from '../data/glossar.json';
 import { alleLektionen } from '../data';
-import type { Glossar, Grammatik, GrammatikEintrag } from '../types';
+import type { Glossar, Grammatik, GrammatikEintrag, GrossesGlossar } from '../types';
 import { woerter, zerlege } from './text';
 import { baueWoerterbuch } from './woerterbuch';
 import { stehtSchonDa } from './baukasten';
@@ -14,7 +15,7 @@ import { aufbereiten } from './nachschlagen';
 import { alleRegeln, datenWort, eingeschalteteRegeln, nachRegeln, regelGegenprobe, type RegelId, type Regelsatz } from './regeln';
 
 const grammatik = grammatikJson as unknown as Grammatik;
-const wb = baueWoerterbuch(alleLektionen, glossarJson as Glossar, grammatik);
+const wb = baueWoerterbuch(alleLektionen, glossarJson as Glossar, grammatik, grossJson as unknown as GrossesGlossar);
 const probe = regelGegenprobe(wb);
 const an = eingeschalteteRegeln(wb);
 

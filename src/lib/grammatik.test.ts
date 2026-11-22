@@ -14,16 +14,19 @@ const finde = (id: string, latein: string) => seite(id).eintraege.find((e) => e.
 function texte(b: GrammatikBlock): string[] {
   if (b.art === 'titel') return [b.text];
   if (b.art === 'absatz') return [b.teile.map((t) => t.text).join('')];
-  return b.zeilen.flat().flatMap((z) => [...z.teile.map((t) => t.text), z.teile.map((t) => t.text).join(' ')]);
+  // „Haw/law kocawdo adyawma.“ steht in einer Zelle als „Haw“, „/“, „law kocawdo adyawma.“ (zwei Aufnahmen).
+  return b.zeilen.flat().flatMap((z) => [...z.teile.map((t) => t.text), z.teile.map((t) => t.text).join(' '), z.teile.map((t) => t.text).join('')]);
 }
 const aufnahmen = (b: GrammatikBlock) => (b.art === 'tabelle' ? b.zeilen.flat().flatMap((z) => z.teile.map((t) => t.audio)) : []);
 const seitenText = (s: GrammatikSeite) => s.bloecke.flatMap(texte).join('\n');
 const ganzerText = grammatik.seiten.map(seitenText).join('\n');
 
 describe('Grammatik: Seiten', () => {
-  it('enthält die Grammatik der Lektionen 3–16, die Verbkonjugation und alle Formentabellen', () => {
+  it('enthält die Grammatik der Lektionen 3–24 (Level A und B), die Verbkonjugation und alle Formentabellen', () => {
     const lektionen = grammatik.seiten.filter((s) => s.art === 'grammatik').map((s) => s.lektion);
-    expect(lektionen).toEqual(Array.from({ length: 14 }, (_, i) => i + 3));
+    expect(lektionen).toEqual(Array.from({ length: 22 }, (_, i) => i + 3));
+    // Level B steht unter Kapitel 2.1–2.8 („Grammatik 17“ … „Grammatik 24“)
+    for (const s of grammatik.seiten.filter((x) => (x.lektion ?? 0) > 16)) expect(s.id).toBe(`2.${s.lektion! - 16}.3`);
     expect(grammatik.seiten.filter((s) => s.art === 'verben').map((s) => s.id)).toEqual(['1.17']);
     expect(grammatik.seiten.filter((s) => s.art === 'formen').map((s) => s.id)).toEqual(
       Array.from({ length: 12 }, (_, i) => `4.${i + 1}`),

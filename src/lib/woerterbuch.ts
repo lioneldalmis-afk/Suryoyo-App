@@ -12,7 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { alleLektionen, NUR_MIT_BILD } from '../data';
-import type { Eintrag, Glossar, Grammatik, GrammatikEintrag, GrammatikSeite, Lektion, Quelle } from '../types';
+import type { Eintrag, Glossar, Grammatik, GrammatikEintrag, GrammatikSeite, GrossesGlossar, Lektion, Quelle } from '../types';
 import { fold, kern, woerter, zerlege } from './text';
 
 /** Woher ein Fund in den Daten stammt; `formen` sind Verbkonjugation (Surcofo) und Formentabellen. */
@@ -88,6 +88,13 @@ export interface Woerterbuch {
   mitGlossar: boolean;
   /** Sind Grammatik, Verb- und Formentabellen schon dabei? */
   mitGrammatik: boolean;
+  /** Ist das große Glossar (Teil 5) schon dabei? */
+  mitGrossemGlossar: boolean;
+  /**
+   * Wortliste „Deutsch > Surayt“ des großen Glossars: deutsches Stichwort (klein) →
+   * Grundformen auf Surayt, wie sie dort stehen („lang“ → yarixo).
+   */
+  wortliste: ReadonlyMap<string, string[]>;
   /** Die Seiten der Grammatik nach Kapitelnummer – für die Anzeige der Tabellen. */
   seiten: ReadonlyMap<string, GrammatikSeite>;
   /** Alle Formen eines Verbs („goraš – grëšle“ → Funde), in der Reihenfolge der Tabellen. */
@@ -117,7 +124,7 @@ const genau = (text: string) =>
     .filter(Boolean);
 
 /** Das Stichwort einer Glossar-Wendung: „abro, Pl. abne“ → „abro“, „aḏno (f.), …“ → „aḏno“. */
-export const stichwort = (latein: string) => latein.split(/\s*[,;(]/)[0].trim();
+export const stichwort = (latein: string) => latein.split(/\s*[,;([]/)[0].trim();
 
 /** Kommen die Wörter `teil` in dieser Reihenfolge in `ganz` vor? */
 function enthaelt(ganz: readonly string[], teil: readonly string[]): number {
@@ -285,7 +292,16 @@ function abgedeckt(a: string, b: string): boolean {
   return wa.length > 0 && wa.every((w) => wb.has(w));
 }
 
-export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar, grammatik?: Grammatik): Woerterbuch {
+/** „(L.4)“, „L.10.4“, „G.20“ → Lektion 4, 10, 20; „Q.4,43“ (Lesestück) → keine. */
+const lektionAusVerweis = (v: string) => {
+  const m = /^(?:L|G)\.?\s?(\d+)/.exec(v);
+  return m ? Number(m[1]) : undefined;
+};
+
+/** Steckt im Kopf mehr als das Stichwort – Geschlecht, Mehrzahl, weibliche Form, Wurzel? */
+const hatZusatz = (latein: string) => /[,([]/.test(latein);
+
+export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar, grammatik?: Grammatik, gross?: GrossesGlossar): Woerterbuch {
   const seiten = new Map((grammatik?.seiten ?? []).map((s) => [s.id, s]));
   const funde: Fund[] = [];
   const nachId = new Map<string, Fund>();
@@ -372,6 +388,49 @@ export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar
     }
   }
 
+  // Das große Glossar (Teil 5): Haupt- und Untereinträge, dazu jedes Beispiel als eigener Eintrag.
+  // Was dort steht, ist zum größten Teil schon da (Wortschatz, Glossar A); doppelt wird nichts.
+  if (gross) {
+    const nachWort = new Map<string, Fund[]>();
+    for (const f of funde) {
+      const k = genau(f.art === 'wort' ? stichwort(f.latein) : f.latein).join(' ');
+      nachWort.set(k, [...(nachWort.get(k) ?? []), f]);
+    }
+    const ton = (latein: string, lektionenHier: number[]) => {
+      const gleiche = nachWort.get(genau(latein).join(' ')) ?? [];
+      return (gleiche.find((f) => f.audio && lektionenHier.includes(f.lektion ?? 0)) ?? gleiche.find((f) => f.audio))?.audio;
+    };
+    const neu = (id: string, latein: string, deutsch: string, verweise: readonly string[]) => {
+      const lektionenHier = [...new Set(verweise.map(lektionAusVerweis).filter((n): n is number => n !== undefined))].sort((a, b) => a - b);
+      const audio = ton(latein, lektionenHier) ?? ton(stichwort(latein), lektionenHier);
+      aufnehmen({
+        id,
+        latein,
+        deutsch,
+        ...(audio ? { audio } : {}),
+        art: genau(latein).length > 3 && !/[,;[]/.test(latein) ? 'satz' : 'wort',
+        quelle: 'lehrbuch',
+        herkunft: 'glossar',
+        ...(lektionenHier.length ? { lektion: lektionenHier[0] } : {}),
+        lektionen: lektionenHier,
+      });
+    };
+    for (const e of gross.eintraege) {
+      const deutsch = e.sinne.map((x) => x.deutsch).filter(Boolean).join('; ');
+      if (deutsch) {
+        // Ein Stichwort ohne Zusätze, das es mit dieser Bedeutung schon gibt, braucht es nicht noch einmal.
+        const gleiche = nachWort.get(genau(stichwort(e.latein)).join(' ')) ?? [];
+        const schonDa = gleiche.find((f) => abgedeckt(deutsch, f.deutsch) && (!hatZusatz(e.latein) || genau(f.latein).join(' ') === genau(e.latein).join(' ')));
+        if (!schonDa) neu(e.id, e.latein, deutsch, e.verweise ?? []);
+      }
+      e.sinne.forEach((x, i) =>
+        x.beispiele.forEach((b, k) => {
+          if (b.latein && b.deutsch) neu(`${e.id}.${i + 1}.${k + 1}`, b.latein, b.deutsch, b.verweis ? [b.verweis] : []);
+        }),
+      );
+    }
+  }
+
   // Glossar-Wendungen, die ein Wort aus dem Wortschatz ausführlicher beschreiben
   const zwilling = new Map<Fund, Fund>();
   const imGlossar = new Map<Fund, Fund[]>();
@@ -405,12 +464,24 @@ export function baueWoerterbuch(lektionen: readonly Lektion[], glossar?: Glossar
     saetze: funde.filter((f) => f.herkunft === 'text' || f.herkunft === 'einleitung' || (f.herkunft === 'grammatik' && f.art === 'satz')),
     mitGlossar: !!glossar,
     mitGrammatik: !!grammatik,
+    mitGrossemGlossar: !!gross,
+    wortliste: wortlisteAus(gross),
     seiten,
     gruppen,
     zwilling,
     imGlossar,
     felder: new Map(funde.map((f) => [f, felderVon(f)])),
   };
+}
+
+/** Die Wortliste „Deutsch > Surayt“: „laufen“ → rohaṭ, malax, mhalax; „sich langweilen“ steht unter „sich langweilen“. */
+function wortlisteAus(gross?: GrossesGlossar): Map<string, string[]> {
+  const aus = new Map<string, string[]>();
+  for (const z of gross?.wortliste ?? []) {
+    const k = z.deutsch.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (k) aus.set(k, [...new Set([...(aus.get(k) ?? []), ...z.latein])]);
+  }
+  return aus;
 }
 
 // --- Suchen --------------------------------------------------------------------
@@ -737,8 +808,11 @@ let laden: Promise<Woerterbuch> | null = null;
 const grundbestand = () => (ohneZusatz ??= baueWoerterbuch(alleLektionen));
 
 function ladeZusatz(): Promise<Woerterbuch> {
-  laden ??= Promise.all([import('../data/glossar-a.json'), import('../data/grammatik.json')])
-    .then(([g, gr]) => (mitZusatz = baueWoerterbuch(alleLektionen, g.default as Glossar, gr.default as unknown as Grammatik)))
+  laden ??= Promise.all([import('../data/glossar-a.json'), import('../data/grammatik.json'), import('../data/glossar.json')])
+    .then(
+      ([g, gr, gg]) =>
+        (mitZusatz = baueWoerterbuch(alleLektionen, g.default as Glossar, gr.default as unknown as Grammatik, gg.default as unknown as GrossesGlossar)),
+    )
     .catch(() => {
       laden = null; // beim nächsten Öffnen nochmal versuchen
       return grundbestand();

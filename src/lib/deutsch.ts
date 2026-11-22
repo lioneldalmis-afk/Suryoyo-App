@@ -223,6 +223,29 @@ export function possessiv(wort: string): Person[] | undefined {
   return POSSESSIV.find(([muster]) => muster.test(wort))?.[1];
 }
 
+/**
+ * Begleiter, die wie Adjektive gebeugt werden, aber keine sind: „diese Familie“, „jeder Tag“,
+ * „alle Kinder“. Sie stehen im Surayt anders (Demonstrativ, kul …) – nicht als Adjektiv bauen.
+ */
+export const istBegleiter = (wort: string) =>
+  /^(?:dies|jen|welch|solch|manch|jed)(?:er|e|es|en|em)?$|^(?:all|viel|einig|beid|mehrer|wenig|ander)(?:e|en|em|er|es)?$/.test(wort.toLowerCase());
+
+/**
+ * Verwandtschaftsbezeichnungen und Körperteile auf Deutsch. Für sie gilt im Surayt die
+ * eingeschränkte Reihe der Possessivsuffixe (Grammatik 5a.2) – der Baukasten erkennt sie
+ * daran, auch wenn ein Wort nicht im Wortschatz der Lektionen 4 und 7 steht („qarco – Kopf“).
+ */
+export const FAMILIE_KOERPER = new Set(
+  (
+    'vater mutter eltern bruder schwester sohn tochter kind kinder onkel tante cousin cousine neffe nichte enkel enkelin ' +
+    'großvater großmutter opa oma oma opa schwager schwägerin schwiegervater schwiegermutter schwiegersohn schwiegertochter ' +
+    'ehemann ehefrau gatte gattin verwandte verwandter familie ' +
+    'kopf gesicht haar haare auge augen ohr ohren nase mund lippe lippen zahn zähne zunge hals nacken schulter schultern ' +
+    'arm arme hand hände finger daumen brust bauch rücken bein beine knie fuß füße zeh zehe zehen herz lunge leber niere nieren ' +
+    'magen blut haut knochen gehirn stirn wange kinn bart körper seele'
+  ).split(' '),
+);
+
 /** Ist der Begleiter „die“ oder ein Possessiv auf -e („meine“) – dann kann das Substantiv auch Mehrzahl sein. */
 export const begleiterAuchMehrzahl = (wort: string) => AUCH_MEHRZAHL.has(wort) || (!!possessiv(wort) && /e$/.test(wort));
 

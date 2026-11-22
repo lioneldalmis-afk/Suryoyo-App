@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import glossarJson from '../data/glossar-a.json';
 import grammatikJson from '../data/grammatik.json';
+import grossJson from '../data/glossar.json';
 import { alleLektionen, NUR_MIT_BILD } from '../data';
-import type { Eintrag, Glossar, Grammatik } from '../types';
+import type { Eintrag, Glossar, Grammatik, GrossesGlossar } from '../types';
 import { ANFRAGE_LAENGE, aufbereiten, sauber } from './nachschlagen';
 import { href, parse, type Route } from './router';
 import { fold, kern, woerter, zerlege } from './text';
@@ -22,7 +23,7 @@ import {
 
 const glossar = glossarJson as Glossar;
 const grammatik = grammatikJson as unknown as Grammatik;
-const wb = baueWoerterbuch(alleLektionen, glossar, grammatik);
+const wb = baueWoerterbuch(alleLektionen, glossar, grammatik, grossJson as unknown as GrossesGlossar);
 const ohneGlossar = baueWoerterbuch(alleLektionen);
 
 const eintrag = (id: string): Eintrag => {
@@ -71,6 +72,12 @@ describe('Wörterbuch: Inhalt', () => {
       for (const e of alle) quellen.add(`${e.latein}|${e.hinweis ?? ''}|${e.deutsch}|${e.audio ?? ''}`);
     }
     const ausGlossar = new Set(glossar.eintraege.flatMap((z) => z.teile.map((t) => `${t.latein}|${t.deutsch}`)));
+    // Großes Glossar: der Kopf mit seinen Bedeutungen (⑴, ⑵ … mit „; “ verbunden) und jedes Beispiel
+    const gg = grossJson as unknown as GrossesGlossar;
+    for (const e of gg.eintraege) {
+      ausGlossar.add(`${e.latein}|${e.sinne.map((x) => x.deutsch).filter(Boolean).join('; ')}`);
+      for (const b of e.sinne.flatMap((x) => x.beispiele)) ausGlossar.add(`${b.latein}|${b.deutsch}`);
+    }
     const ausGrammatik = new Set(
       grammatik.seiten.flatMap((s) => s.eintraege.map((e) => `${e.latein}|${e.hinweis ?? ''}|${e.deutsch}|${e.audio ?? ''}`)),
     );
@@ -156,8 +163,8 @@ describe('Wörterbuch: Suche', () => {
   it('erkennt Wortteile und Tippfehler', () => {
     expect(ersterTreffer(tawdi.latein.slice(0, 4)).id).toBe(tawdi.id);
     expect(ergebnis(tawdi.latein.slice(0, 4)).nurAehnlich).toBe(false);
-    // Letzter Buchstabe falsch, zwei Buchstaben vertauscht
-    const vertippt = [tawdi.latein.slice(0, -1) + 'y', tawdi.latein.slice(0, 2) + tawdi.latein[3] + tawdi.latein[2] + tawdi.latein.slice(4)];
+    // Letzter Buchstabe falsch, zwei Buchstaben vertauscht („tawdy“ geht nicht mehr: so beginnt „tawdyoṯe“ im großen Glossar)
+    const vertippt = [tawdi.latein.slice(0, -1) + 'q', tawdi.latein.slice(0, 2) + tawdi.latein[3] + tawdi.latein[2] + tawdi.latein.slice(4)];
     for (const v of vertippt) {
       expect(ersterTreffer(v).id, v).toBe(tawdi.id);
       expect(ergebnis(v).nurAehnlich, v).toBe(true);

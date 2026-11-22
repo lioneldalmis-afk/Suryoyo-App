@@ -44,6 +44,13 @@ export function grammatikSeiten(kapitel) {
   for (const [num, titel] of kapitel) {
     if (/^4\.\d+$/.test(num)) seiten.push({ id: num, titel: ohneSchrift(titel), art: 'formen' });
   }
+  // Level B (Šlomo Surayt II): Grammatik 17–24 (Kapitel 2.1–2.8). Sie stehen am Ende, damit die
+  // Kennungen der übrigen Seiten bleiben. Die Lektionen selbst hat die App (noch) nicht.
+  for (let nr = 17; nr <= 24; nr++) {
+    const g = [...kapitel].find(([num, titel]) => num.startsWith(`2.${nr - 16}.`) && /^Grammatik/.test(titel));
+    if (!g) throw new Error(`Lektion ${nr}: keine Grammatik-Seite im Inhaltsverzeichnis`);
+    seiten.push({ id: g[0], titel: g[1], art: 'grammatik', lektion: nr });
+  }
   return seiten;
 }
 
@@ -370,11 +377,19 @@ function surayt(z) {
 function werte(z) {
   if (z.teile.some((t) => t.audio)) {
     const aus = [];
+    let trenner = '';
     for (const t of z.teile) {
       const v = aus.at(-1);
+      const satzende = (x) => /[.!?]$/.test(x.text.trim());
       if (t.audio && v?.audio === t.audio) v.text += ' / ' + t.text; // eine Aufnahme für zwei Zeilen
-      else if (t.audio) aus.push({ ...t });
+      // „Haw/law kocawdo adyawma.“ (Grammatik 24): Satzanfang zur Wahl, dann der Satz – ein Eintrag,
+      // mit der Aufnahme des ganzen Satzes.
+      else if (t.audio && v?.audio && !t.neueZeile && trenner.trim() === '/' && !satzende(v) && satzende(t)) {
+        v.text = `${v.text}/${t.text}`;
+        v.audio = t.audio;
+      } else if (t.audio) aus.push({ ...t });
       else if (v && !t.neueZeile && !TRENNER.test(t.text)) v.hinweis = v.hinweis ? `${v.hinweis} ${t.text}` : t.text;
+      trenner = t.audio ? '' : trenner + t.text;
     }
     return aus;
   }
@@ -539,6 +554,9 @@ function paareAus(tab) {
   });
 }
 
+/** Zeilen einer Zelle mit „ / “ verbinden – endet eine Zeile schon mit „/“ („er würde ziehen/“), nicht doppelt. */
+const zeilenZusammen = (zeilen) => zeilen.reduce((a, b) => (a.endsWith('/') ? `${a} ${b}` : `${a} / ${b}`));
+
 /** Aus einem Paar die einzelnen Einträge: mehrere Werte in einer Zelle („hiye / hiya“) werden einzeln. */
 function eintraegeAusPaar(p) {
   const lv = werte(p.l.z);
@@ -553,7 +571,7 @@ function eintraegeAusPaar(p) {
   if (lv.length === sv.length && (dv.length === lv.length || dv.length <= 1)) {
     reihen = lv.map((l, k) => ({ l, s: sv[k], d: dv.length === lv.length ? dv[k] : dv[0] }));
   } else {
-    reihen = [{ l: lv.length === 1 ? lv[0] : ganz(p.l.z), s: sv.length === 1 ? sv[0] : ganz(p.s.z), d: dv.length ? { text: dv.map((d) => d.text).join(' / ') } : undefined }];
+    reihen = [{ l: lv.length === 1 ? lv[0] : ganz(p.l.z), s: sv.length === 1 ? sv[0] : ganz(p.s.z), d: dv.length ? { text: zeilenZusammen(dv.map((d) => d.text)) } : undefined }];
   }
   return reihen.map(({ l, s, d }, k) => ({
     ...p.merkmal(k, reihen.length),

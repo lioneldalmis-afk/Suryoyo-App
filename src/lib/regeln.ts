@@ -45,6 +45,8 @@ import {
   WERDEN,
   zahlOffen,
   adjektivKandidaten,
+  istBegleiter,
+  FAMILIE_KOERPER,
   zerlegeDeutsch,
   type DeToken,
   type Person,
@@ -213,6 +215,8 @@ interface Tafeln {
   ausnahmen: Set<string>;
   /** Deutsches Substantiv → Einträge, die es mit eingeschränkter Reihe zeigen („leba – ihr Herz“) */
   eingeschraenkt: Map<string, Fund[]>;
+  /** Wörter aus dem Wortschatz der Lektionen 4 (Familie) und 7 (Körper), in jeder Schreibweise */
+  familieKoerper: Set<string>;
 }
 
 /**
@@ -443,8 +447,16 @@ function tafeln(wb: Woerterbuch): Tafeln {
     eingeschraenkt.set(name, [...(eingeschraenkt.get(name) ?? []), f]);
   }
 
+  // Verwandtschaft und Körperteile, auch wenn ein Wort im Glossar ohne Lektion steht („qarco“)
+  const familieKoerper = new Set(
+    alleSchreibweisen(wb)
+      .filter((x) => x.fund.herkunft === 'wortschatz' && (x.fund.lektion === 4 || x.fund.lektion === 7))
+      .map((x) => x.genau),
+  );
+
   const ix: Tafeln = {
     eingeschraenkt,
+    familieKoerper,
     finit,
     zahlenAb11,
     ausnahmen,
@@ -597,7 +609,7 @@ interface Wahl {
 function woerterFuer(ctx: Ctx, deutsch: string): Wahl[] {
   return kandidaten(ctx.wb, deutsch)
     .filter((s) => s.fund !== ctx.ohne)
-    .map((s) => ({ s, m: merkmaleMitCache(ctx.wb, s, ctx.ohne) }));
+    .map((s) => ({ s, m: merkmaleMitCache(ctx.wb, s, ctx.ohne, deutsch) }));
 }
 
 /** Ein Wort so geschrieben wie im Eintrag („Surayt“ groß, sonst klein). */
@@ -645,6 +657,7 @@ function nomen(ctx: Ctx, wort: string, opt: { zahl?: Zahl; sicher?: boolean; off
 
 /** Adjektive zu einem deutschen Wort in der gewünschten Form (Geschlecht und Zahl). */
 function adjektiv(ctx: Ctx, wort: string, g: 'm' | 'f' | undefined, zahl: Zahl): Wahl[] {
+  if (istBegleiter(wort)) return [];
   const liste = adjektivKandidaten(wort).flatMap((a) =>
     woerterFuer(ctx, a).filter(
       (w) => w.m.wortart === 'anderes' && w.m.zahl === zahl && (zahl === 'pl' ? !!w.m.geschlecht : w.m.geschlecht === g),
@@ -799,8 +812,9 @@ function endungslos(w: Wahl): string | undefined {
  * Wortschatz der Lektionen 4 (Familie) und 7 (Körper).
  */
 function eingeschraenkt(ctx: Ctx, w: Wahl): boolean {
-  if (w.s.fund.lektion === 4 || w.s.fund.lektion === 7) return true;
+  if (w.s.fund.lektion === 4 || w.s.fund.lektion === 7 || ctx.ix.familieKoerper.has(w.s.genau)) return true;
   const namen = bedeutungen(w.s.fund.deutsch);
+  if (namen.some((n) => FAMILIE_KOERPER.has(n))) return true;
   if (namen.some((n) => (ctx.ix.eingeschraenkt.get(n) ?? []).some((f) => f !== ctx.ohne))) return true;
   // Auch die Mehrzahl („ëšmone“) eines solchen Wortes
   return namen.some((n) => kandidaten(ctx.wb, n).some((s) => ctx.ix.ausnahmen.has(s.genau)));
@@ -1142,6 +1156,16 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
   if (da) return da;
   const ix = tafeln(wb);
   const proben: Regelprobe[] = [];
+  // Übersetzt das Lehrbuch denselben deutschen Text an mehreren Stellen verschieden
+  // („kogoraš – er zieht“ in Grammatik 7, „goraš – er zieht“ im Bedingungssatz von
+  // Grammatik 22), zählt jede dieser Fassungen als getroffen.
+  const gleichesDeutsch = new Map<string, string[]>();
+  const deKey = (d: string) => d.normalize('NFC').trim().toLowerCase().replace(/[.!?]+$/, '');
+  for (const f of wb.funde) {
+    const k = deKey(f.deutsch);
+    gleichesDeutsch.set(k, [...(gleichesDeutsch.get(k) ?? []), ...fassungen(f.latein)]);
+  }
+  const echtVon = (f: Fund) => gleichesDeutsch.get(deKey(f.deutsch)) ?? fassungen(f.latein);
   // Längere Sätze nur, wenn ein Wort darin auf eine Regel hinweist (spart auf dem Handy Zeit)
   const hinweis = (t: DeToken[]) =>
     t.length <= 3 ||
@@ -1150,14 +1174,18 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
     const dt = zerlegeDeutsch(f.deutsch);
     if (dt.length < 2 || dt.length > 12 || !hinweis(dt)) continue;
     // „der Laden, das Geschäft“: bei kurzen Wörterbuch-Einträgen jede Bedeutung einzeln (nicht bei Sätzen)
-    const kurz = f.art === 'wort' && surWoerter(f.latein.replace(/\([^)]*\)/g, ' ')).length <= 3;
-    const deutsche = kurz ? [f.deutsch, ...f.deutsch.split(/[,;]/)] : [f.deutsch];
+    // („kurz“: höchstens drei Wörter, ohne Zusätze wie „f.“, „pl.“ und Klammern gezählt)
+    const kurz =
+      f.art === 'wort' &&
+      surWoerter(f.latein.replace(/\([^)]*\)|\[[^\]]*\]/g, ' ').replace(/(?:^|\s)(?:f|m|pl|Pl|Sg|sg)\.(?=\s)/g, ' ')).length <= 3;
+    // („falsch, fehlerhaft“ ist kein Adjektiv mit Substantiv – die ganze Zeile nur ohne Komma)
+    const deutsche = kurz ? [...(/[,;]/.test(f.deutsch) ? [] : [f.deutsch]), ...f.deutsch.split(/[,;]/)] : [f.deutsch];
     const gebaut: Regelsatz[] = [];
     for (const d of new Set(deutsche.map((x) => x.trim()).filter(Boolean))) {
       for (const r of regelsaetze({ wb, ix, ohne: f }, d)) if (!gebaut.some((g) => gleicherText(g.latein, r.latein))) gebaut.push(r);
     }
     if (!gebaut.length) continue;
-    const echt = fassungen(f.latein);
+    const echt = echtVon(f);
     const richtig = (r: Regelsatz) => echt.some((e) => gleicherText(e, r.latein));
     proben.push({ fund: f, gebaut, schuld: [], getroffen: gebaut.some(richtig), vergleichbar: true });
   }
@@ -1182,17 +1210,39 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
     r.stuecke.flatMap((x) => (x.aus ? x.aus.slice(x.rolle === 'Verb im Präsens' ? 1 : 0, x.rolle === 'Verb im Präsens' ? 2 : 1) : [x])).filter(
       (x) => !!x.fund && /Substantiv|Adjektiv|Zahl|Verb|Grundform|ohne Endung/.test(x.rolle),
     );
+  const praesentativ = new Set(
+    [...wb.seiten.values()].filter((x) => x.titel === 'Pseudo- und Hilfsverben').flatMap((x) => x.eintraege.filter((e) => e.deutsch === 'da ist').map((e) => genau(e.latein))),
+  );
   /** Benutzt der Satz dieselben Wörter wie das Lehrbuch? Nur dann prüft er die Regeln. */
   const vergleichbar = (p: Regelprobe, r: Regelsatz) => {
     const da = woerterIn(p.fund);
-    return inhaltswoerter(r).every((x) => da.has(wortVon(x.fund!)) || da.has(genau(x.text.replace(/-$/, ''))));
+    if (!inhaltswoerter(r).every((x) => da.has(wortVon(x.fund!)) || da.has(genau(x.text.replace(/-$/, ''))))) return false;
+    // Nimmt das Lehrbuch dasselbe Wort in der anderen Zahl („ab buḥonayḏe – seine Forschung“, Mehrzahl
+    // für eine deutsche Einzahl), prüft der Satz die Wortwahl, nicht die Regel.
+    const artikel = new Set([ix.artikel.m?.form, ix.artikel.f?.form].filter(Boolean));
+    const plural = (w: string) => w === ix.artikel.plV?.form || (/^a[^aeiouëä]$/.test(w) && !artikel.has(w));
+    const gebaut = surWoerter(r.latein);
+    // „kalën“ statt der Kopula: Präsentativpartikel und Kopula sagen im Nominalsatz dasselbe
+    // („Kale bu bayto. = Bu bayto yo.“, Grammatik 24c) – das Lehrbuch hat hier die andere Wahl getroffen.
+    if (r.regeln.some((x) => x.regel === 'kopula') && echtVon(p.fund).some((e) => surWoerter(e).some((w) => praesentativ.has(w)))) return false;
+    for (const e of echtVon(p.fund).map(surWoerter)) {
+      if (e.length !== gebaut.length) continue;
+      const anders = e.map((w, i) => [w, gebaut[i]]).filter(([a, b]) => a !== b);
+      if (anders.length && anders.every(([a, b]) => plural(a) !== plural(b) && (artikel.has(a) || artikel.has(b)))) return false;
+    }
+    return true;
   };
+  /**
+   * Untereinträge des großen Glossars sind feste Wendungen („b ḥänäke – im Scherz“, „obe xabro –
+   * Bescheid geben“): Wo sie anders gebaut sind als die Regel, ist das die Wendung, kein Fehler der Regel.
+   */
+  const wendung = (f: Fund) => /^GL-[^.]+\.(?!\d+\.\d+$)[^.]*[a-z]/.test(f.id) && !/\.\d+\.\d+$/.test(f.id);
   /**
    * Getroffen – auch wenn Wortschatz oder Glossar das Wort ohne Artikel nennen
    * („mawlodayḏax – dein (f.) Geburtstag“, „lwošo – das Kleiden“).
    */
   const trifft = (p: Regelprobe, r: Regelsatz) => {
-    const echt = fassungen(p.fund.latein);
+    const echt = echtVon(p.fund);
     if (echt.some((e) => gleicherText(e, r.latein))) return true;
     const ohneArtikel = r.stuecke[0]?.rolle === 'Artikel' ? text(r.stuecke.slice(1)) : undefined;
     return !!ohneArtikel && surWoerter(ohneArtikel).length === 1 && echt.some((e) => gleicherText(e, ohneArtikel));
@@ -1209,7 +1259,7 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
       p.getroffen = false;
       p.vergleichbar = true;
       if (!gueltig.length) continue;
-      const echt = fassungen(p.fund.latein);
+      const echt = echtVon(p.fund);
       const treffer = gueltig.find((r) => trifft(p, r));
       p.getroffen = !!treffer;
       if (treffer) {
@@ -1220,7 +1270,7 @@ export function regelGegenprobe(wb: Woerterbuch): Regelgegenprobe {
         }
         continue;
       }
-      const pruefbar = gueltig.filter((r) => vergleichbar(p, r));
+      const pruefbar = wendung(p.fund) ? [] : gueltig.filter((r) => vergleichbar(p, r));
       p.vergleichbar = pruefbar.length > 0;
       const schuld = new Set<RegelId>();
       for (const r of pruefbar) {
