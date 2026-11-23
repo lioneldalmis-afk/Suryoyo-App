@@ -50,8 +50,8 @@ describe('Regeln: aus dem Lehrbuch', () => {
     const imWoerterbuch = new Set(wb.funde);
     for (const r of alleRegeln(wb)) {
       // „Zwei Sätze mit „und““ trägt ein Wort aus dem Glossar („w (conj.) – und“), keine Grammatik-Seite
-      if (r.kapitel.startsWith('Glossar: ')) {
-        expect(r.kapitel, r.id).toMatch(/^Glossar: \S/);
+      if (/^(Glossar|Wortschatz Lektion \d+): /.test(r.kapitel)) {
+        expect(r.kapitel, r.id).toMatch(/^(Glossar|Wortschatz Lektion \d+): \S/);
         expect(r.belege.length, r.id).toBeGreaterThan(0);
         continue;
       }
@@ -87,22 +87,22 @@ describe('Regeln: aus dem Lehrbuch', () => {
 
 describe('Regeln: Gegenprobe', () => {
   it('schaltet nur Regeln ein, die einen Beleg genau treffen und nie danebenliegen', () => {
-    // Stand 22.11.2026 (Schritt 7b): 18 von 21 Regeln. „Das ist …“ (Demonstrativ), der Vorschlag
-    // („Wollen wir …?“ mit Subjunktiv) und ṭro haben keinen Beleg, den der Baukasten bauen kann.
-    expect(an.size).toBeGreaterThanOrEqual(18);
+    // Stand 23.11.2026 (Schritt 7c): 25 von 29 Regeln. „Das ist …“ (Demonstrativ), der Vorschlag
+    // („Wollen wir …?“ mit Subjunktiv), ṭro und „weil“ haben keinen Beleg, den der Baukasten bauen kann.
+    expect(an.size).toBeGreaterThanOrEqual(25);
     for (const id of an) {
       const s = probe.regeln.get(id)!;
       expect(s.belegeGetroffen, id).toBeGreaterThanOrEqual(1);
       expect(s.daneben, id).toBe(0);
     }
     expect(an.has('demonstrativ')).toBe(false);
-    for (const id of ['modal', 'verneinung', 'frage', 'janein', 'adverb', 'verbalsatz', 'und', 'muster'] as RegelId[]) expect(an.has(id), id).toBe(true);
+    for (const id of ['modal', 'verneinung', 'frage', 'janein', 'adverb', 'verbalsatz', 'und', 'muster', 'possessiv2', 'praeposition2', 'praepsuffix', 'praeteritum', 'muster2', 'objektsuffix', 'subjunktiv'] as RegelId[]) expect(an.has(id), id).toBe(true);
   });
 
   it('liegt bei keinem vergleichbaren Lehrbuch-Satz daneben', () => {
     const mitRegeln = probe.proben.filter((p) => p.gebaut.some((r) => r.regeln.every((x) => an.has(x.regel))));
-    // Stand 22.11.2026: gut 200 Sätze gebaut, davon über 180 genau getroffen, der Rest nicht vergleichbar.
-    expect(mitRegeln.filter((p) => p.getroffen).length).toBeGreaterThanOrEqual(180);
+    // Stand 23.11.2026: gut 550 Sätze gebaut, davon über 420 genau getroffen, der Rest nicht vergleichbar.
+    expect(mitRegeln.filter((p) => p.getroffen).length).toBeGreaterThanOrEqual(420);
     for (const p of mitRegeln) if (p.vergleichbar) expect(p.getroffen, `${p.fund.latein} – ${p.fund.deutsch}`).toBe(true);
   });
 
@@ -183,9 +183,14 @@ describe('Regeln: Wortgruppen', () => {
     expect(saetze('ihr Haus').map((r) => r.variante).sort()).toEqual(['„ihr“ = von ihnen', '„ihr“ = von ihr']);
   });
 
-  it('Possessiv nicht bei Verwandtschaft und Körperteilen (eingeschränkte Reihe) und nicht bei weiblichen Wörtern auf -to', () => {
-    expect(saetze('ihr Herz')).toEqual([]); // „leba – ihr Herz“
-    expect(saetze('mein Name', { ohne: wb.funde.find((f) => f.deutsch === 'mein Name') })).toEqual([]); // Ausnahme „ëšmo“
+  it('Verwandtschaft und Körperteile: eingeschränkte Reihe ohne Artikel (Grammatik 5a.2); nicht bei weiblichen Wörtern auf -to', () => {
+    // Die Endungen stehen im Lehrbuch an ëšmo „Name“: ëšmi „mein Name“, ëšma „ihr Name“
+    const name = form('1.5.3', 'Name');
+    const endung = (deutsch: string, merkmal: string) => form('Pronomina', deutsch, merkmal).slice(name.length - 1);
+    const ohneEndung = (w: string) => w.slice(0, -1);
+    expect(lateins(saetze('meine Mutter'))).toEqual([`${ohneEndung(wortschatz('Mutter'))}${endung('mein Name', '1. sg.')}`]);
+    expect(lateins(saetze('ihr Herz'))).toContain(`${ohneEndung(wortschatz('Herz'))}${endung('ihr (sg.) Name', '3. sg., f.')}`); // wie „leba – ihr Herz“
+    expect(saetze('meine Mutter')[0].regeln.map((r) => r.regel)).toEqual(['possessiv2']);
     expect(saetze('meine Schule')).toEqual([]); // i qrayayḏe, aber i aṯtayḏi
   });
 
@@ -196,7 +201,7 @@ describe('Regeln: Wortgruppen', () => {
   it('Präposition mit Artikel: „in der Schule“ = b + i (Grammatik 11b)', () => {
     const b = klein(wb.funde.find((f) => f.deutsch === 'in' && f.latein.length === 1)!.latein);
     expect(lateins(saetze('in der Schule'))).toEqual([`${b}${artikel('Sg., f.')} ${wortschatz('Schule')}`]);
-    // „zum Schluss“ heißt im Lehrbuch „bi ḥarayto“ – „zu“ zeigt Grammatik 11b nicht.
+    // „zum Schluss“ heißt im Lehrbuch „bi ḥarayto“ – eine Wendung der Daten geht der Regel vor.
     expect(saetze('zum Schluss')).toEqual([]);
   });
 
@@ -207,8 +212,9 @@ describe('Regeln: Wortgruppen', () => {
   });
 
   it('lieber nichts als Unsinn', () => {
-    // Zahl unklar, „es“, kein Satz, Perfekt (baut der Baukasten nicht), „wollen“ ohne Verb und ohne Ding
-    for (const a of ['die Lehrer', 'niederländische Schüler', 'es ist kalt', 'Ich bin', 'der', 'ich habe gespielt', 'ich will nach Hause']) {
+    // Zahl unklar, „es“, kein Satz, „wollen“ ohne Verb und ohne Ding, Stellung des Subjekts in der Frage unklar
+    // („I hawa aydarbo yo?“, aber „Ayna yo aḥunax?“), abgetrennte Vorsilbe eines unbekannten Verbs, „sie“ als Objekt
+    for (const a of ['die Lehrer', 'niederländische Schüler', 'es ist kalt', 'Ich bin', 'der', 'ich will nach Hause', 'Wie ist das Wetter?', 'Wann kommt der Lehrer?', 'sie singt uns die Lieder vor', 'ich sehe sie']) {
       expect(saetze(a).map((r) => r.latein), a).toEqual([]);
     }
   });
@@ -315,6 +321,103 @@ describe('Regeln: ganze Sätze (Grammatik 17–24)', () => {
     const mal = saetze('Kommst du mal morgen?');
     expect(lateins(mal)).toEqual(lateins(saetze('Kommst du morgen?')));
     expect(mal[0].hinweise?.join(' ')).toMatch(/„mal“ weggelassen/);
+  });
+});
+
+describe('Regeln: weniger Lücken (Phase 4b, Schritt 7c)', () => {
+  const finde = (deutsch: string) => probe.proben.find((p) => p.fund.deutsch === deutsch);
+
+  it('„Mir geht es gut“ wie „ich bin gut“ – so übersetzt das Lehrbuch „uns geht es gut“, „mir geht es nicht gut“', () => {
+    const r = saetze('Mir geht es gut', { ich: 'm' });
+    expect(r.length).toBeGreaterThan(0);
+    expect(lateins(r)).toEqual(lateins(saetze('ich bin gut', { ich: 'm' })));
+    expect(r[0].hinweise?.join(' ')).toMatch(/wie „ich bin gut“ – so übersetzt es das Lehrbuch/);
+    expect(lateins(saetze('Es geht mir gut', { ich: 'm' }))).toEqual(lateins(r));
+    expect(lateins(saetze('Mir geht’s gut', { ich: 'm' }))).toEqual(lateins(r));
+    expect(lateins(saetze('Geht es dir gut?')).length).toBe(lateins(saetze('Bist du gut?')).length);
+    // In der Gegenprobe genau getroffen (ohne den Eintrag selbst zu kennen)
+    for (const d of ['mir geht es nicht gut', 'wie geht es dir?', 'wie geht es euch?']) expect(finde(d)?.getroffen, d).toBe(true);
+  });
+
+  it('„zur Schule“ wie „in die Schule“ (l + Artikel, wie „këzzën li madrašto – gehen zur Schule“)', () => {
+    const zur = lateins(saetze('Ich gehe zur Schule'));
+    expect(zur.length).toBeGreaterThan(0);
+    expect(zur).toEqual(lateins(saetze('Ich gehe in die Schule')));
+    expect(finde('Wie gehst du (m.) zur Schule?')?.getroffen).toBe(true);
+  });
+
+  it('Namen aus der Eingabe und „sich treffen mit“ = „treffen“ + b (wie „laqën b – sie trafen (jdn.)“)', () => {
+    const b = genau(wb.funde.find((f) => f.deutsch === 'sie trafen (jdn.)')!.latein).split(' ')[1];
+    const adam = saetze('Ich treffe mich mit Adam', { ich: 'm' });
+    expect(adam.length).toBeGreaterThan(0);
+    expect(lateins(adam).every((l) => l.endsWith(`${b} adam`))).toBe(true);
+    expect(adam[0].hinweise?.join(' ')).toMatch(/„Adam“ als Name übernommen/);
+    expect(adam[0].hinweise?.join(' ')).toMatch(/„sich treffen mit“ wie „treffen“/);
+    expect(saetze('Ich treffe mich mit einem Freund', { ich: 'm' }).length).toBeGreaterThan(0);
+    // „Koloqe bi Saro w u Aday.“ (Lektion 3) – Name mit Artikel, wenn das Lehrbuch das Geschlecht zeigt
+    const einleitung = wb.funde.find((f) => f.id === 'L03-E-01')!.latein.split('. ')[1];
+    expect(lateins(saetze('Er trifft Saro und Aday'))).toEqual([genau(einleitung)]);
+    // Unbekanntes Geschlecht: beide Formen
+    expect(saetze('Adam kommt').map((r) => r.variante).sort()).toEqual(['wenn Adam ein Junge ist', 'wenn Adam ein Mädchen ist']);
+  });
+
+  it('Präpositionen für sich und mit Suffix (Grammatik 11b)', () => {
+    const hinter = wb.funde.find((f) => f.deutsch === 'hinter dem Haus')!;
+    expect(lateins(saetze('hinter dem Haus', { ohne: hinter }))).toContain(genau(hinter.latein));
+    // „mit dir“: die Formen aus der Tabelle „Präpositionen mit Pronominalsuffixen“
+    const tabelle = JSON.stringify(grammatik.seiten.find((x) => x.id === '1.11.2')!.bloecke);
+    const dir = saetze('mit dir');
+    expect(dir.map((r) => r.variante).sort()).toEqual(['zu einem Jungen', 'zu einem Mädchen']);
+    for (const l of lateins(dir)) expect(tabelle.includes(`"${l}"`), l).toBe(true);
+    expect(an.has('praeposition2') && an.has('praepsuffix')).toBe(true);
+  });
+
+  it('Vergangenheit: Perfekt und Präteritum = Präteritum aus der Verbtabelle (Grammatik 8a), lo + Vokal = l- (22e)', () => {
+    expect(lateins(saetze('ich habe gespielt'))).toContain(verb('spielen', 'Präteritum, Sg., 1. m.'));
+    expect(lateins(saetze('ich spielte'))).toEqual(lateins(saetze('ich habe gespielt')));
+    expect(lateins(saetze('er ist gekommen'))).toEqual([verb('kommen', 'Präteritum, Sg., 3. m.')]);
+    const nicht = saetze('er kam nicht')[0];
+    const lo = genau(nicht.stuecke[0].aus![0].fund.latein);
+    expect(genau(nicht.latein)).toBe(`${lo.replace(/[aeiouëä]+$/, '')}${verb('kommen', 'Präteritum, Sg., 3. m.')}`);
+    expect(finde('er kam nicht')?.getroffen).toBe(true);
+    expect(finde('ich legte ein Buch auf den Tisch')?.getroffen).toBe(true);
+    expect(an.has('praeteritum') && an.has('muster2')).toBe(true);
+  });
+
+  it('Pronomen als Objekt: L-Suffix an der Verbform (Formentabelle 4.9, Grammatik 22a)', () => {
+    const ko = kleinwort('Präsensmarker');
+    const tafel = (merkmal: string) => form('Verben mit Objektsuffixen', 'sehen', merkmal);
+    expect(lateins(saetze('Ich sehe dich', { ich: 'm' })).sort()).toEqual(
+      [`${ko}${tafel('Subjekt 1. m. sg., Objekt 2. m. sg.')}`, `${ko}${tafel('Subjekt 1. m. sg., Objekt 2. f. sg.')}`].sort(),
+    );
+    for (const d of ['er gibt mir das Buch', 'ich liebe ihn', 'Kannst du uns die Rechnung geben?']) expect(finde(d)?.getroffen, d).toBe(true);
+    expect(an.has('objektsuffix')).toBe(true);
+  });
+
+  it('trennbare Verben: „Kommst du mit?“, „Ich stehe auf“, „Ich bin mitgekommen“', () => {
+    const mit = saetze('Kommst du mit?');
+    expect(lateins(mit)).toEqual(lateins(saetze('Kommst du?')));
+    expect(mit[0].hinweise?.join(' ')).toMatch(/„mitkommen“ wie „kommen“/);
+    const auf = saetze('Ich stehe auf', { ich: 'm' });
+    expect(auf.length).toBeGreaterThan(0);
+    expect(auf[0].stuecke[0].aus?.some((t) => /aufstehen/.test(t.fund.deutsch))).toBe(true);
+    expect(saetze('Ich bin mitgekommen', { ich: 'f' }).length).toBeGreaterThan(0);
+  });
+
+  it('„meine Mutter“: eingeschränkte Reihe – auch als Subjekt und nach einer Präposition', () => {
+    const emi = lateins(saetze('meine Mutter'))[0];
+    expect(lateins(saetze('Meine Mutter ist müde'))[0]?.startsWith(`${emi} `)).toBe(true);
+    expect(lateins(saetze('Ich spiele mit meiner Mutter', { ich: 'm' })).every((l) => l.endsWith(` ${emi}`))).toBe(true);
+    expect(finde('sie ist meine Schwester')?.getroffen).toBe(true);
+    expect(an.has('possessiv2')).toBe(true);
+  });
+
+  it('Nebensatz mit „dass“ nach „wollen“: d + Subjunktiv (Grammatik 23d); „weil“ bleibt aus, solange kein Beleg sich bauen lässt', () => {
+    const kinder = wb.funde.find((f) => f.deutsch === 'Die Kinder wollen, dass wir ein neues Auto kaufen.')!;
+    expect(lateins(saetze(kinder.deutsch))).toContain(genau(kinder.latein));
+    expect(an.has('subjunktiv')).toBe(true);
+    expect(an.has('nebensatz')).toBe(false);
+    expect(saetze('Ich komme nicht, weil ich krank bin')).toEqual([]);
   });
 });
 
