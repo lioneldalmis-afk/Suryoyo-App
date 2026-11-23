@@ -204,23 +204,31 @@ function merkmalIndex(wb: Woerterbuch): MerkmalIndex {
       if (zahl) dazu(ws[i + 1], { fund: f, art: 'artikel', zahl, ...(g ? { geschlecht: g } : {}) });
     }
 
-    // Zusätze im Wortschatz und Glossar: „aḏno (f.), Pl. aḏne“, „ṭawwo – gut (m.Sg.)“
+    // Zusätze im Wortschatz und Glossar: „aḏno (f.), Pl. aḏne“, „ṭawwo – gut (m.Sg.)“,
+    // „rabo (m.), f. rabṯo, pl. rabe“ (so beschreibt das Vorwort des großen Glossars die Einträge)
     if (f.art === 'wort' && (f.herkunft === 'wortschatz' || f.herkunft === 'glossar' || f.herkunft === 'aussprache')) {
-      const text = `${f.latein} ${f.hinweis ?? ''}`;
+      const text = `${f.latein} ${f.hinweis ?? ''}`.replace(/\[[^\]]*\]/g, ' ');
       const [kopf, ...mehrzahl] = text.split(/\b[Pp]l\.\s/);
-      const imZusatz = geschlechtIn(kopf);
+      // „kayiwo, f. kayuto“: die weibliche Form – das Stichwort ist dann die männliche
+      const weiblich = /(?:^|[,\s])f\.\s+([^\s,;()]+)/u.exec(kopf)?.[1];
+      const imZusatz = geschlechtIn(kopf.replace(/(?:^|[,\s])f\.\s+[^\s,;()]+/u, ' '));
       // Die Bedeutung trägt das Geschlecht nur, wenn sie aus einzelnen Wörtern besteht („gut (m.Sg.)“, nicht „ich (f.) liebe dich (m.)“).
       const inBedeutung = /^[\p{L}-]+(?:, [\p{L}-]+)* \((?:m|f)\.\s?(?:Sg|Pl)?\.?\)$/u.test(f.deutsch.trim()) ? geschlechtIn(f.deutsch) : {};
-      const g = imZusatz.geschlecht ?? inBedeutung.geschlecht;
+      const g = imZusatz.geschlecht ?? inBedeutung.geschlecht ?? (weiblich ? 'm' : undefined);
       const zahl = imZusatz.zahl ?? inBedeutung.zahl;
       const stich = surWoerter(stichwort(f.latein));
       if (stich.length === 1 && (g || mehrzahl.length)) {
         // Das Stichwort ist die Einzahl, wenn eine Mehrzahl dabeisteht oder ein Geschlecht ohne „Pl.“
         dazu(stich[0], { fund: f, art: 'zusatz', zahl: zahl ?? 'sg', ...(g ? { geschlecht: g } : {}) });
       }
+      const wf = weiblich ? surWoerter(weiblich) : [];
+      if (stich.length === 1 && wf.length === 1) dazu(wf[0], { fund: f, art: 'zusatz', zahl: 'sg', geschlecht: 'f' });
+      // Adjektive mit männlicher und weiblicher Form haben „eine gemeinsame Pluralform“ (Grammatik 11a).
+      const adjektiv = !!weiblich && !grossGeschrieben(f.deutsch, bedeutungen(f.deutsch)[0] ?? '');
+      const gPl: Geschlecht | undefined = adjektiv ? 'mf' : weiblich ? undefined : g;
       for (const teil of mehrzahl.join(' ').replace(/\([^)]*\)/g, ' ').split(/[,;]/)) {
         const w = surWoerter(teil.replace(/^\s*[Pp]l\.\s*/, ''));
-        if (w.length === 1) dazu(w[0], { fund: f, art: 'zusatz', zahl: 'pl', ...(g ? { geschlecht: g } : {}) });
+        if (w.length === 1) dazu(w[0], { fund: f, art: 'zusatz', zahl: 'pl', ...(gPl ? { geschlecht: gPl } : {}) });
       }
     }
 
@@ -288,7 +296,7 @@ const eindeutig = <T,>(werte: (T | undefined)[]): T | undefined => {
  * Die Merkmale einer Schreibweise mit der Bedeutung aus `fund`, so wie das Lehrbuch
  * sie zeigt. `ohne`: diesen Eintrag nicht als Beleg nehmen (Gegenprobe).
  */
-export function merkmale(wb: Woerterbuch, s: Pick<Schreibweise, 'fund' | 'genau'>, ohne?: Fund): Merkmale {
+export function merkmale(wb: Woerterbuch, s: Pick<Schreibweise, 'fund' | 'genau'>, ohne?: Fund, bedeutung?: string): Merkmale {
   const alle = (merkmalIndex(wb).belege.get(s.genau) ?? []).filter((b) => b.fund !== ohne);
   // Verbformen: nur mit der Bedeutung eines Verbs („domax – schlafen“)
   const verb = s.fund.verb ? alle.filter((b) => b.art === 'verb' && b.fund.verb === s.fund.verb) : [];
@@ -303,7 +311,8 @@ export function merkmale(wb: Woerterbuch, s: Pick<Schreibweise, 'fund' | 'genau'
     return { wortart: 'zahl', ...(g ? { geschlecht: g } : {}), ...(zahl ? { zahl } : {}), belege: zahlen };
   }
   const nomen = alle.filter((b) => b.art !== 'verb');
-  const wort = bedeutungen(s.fund.deutsch)[0] ?? '';
+  // Die Wortart nach der gesuchten Bedeutung: „ġalṭo – Fehler; falsch, fehlerhaft“ ist bei „falsch“ kein Substantiv.
+  const wort = bedeutung && bedeutungen(s.fund.deutsch).includes(bedeutung) ? bedeutung : (bedeutungen(s.fund.deutsch)[0] ?? '');
   const wortart: Wortart = grossGeschrieben(s.fund.deutsch, wort) ? 'nomen' : 'anderes';
   // Der Artikel zählt nur bei Substantiven: „dat tre“ (der Zweite) macht „tre“ nicht zur Mehrzahl.
   const zaehlt = nomen.filter((b) => b.art !== 'artikel' || wortart === 'nomen');
@@ -312,18 +321,20 @@ export function merkmale(wb: Woerterbuch, s: Pick<Schreibweise, 'fund' | 'genau'
   return { wortart, ...(g ? { geschlecht: g } : {}), ...(zahl ? { zahl } : {}), belege: zaehlt };
 }
 
-const merkmalCache = new WeakMap<Woerterbuch, Map<Schreibweise, Merkmale>>();
+const merkmalCache = new WeakMap<Woerterbuch, Map<Schreibweise, Map<string, Merkmale>>>();
 
 /**
  * Wie `merkmale`, aber zwischengespeichert: Der ausgeblendete Eintrag zählt nur,
  * wenn er wirklich ein Beleg für dieses Wort ist (das spart in der Gegenprobe Zeit).
  */
-export function merkmaleMitCache(wb: Woerterbuch, s: Schreibweise, ohne?: Fund): Merkmale {
-  if (ohne && (merkmalIndex(wb).belege.get(s.genau) ?? []).some((b) => b.fund === ohne)) return merkmale(wb, s, ohne);
+export function merkmaleMitCache(wb: Woerterbuch, s: Schreibweise, ohne?: Fund, bedeutung = ''): Merkmale {
+  if (ohne && (merkmalIndex(wb).belege.get(s.genau) ?? []).some((b) => b.fund === ohne)) return merkmale(wb, s, ohne, bedeutung || undefined);
   let cache = merkmalCache.get(wb);
   if (!cache) merkmalCache.set(wb, (cache = new Map()));
-  let m = cache.get(s);
-  if (!m) cache.set(s, (m = merkmale(wb, s)));
+  let proWort = cache.get(s);
+  if (!proWort) cache.set(s, (proWort = new Map()));
+  let m = proWort.get(bedeutung);
+  if (!m) proWort.set(bedeutung, (m = merkmale(wb, s, undefined, bedeutung || undefined)));
   return m;
 }
 
@@ -539,11 +550,11 @@ export function tausche(wb: Woerterbuch, anfrage: string, opt: Optionen = {}): Z
     if (!belege.length || belege.some((b) => b.deutsch === luecke)) continue;
     for (const kandidat of kandidaten(wb, luecke)) {
       if (kandidat.fund === opt.ohne) continue;
-      const neu = merkmale(wb, kandidat, opt.ohne);
+      const neu = merkmale(wb, kandidat, opt.ohne, luecke);
       if (!vollstaendig(neu)) continue;
       // Gleich gebaut wie: ein Beleg mit einem gleichartigen Wort an der Lücke
       const passend = belege
-        .map((b) => ({ b, m: merkmale(wb, b.wort, opt.ohne) }))
+        .map((b) => ({ b, m: merkmale(wb, b.wort, opt.ohne, b.deutsch) }))
         .filter(({ m }) => vollstaendig(m) && schluesselVon(m) === schluesselVon(neu))
         .sort((x, y) => Number(!!y.b.fund.audio) - Number(!!x.b.fund.audio) || x.b.fund.latein.length - y.b.fund.latein.length);
       const vorlage = passend[0];

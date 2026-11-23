@@ -8,10 +8,11 @@ export default defineConfig({
   base: './',
   // Alle Lektionen stecken bewusst mit im App-Code, damit sie offline da sind
   // (etwa 190 KB komprimiert). Die Standardwarnung ab 500 KB ist deshalb höher gesetzt.
-  // Glossar (etwa 60 KB komprimiert) und Grammatik mit Verb- und Formentabellen
-  // (etwa 145 KB) sind eigene Teile, die erst beim Öffnen des Übersetzers geladen
-  // werden; der Service Worker legt sie trotzdem ab.
-  build: { chunkSizeWarningLimit: 1400 },
+  // Glossar A (etwa 60 KB komprimiert), das große Glossar (etwa 190 KB) und die
+  // Grammatik mit Verb- und Formentabellen samt Level B (etwa 240 KB) sind eigene
+  // Teile, die erst beim Öffnen des Übersetzers geladen werden; der Service Worker
+  // legt sie trotzdem ab.
+  build: { chunkSizeWarningLimit: 2200 },
   plugins: [
     react(),
     VitePWA({
@@ -46,6 +47,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+        // Die Grammatik ist unkomprimiert knapp 2 MB – sonst fiele sie ab 2 MiB still aus dem Offline-Speicher.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),
   ],

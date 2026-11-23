@@ -1,7 +1,21 @@
 // Deutsche Grammatik für den Baukasten: Wer spricht, welche Verbform, welche Mehrzahl.
 
 import { describe, expect, it } from 'vitest';
-import { einzahlKandidaten, possessiv, praeposition, praesens, subjekt, SEIN, zerlegeDeutsch } from './deutsch';
+import {
+  einzahlKandidaten,
+  istBegleiter,
+  modalFuerDritte,
+  modalVon,
+  possessiv,
+  praeposition,
+  praesens,
+  subjekt,
+  SEIN,
+  SYNONYME,
+  synonymeVon,
+  zerlegeDeutsch,
+  zerlegeSatz,
+} from './deutsch';
 
 describe('Deutsch: Präsens', () => {
   it('regelmäßig, stark und mit Vorsilbe', () => {
@@ -55,5 +69,43 @@ describe('Deutsch: Wörter', () => {
     expect(zerlegeDeutsch('ihre (Pl.) Bücher')).toEqual([{ w: 'ihre', hinweis: 'pl' }, { w: 'bücher' }]);
     expect(zerlegeDeutsch('(dass) wir machen').map((t) => t.w)).toEqual(['dass', 'wir', 'machen']);
     expect(zerlegeDeutsch('Ich bin müde!').map((t) => t.w)).toEqual(['ich', 'bin', 'müde']);
+  });
+});
+
+describe('Deutsch: ganze Sätze (Phase 4b, Schritt 7b)', () => {
+  it('Modalverben: „möchten“ und „mögen“ wie „wollen“, „dürfen“ wie „können“', () => {
+    expect(modalVon('wir', 'wollen')).toEqual([{ modal: 'wollen', deutsch: 'wollen', personen: [{ p: 1, zahl: 'pl' }] }]);
+    expect(modalVon('ich', 'möchte').map((m) => m.modal)).toEqual(['wollen']);
+    expect(modalVon('du', 'darfst').map((m) => m.modal)).toEqual(['können']);
+    expect(modalVon('sie', 'kann')[0].personen).toEqual([{ p: 3, zahl: 'sg', g: 'f' }]);
+    expect(modalFuerDritte('müssen')).toEqual([{ modal: 'müssen', deutsch: 'müssen', zahl: 'pl' }]);
+    expect(modalVon('ich', 'gehe')).toEqual([]);
+  });
+
+  it('Satz zerlegen: Fragezeichen, Teilsätze an „und“, „oder“, Kommas, Füllwörter weg, Wendungen', () => {
+    const s = zerlegeSatz('Ich bin krank und kann nicht kommen.');
+    expect(s.frage).toBe(false);
+    expect(s.teile.map((t) => [t.verbindung, t.tokens.map((x) => x.w).join(' ')])).toEqual([
+      [undefined, 'ich bin krank'],
+      ['und', 'kann nicht kommen'],
+    ]);
+    expect(s.alle.map((x) => x.w)).toContain('und');
+    const f = zerlegeSatz('Kommst du mal morgen?');
+    expect(f.frage).toBe(true);
+    expect(f.ausgelassen).toEqual(['mal']);
+    expect(f.teile[0].tokens.map((x) => x.w)).toEqual(['kommst', 'du', 'morgen']);
+    const h = zerlegeSatz('Er ist zu Hause');
+    expect(h.teile[0].tokens.map((x) => x.w)).toEqual(['er', 'ist', 'im', 'haus']);
+    expect(h.ersetzt).toEqual(['„zu Hause“ wie „im Haus“']);
+    expect(zerlegeSatz('Was sagst du, sollen wir essen?').teile).toHaveLength(2);
+  });
+
+  it('gleichbedeutende Wörter und Begleiter, die keine Adjektive sind', () => {
+    expect(synonymeVon('Kumpel')).toEqual(['freund']);
+    expect(synonymeVon('schlafen')).toEqual([]);
+    // Keine Liste verweist nur auf sich selbst
+    for (const [w, liste] of Object.entries(SYNONYME)) expect(liste.filter((x) => x !== w).length, w).toBeGreaterThan(0);
+    for (const w of ['diese', 'jeder', 'alle', 'vielen']) expect(istBegleiter(w), w).toBe(true);
+    for (const w of ['großen', 'lange', 'müde']) expect(istBegleiter(w), w).toBe(false);
   });
 });

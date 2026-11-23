@@ -116,6 +116,54 @@ export interface Glossar {
   eintraege: GlossarEintrag[];
 }
 
+// --- Großes Glossar, Teil 5 des Lehrbuchs (Fahrplan, Phase 4b, Schritt 7) ---------------
+
+/** Ein Beispiel aus dem großen Glossar, wörtlich, mit Fundstelle („L.19“, „Q.4,43“, „G.20“). */
+export interface GlossarBeispiel {
+  latein: string;
+  syrisch: string;
+  deutsch: string;
+  verweis?: string;
+}
+
+/** Eine Bedeutung (⑴, ⑵ …) mit ihren Beispielen. */
+export interface GlossarSinn {
+  deutsch: string;
+  beispiele: GlossarBeispiel[];
+}
+
+/**
+ * Ein Eintrag aus „Surayt > Deutsch“ (Teil 5.1), wörtlich: der Kopf mit seinen Zusätzen
+ * („rabo (m.), f. rabṯo, pl. rabe“, „goraš, guršo - grëšle, grëšla [grš I]“).
+ */
+export interface GrossEintrag {
+  id: string;
+  latein: string;
+  /** Gleich geschriebene Stichwörter sind im Glossar nummeriert („kët¹“, „kët²“). */
+  nr?: number;
+  syrisch: string;
+  /** Fundstellen im Kopf: „L.4“, „G.9a“, „Q.9,2“ */
+  verweise?: string[];
+  sinne: GlossarSinn[];
+  /** Querverweise: „→ hiw, mitahwe“, „= kito“ */
+  siehe?: string;
+  /** Untereinträge (eingerückt) gehören zu diesem Haupteintrag. */
+  unter?: string;
+}
+
+/** Eine Zeile der Wortliste „Deutsch > Surayt“ (Teil 5.2). */
+export interface WortlistenZeile {
+  deutsch: string;
+  latein: string[];
+  voll: string;
+}
+
+export interface GrossesGlossar {
+  quelle: { name: string; url: string; abgerufen: string };
+  eintraege: GrossEintrag[];
+  wortliste: WortlistenZeile[];
+}
+
 // --- Grammatik, Verb- und Formentabellen (Fahrplan, Phase 4b, Schritt 2) ---------------
 
 /** Ein Teil einer Tabellenzelle: Text mit eigener Aufnahme (oder eine Zeile ohne). */

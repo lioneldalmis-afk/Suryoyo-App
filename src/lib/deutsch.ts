@@ -223,6 +223,29 @@ export function possessiv(wort: string): Person[] | undefined {
   return POSSESSIV.find(([muster]) => muster.test(wort))?.[1];
 }
 
+/**
+ * Begleiter, die wie Adjektive gebeugt werden, aber keine sind: „diese Familie“, „jeder Tag“,
+ * „alle Kinder“. Sie stehen im Surayt anders (Demonstrativ, kul …) – nicht als Adjektiv bauen.
+ */
+export const istBegleiter = (wort: string) =>
+  /^(?:dies|jen|welch|solch|manch|jed)(?:er|e|es|en|em)?$|^(?:all|viel|einig|beid|mehrer|wenig|ander)(?:e|en|em|er|es)?$/.test(wort.toLowerCase());
+
+/**
+ * Verwandtschaftsbezeichnungen und Körperteile auf Deutsch. Für sie gilt im Surayt die
+ * eingeschränkte Reihe der Possessivsuffixe (Grammatik 5a.2) – der Baukasten erkennt sie
+ * daran, auch wenn ein Wort nicht im Wortschatz der Lektionen 4 und 7 steht („qarco – Kopf“).
+ */
+export const FAMILIE_KOERPER = new Set(
+  (
+    'vater mutter eltern bruder schwester sohn tochter kind kinder onkel tante cousin cousine neffe nichte enkel enkelin ' +
+    'großvater großmutter opa oma oma opa schwager schwägerin schwiegervater schwiegermutter schwiegersohn schwiegertochter ' +
+    'ehemann ehefrau gatte gattin verwandte verwandter familie ' +
+    'kopf gesicht haar haare auge augen ohr ohren nase mund lippe lippen zahn zähne zunge hals nacken schulter schultern ' +
+    'arm arme hand hände finger daumen brust bauch rücken bein beine knie fuß füße zeh zehe zehen herz lunge leber niere nieren ' +
+    'magen blut haut knochen gehirn stirn wange kinn bart körper seele'
+  ).split(' '),
+);
+
 /** Ist der Begleiter „die“ oder ein Possessiv auf -e („meine“) – dann kann das Substantiv auch Mehrzahl sein. */
 export const begleiterAuchMehrzahl = (wort: string) => AUCH_MEHRZAHL.has(wort) || (!!possessiv(wort) && /e$/.test(wort));
 
@@ -293,4 +316,301 @@ export function zerlegeDeutsch(text: string): DeToken[] {
     aus.push({ w: m[0].toLowerCase() });
   }
   return aus;
+}
+
+// --- Ganze Sätze (Phase 4b, Schritt 7b) -------------------------------------------------------
+//
+// Damit der Übersetzer Alltagssätze versteht („Wollen wir Fußball spielen?“, „Ich bin krank
+// und kann nicht kommen.“): Modalverben, Fragen, Verneinung, Zeitangaben, Sätze mit „und“
+// und gleichbedeutende Wörter. Auch hier nur Deutsch.
+
+export type Modalverb = 'wollen' | 'können' | 'müssen' | 'sollen';
+
+/**
+ * Modalverben im Präsens. „dürfen“ ist im Surayt dasselbe wie „können“, „mögen“ (mit Verb)
+ * dasselbe wie „wollen“ (Grammatik 20c); „möchten“ ist die höfliche Form von „mögen“.
+ */
+const MODAL_FORMEN: [string, Modalverb, string[]][] = [
+  ['wollen', 'wollen', GANZ.wollen],
+  ['möchten', 'wollen', ['möchte', 'möchtest', 'möchte', 'möchten', 'möchtet', 'möchten']],
+  ['mögen', 'wollen', GANZ.mögen],
+  ['können', 'können', GANZ.können],
+  ['dürfen', 'können', GANZ.dürfen],
+  ['müssen', 'müssen', GANZ.müssen],
+  ['sollen', 'sollen', GANZ.sollen],
+];
+
+/** Welches Modalverb und welche Personen passen zu Pronomen und Verbform? „wir möchten“ → wollen, wir. */
+export function modalVon(pronomen: string, verb: string): { modal: Modalverb; deutsch: string; personen: Person[] }[] {
+  return MODAL_FORMEN.flatMap(([deutsch, modal, formen]) => {
+    const personen = subjekt(pronomen, verb, formen);
+    return personen.length ? [{ modal, deutsch, personen }] : [];
+  });
+}
+
+/** Ist das Wort eine Form eines Modalverbs (für eine dritte Person, z. B. „der Lehrer will“)? */
+export function modalFuerDritte(verb: string): { modal: Modalverb; deutsch: string; zahl: 'sg' | 'pl' }[] {
+  return MODAL_FORMEN.flatMap(([deutsch, modal, formen]) => [
+    ...(formen[2] === verb ? [{ modal, deutsch, zahl: 'sg' as const }] : []),
+    ...(formen[5] === verb ? [{ modal, deutsch, zahl: 'pl' as const }] : []),
+  ]);
+}
+
+/** Alle deutschen Verbformen der Hilfs- und Modalverben – um Fragen („Kommst du …?“) umzustellen. */
+export const HILFSFORMEN = new Set([...SEIN, ...WAR, ...HABEN, ...WERDEN, ...MODAL_FORMEN.flatMap(([, , f]) => f)]);
+
+/** Fragewörter am Satzanfang (Grammatik 24a). */
+export const FRAGEWOERTER = new Set([
+  'wo', 'was', 'wann', 'wie', 'warum', 'wieso', 'weshalb', 'weswegen', 'wer', 'wen', 'wem', 'woher', 'wohin',
+  'welche', 'welcher', 'welches', 'welchen', 'welchem', 'womit', 'wofür', 'wozu',
+]);
+
+/**
+ * Zeitangaben, die in die Zukunft weisen. Das Lehrbuch übersetzt ein deutsches Präsens dann
+ * mit dem Futur („Šmuni, mën gëd saymat ramḥël? – Šmuni, was machst du morgen?“, Lektion 8).
+ */
+export const ZUKUNFT = new Set(['morgen', 'übermorgen', 'bald', 'später', 'nachher', 'demnächst']);
+
+/**
+ * Wörtchen, die im Deutschen nur färben und im Surayt kein eigenes Wort haben – der Übersetzer
+ * lässt sie weg und sagt es dazu („Kommst du mal?“ → wie „Kommst du?“).
+ */
+export const FUELLWOERTER = new Set(['mal', 'doch', 'denn', 'halt', 'eben', 'eigentlich', 'wohl', 'einfach', 'echt', 'bitte', 'gerne', 'gern']);
+
+/**
+ * Gleichbedeutende deutsche Wörter (Umgangssprache, Synonyme): Steht ein Wort nicht im
+ * Lehrbuch, versucht der Übersetzer diese – der Reihe nach – und sagt dazu, was er genommen
+ * hat. Nur Deutsch; ob es das Wort auf Surayt gibt, entscheiden die Daten.
+ */
+export const SYNONYME: Record<string, string[]> = {
+  // Verben
+  gucken: ['schauen', 'sehen'],
+  kucken: ['schauen', 'sehen'],
+  schauen: ['sehen'],
+  anschauen: ['sehen'],
+  angucken: ['sehen'],
+  kriegen: ['bekommen'],
+  erhalten: ['bekommen'],
+  quatschen: ['sprechen', 'reden'],
+  reden: ['sprechen'],
+  plaudern: ['sprechen'],
+  unterhalten: ['sprechen'],
+  futtern: ['essen'],
+  speisen: ['essen'],
+  pennen: ['schlafen'],
+  kapieren: ['verstehen'],
+  begreifen: ['verstehen'],
+  zocken: ['spielen'],
+  laufen: ['gehen'],
+  rennen: ['laufen'],
+  fahren: ['gehen'],
+  wohnen: ['leben'],
+  heimkommen: ['kommen'],
+  besorgen: ['kaufen'],
+  schenken: ['geben'],
+  jobben: ['arbeiten'],
+  schaffen: ['arbeiten'],
+  beginnen: ['anfangen'],
+  anfangen: ['beginnen'],
+  losgehen: ['anfangen'],
+  aufhören: ['beenden'],
+  enden: ['aufhören'],
+  lieben: ['mögen'],
+  gernhaben: ['lieben', 'mögen'],
+  heulen: ['weinen'],
+  telefonieren: ['anrufen'],
+  anrufen: ['telefonieren'],
+  erzählen: ['sagen'],
+  meinen: ['sagen', 'denken'],
+  glauben: ['denken'],
+  // Substantive
+  kumpel: ['freund'],
+  kumpels: ['freunde'],
+  bub: ['junge'],
+  bube: ['junge'],
+  kerl: ['mann'],
+  typ: ['mann'],
+  mama: ['mutter'],
+  mutti: ['mutter'],
+  papa: ['vater'],
+  vati: ['vater'],
+  oma: ['großmutter'],
+  omi: ['großmutter'],
+  opa: ['großvater'],
+  opi: ['großvater'],
+  kids: ['kinder'],
+  gör: ['kind'],
+  baby: ['kind'],
+  wagen: ['auto'],
+  karre: ['auto'],
+  handy: ['telefon'],
+  smartphone: ['telefon'],
+  wohnung: ['haus'],
+  bude: ['zimmer'],
+  kohle: ['geld'],
+  knete: ['geld'],
+  kaff: ['dorf'],
+  laden: ['geschäft'],
+  mahlzeit: ['essen'],
+  abendbrot: ['abendessen'],
+  getränk: ['trinken'],
+  bursche: ['junge'],
+  mädel: ['mädchen'],
+  gattin: ['frau'],
+  ehefrau: ['frau'],
+  ehemann: ['mann'],
+  gatte: ['mann'],
+  // Adjektive und Adverbien
+  super: ['gut', 'schön'],
+  toll: ['schön', 'gut'],
+  klasse: ['gut'],
+  prima: ['gut'],
+  cool: ['gut'],
+  okay: ['gut'],
+  ok: ['gut'],
+  lecker: ['schmackhaft'],
+  hübsch: ['schön'],
+  prächtig: ['schön'],
+  riesig: ['groß'],
+  winzig: ['klein'],
+  mies: ['schlecht'],
+  übel: ['schlecht'],
+  kaputt: ['müde'],
+  erschöpft: ['müde'],
+  fertig: ['müde'],
+  froh: ['glücklich'],
+  happy: ['glücklich'],
+  sauer: ['böse'],
+  wütend: ['böse'],
+  eklig: ['schlecht'],
+  gemeinsam: ['zusammen'],
+  nun: ['jetzt'],
+  grad: ['jetzt'],
+  gerade: ['jetzt'],
+  sofort: ['gleich'],
+  heuer: ['dieses jahr'],
+};
+
+/**
+ * Deutsche Wendungen, die das Lehrbuch wörtlich übersetzt: „zu Hause“ wie „im Haus“ (bu bayto),
+ * „nach Hause“ wie „ins Haus“ (lu bayto) – so stehen sie in den Sätzen des Lehrbuchs
+ * („Kale bu bayto – Er ist (gerade) zu Hause“, „Lazëm yo d ëzzux lu bayto – Du musst nach Hause gehen“).
+ */
+export const WENDUNGEN: [string, string, string][] = [
+  ['zu hause', 'im haus', '„zu Hause“ wie „im Haus“'],
+  ['zuhause', 'im haus', '„zuhause“ wie „im Haus“'],
+  ['daheim', 'im haus', '„daheim“ wie „im Haus“'],
+  ['nach hause', 'ins haus', '„nach Hause“ wie „ins Haus“'],
+  ['heim', 'ins haus', '„heim“ wie „ins Haus“'],
+];
+
+/** Gleichbedeutende Wörter zu einem deutschen Wort (ohne das Wort selbst). */
+export function synonymeVon(wort: string): string[] {
+  const w = wort.toLowerCase();
+  return (SYNONYME[w] ?? []).filter((x) => x !== w);
+}
+
+/** Ein Teilsatz: seine Wörter und das Bindewort davor („und“, „aber“, „oder“). */
+export interface DeTeilsatz {
+  verbindung?: 'und' | 'aber' | 'oder';
+  tokens: DeToken[];
+}
+
+/** Ein deutscher Satz, für den Baukasten vorbereitet. */
+export interface DeSatz {
+  /** Endet mit „?“ */
+  frage: boolean;
+  teile: DeTeilsatz[];
+  /** Alle Wörter (ohne Füllwörter), auch die Bindewörter – für „Saro und Aday wollen …“ */
+  alle: DeToken[];
+  /** Weggelassene Füllwörter („mal“, „doch“ …) */
+  ausgelassen: string[];
+  /** Wendungen, die wörtlich übersetzt werden: „„zu Hause“ wie „im Haus““ */
+  ersetzt: string[];
+}
+
+const BINDEWORT = new Set(['und', 'aber', 'oder']);
+
+/**
+ * Bereitet einen deutschen Satz vor: Fragezeichen merken, Füllwörter weglassen, an „und“,
+ * „aber“, „oder“ und Kommas in Teilsätze trennen. Ob ein Teil ein ganzer Satz ist, entscheidet
+ * der Baukasten.
+ */
+export function zerlegeSatz(text: string): DeSatz {
+  const frage = /\?\s*$/.test(text);
+  const ausgelassen: string[] = [];
+  const teile: DeTeilsatz[] = [];
+  const alle: DeToken[] = [];
+  let aktuell: DeTeilsatz = { tokens: [] };
+  for (const stueck of text.split(/[,;]/)) {
+    if (aktuell.tokens.length) {
+      teile.push(aktuell);
+      aktuell = { tokens: [] };
+    }
+    for (const t of zerlegeDeutsch(stueck)) {
+      if (FUELLWOERTER.has(t.w)) {
+        ausgelassen.push(t.w);
+        continue;
+      }
+      alle.push(t);
+      if (BINDEWORT.has(t.w)) {
+        if (aktuell.tokens.length) teile.push(aktuell);
+        aktuell = { verbindung: t.w as DeTeilsatz['verbindung'], tokens: [] };
+        continue;
+      }
+      aktuell.tokens.push(t);
+    }
+  }
+  if (aktuell.tokens.length) teile.push(aktuell);
+  const ersetzt: string[] = [];
+  const wendungen = (t: DeToken[]) => {
+    let w = t.map((x) => x.w).join(' ');
+    for (const [von, zu, anzeige] of WENDUNGEN) {
+      const re = new RegExp(`(?<![\\p{L}])${von}(?![\\p{L}])`, 'u');
+      if (re.test(w)) {
+        w = w.replace(re, zu);
+        ersetzt.push(anzeige);
+      }
+    }
+    return w.split(' ').filter(Boolean).map((x) => ({ w: x }) as DeToken);
+  };
+  // Hinweise aus Klammern („dein (f.)“) bleiben nur, wo nichts ersetzt wurde
+  const mitWendungen = (t: DeToken[]) => (WENDUNGEN.some(([von]) => ` ${t.map((x) => x.w).join(' ')} `.includes(` ${von} `)) ? wendungen(t) : t);
+  return {
+    frage,
+    teile: teile.map((x) => ({ ...x, tokens: mitWendungen(x.tokens) })),
+    alle: mitWendungen(alle),
+    ausgelassen,
+    ersetzt: [...new Set(ersetzt)],
+  };
+}
+
+/**
+ * Mögliche Grundformen eines deutschen Wortes, für die Suche nach einzelnen Wörtern:
+ * Verbformen („spielst“, „gespielt“, „isst“, „kann“) → Infinitiv, Mehrzahl → Einzahl,
+ * gebeugte Adjektive → Grundform. Ob es das Wort gibt, entscheiden die Daten.
+ */
+export function grundformen(wort: string): string[] {
+  const w = wort.toLowerCase();
+  const aus = new Set<string>();
+  // Hilfs- und Modalverben, starke Verben (Listen oben)
+  for (const [inf, formen] of Object.entries(GANZ)) if (formen.includes(w)) aus.add(inf);
+  for (const [inf, [du, er]] of Object.entries(UNREGELMAESSIG)) if (w === du || w === er) aus.add(inf);
+  if (['möchte', 'möchtest', 'möchten', 'möchtet'].includes(w)) aus.add('wollen');
+  // Partizip „gespielt“, „gegessen“ → spielen, essen
+  const ge = /^ge(.+?)(?:t|et|en)$/.exec(w);
+  if (ge && ge[1].length >= 2) {
+    aus.add(`${ge[1]}en`);
+    aus.add(`${ge[1]}n`);
+  }
+  // Präsens und Präteritum regelmäßiger Verben: „spiele“, „spielst“, „spielt“, „spielte“, „spielten“
+  const stamm = /^(.{2,}?)(?:e|st|est|t|et|te|ten|test|tet)$/.exec(w);
+  if (stamm) {
+    aus.add(`${stamm[1]}en`);
+    aus.add(`${stamm[1]}n`);
+  }
+  for (const x of einzahlKandidaten(w)) aus.add(x);
+  for (const x of adjektivKandidaten(w)) aus.add(x);
+  aus.delete(w);
+  return [...aus];
 }

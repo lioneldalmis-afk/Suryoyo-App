@@ -119,8 +119,10 @@ function formenVon(f: Fund): { einzeln: { genau: string; ganz: boolean }[]; wend
     } else if (mitWendung && w.length <= 12) wendungen.push(w);
   };
 
-  if (f.herkunft === 'glossar') {
+  if (f.herkunft === 'glossar' && f.art === 'wort') {
+    // „obac, ëbco - abëc, abico [ʾbc I]“: Die Wurzel in eckigen Klammern ist kein Wort.
     ohneKlammern(f.latein)
+      .replace(/\[[^\]]*\]/g, ' ')
       .split(/\s+[-–]\s+|[,;]/)
       .forEach((teil, i) => nimm(teil.replace(/^.*:/, ''), i === 0, !/[:+]/.test(teil)));
   } else if (f.herkunft === 'wortschatz' || f.herkunft === 'aussprache') {
